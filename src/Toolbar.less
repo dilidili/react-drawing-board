@@ -1,0 +1,42 @@
+:local(.container) {
+  display: flex;
+  height: 54px;
+  background: rgba(255, 255, 255, 1);
+  box-shadow:-3px 0px 13px 0px rgba(0, 0, 0, 0.08);
+  border-radius: 3px 3px 0px 0px;
+  padding-left: 21px;
+}
+
+:local(.icon) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 100%;
+  cursor: pointer;
+  margin: 0 7px;
+
+  svg {
+    width: 20px;
+    height: 20px;
+    margin-bottom: 2px;
+    fill: #926dea;
+  }
+
+  &:hover {
+    background: rgba(238, 238, 238, 1);
+  }
+}
+
+:local(.iconLabel) {
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgba(102, 102, 102, 1);
+  line-height: 17px;
+}
+
+:local(.activeIcon) {
+  background: rgba(238, 238, 238, 1);
+}
