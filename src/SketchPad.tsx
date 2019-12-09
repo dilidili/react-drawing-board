@@ -1,18 +1,28 @@
-import React, { useRef, useEffect, useState, MouseEvent } from 'react';
-import Tool from './enums/Tool';
+import React, { useRef, useEffect, useState, MouseEvent, CSSProperties } from 'react';
+import Tool, { ToolOption } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
-import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp } from './StrokeTool';
+import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Position, OperationData } from './StrokeTool';
+import { v4 } from 'uuid';
+import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
 import styles from './SketchPad.less';
 
 export interface SketchPadProps {
   currentTool: Tool;
   setCurrentTool: (tool: Tool) => void;
+  currentToolOption: ToolOption;
+  userId: string;
 }
+
+type Operation = OperationData & {
+  id: string;
+  userId: string;
+  timestamp: number;
+};
 
 const DPR = window.devicePixelRatio || 1;
 
 const SketchPad: React.FC<SketchPadProps> = (props) => {
-  const { currentTool, setCurrentTool } = props;
+  const { currentTool, setCurrentTool, userId, currentToolOption } = props;
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
 
@@ -20,6 +30,8 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
   // b  d  f
   // 0  0  1
   const [viewMatrix, setViewMatrix] = useState([1, 0, 0, 1, 0, 0]);
+
+  const [operationList, setOperationList] = useState<Operation[]>([]);
 
   const saveGlobalTransform = () => {
     if (!refContext.current) return;
@@ -34,10 +46,52 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
 
   const restoreGlobalTransform = () => {
     if (!refContext.current) return;
-
     const context = refContext.current;
 
     context.restore();
+  }
+
+  const renderOperations = (operations: Operation[]) => {
+    if (!refContext.current) return;
+    const context = refContext.current;
+
+    // clear canvas
+    context.setTransform(1, 0, 0, 1, 0, 0);
+    context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+
+    saveGlobalTransform();
+    operations.forEach((operation) => {
+      switch (operation.tool) {
+        case Tool.Stroke:
+          drawStroke(operation, context);
+          break
+        default:
+          break
+      }
+    });
+    restoreGlobalTransform();
+  }
+
+  const handleCompleteOperation = (tool?: Tool, data?: OperationData, pos?: Position) => {
+    if (!tool) {
+      renderOperations(operationList);
+    }
+
+    const message = Object.assign({}, data, {
+      id: v4(),
+      userId,
+      timestamp: Date.now(),
+    });
+
+    let newOperationList = operationList;
+    switch(tool) {
+      default:
+        newOperationList = operationList.concat([message]);
+        break;
+    }
+
+    setOperationList(newOperationList);
+    renderOperations(newOperationList);
   }
 
   const onMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -47,7 +101,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
 
     switch (currentTool) {
       case Tool.Stroke:
-        onStrokeMouseDown(x, y);
+        onStrokeMouseDown(x, y, currentToolOption);
         break
       default:
         break
@@ -73,7 +127,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
   const onMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
     switch (currentTool) {
       case Tool.Stroke: {
-        refContext.current && onStrokeMouseUp(setCurrentTool);
+        refContext.current && onStrokeMouseUp(setCurrentTool, handleCompleteOperation);
         break
       }
       default:
@@ -95,6 +149,11 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
     }
   }, []);
 
+  const canvasStyle: CSSProperties  = {};
+  if (currentTool === Tool.Stroke) {
+    canvasStyle.cursor = `url(${sketchStrokeCursor}) 0 14, crosshair`;
+  }
+
   return (
     <div className={styles.container}>
       <canvas
@@ -103,6 +162,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
         className={styles.canvas}
+        style={canvasStyle}
       />
     </div>
   );

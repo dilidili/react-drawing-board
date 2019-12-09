@@ -12,12 +12,17 @@
     "dev": "umi dev"
   },
   "dependencies": {
+    "antd": "^3.26.0",
     "classnames": "^2.2.6",
-    "react": ">=16.0.0"
+    "react": ">=16.0.0",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
+    "@types/classnames": "^2.2.9",
+    "@types/uuid": "^3.4.6",
     "umi": "^2.9.0",
     "umi-plugin-block-dev": "^2.0.0",
+    "umi-plugin-react": "^1.14.8",
     "umi-types": "^0.3.0"
   },
   "license": "MIT"
