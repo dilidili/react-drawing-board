@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useState, MouseEvent, CSSProperties } from 'react';
 import Tool, { ToolOption } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
-import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Position, OperationData } from './StrokeTool';
+import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Position, Stroke } from './StrokeTool';
+import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle } from './ShapeTool';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
 import styles from './SketchPad.less';
@@ -13,7 +14,7 @@ export interface SketchPadProps {
   userId: string;
 }
 
-type Operation = OperationData & {
+type Operation = (Stroke | Shape) & {
   id: string;
   userId: string;
   timestamp: number;
@@ -63,7 +64,10 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
     operations.forEach((operation) => {
       switch (operation.tool) {
         case Tool.Stroke:
-          drawStroke(operation, context);
+          drawStroke(operation as Stroke, context);
+          break
+        case Tool.Shape:
+          drawRectangle(operation as Shape, context);
           break
         default:
           break
@@ -72,7 +76,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
     restoreGlobalTransform();
   }
 
-  const handleCompleteOperation = (tool?: Tool, data?: OperationData, pos?: Position) => {
+  const handleCompleteOperation = (tool?: Tool, data?: Operation, pos?: Position) => {
     if (!tool) {
       renderOperations(operationList);
     }
@@ -103,6 +107,9 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
       case Tool.Stroke:
         onStrokeMouseDown(x, y, currentToolOption);
         break
+      case Tool.Shape:
+        onShapeMouseDown(x, y, currentToolOption);
+        break
       default:
         break
     }
@@ -111,13 +118,21 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
   const onMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
     if (!refCanvas.current) return null;
 
+    const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);
+
     switch (currentTool) {
       case Tool.Stroke: {
-        const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);
         saveGlobalTransform();
         refContext.current && onStrokeMouseMove(x, y, refContext.current);
         restoreGlobalTransform();
-        break
+        break;
+      }
+      case Tool.Shape: {
+        renderOperations(operationList);
+        saveGlobalTransform();
+        refContext.current && onShapeMouseMove(x, y, refContext.current);
+        restoreGlobalTransform();
+        break;
       }
       default:
         break
@@ -125,9 +140,16 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
   };
 
   const onMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
+    if (!refCanvas.current) return null;
+
     switch (currentTool) {
       case Tool.Stroke: {
         refContext.current && onStrokeMouseUp(setCurrentTool, handleCompleteOperation);
+        break
+      }
+      case Tool.Shape: {
+        const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);
+        refContext.current && onShapeMouseUp(x, y, setCurrentTool, handleCompleteOperation);
         break
       }
       default:

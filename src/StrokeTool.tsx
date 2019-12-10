@@ -8,7 +8,7 @@ interface Point {
   y: number,
 }
 
-interface Stroke {
+export interface Stroke {
   tool: Tool,
   color: string,
   size: number,
@@ -21,8 +21,6 @@ export interface Position {
   w: number;
   h: number;
 }
-
-export type OperationData = Stroke;
 
 // Stroke tool
 let stroke: Stroke | null = null;
@@ -46,12 +44,11 @@ const drawLine = (context: CanvasRenderingContext2D, item: Stroke, start: Point,
   context.stroke();
 };
 
-export const drawStroke = (stroke: OperationData, context: CanvasRenderingContext2D) => {
+export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D) => {
   const points = stroke.points.filter((_, index) => index % 2);
   if (points.length < 3) {
     return;
   };
-
 
   context.lineJoin = 'round';
   context.lineCap = 'round';
@@ -99,7 +96,7 @@ export function onStrokeMouseMove(x: number, y: number, context: CanvasRendering
   return [stroke];
 }
 
-export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleCompleteOperation: (tool?: Tool, data?: OperationData, pos?: Position) => void) {
+export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleCompleteOperation: (tool?: Tool, data?: Stroke, pos?: Position) => void) {
   if (!stroke) {
     return;
   };
@@ -164,7 +161,8 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
             return (
               <div
                 key={size}
-                onClick={() => {
+                onClick={(evt) => {
+                  evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, strokeSize: size });
                   setCurrentTool(Tool.Stroke);
                 }}
@@ -176,7 +174,8 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
         <div className={styles.split}></div>
         <div className={styles.palatte}>
           {strokeColor.map(color => {
-            return <div className={styles.color} key={color} onClick={() => {
+            return <div className={styles.color} key={color} onClick={(evt) => {
+              evt.stopPropagation();
               setCurrentToolOption({ ...currentToolOption, strokeColor: color });
               setCurrentTool(Tool.Stroke);
             }}>

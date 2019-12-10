@@ -2,7 +2,9 @@ import React, { useState } from 'react';
 import Tool, { ToolOption } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
+import ShapeIcon from './svgs/ShapeIcon';
 import { useStrokeDropdown } from './StrokeTool';
+import { useShapeDropdown } from './ShapeTool';
 import { Dropdown } from 'antd';
 import classNames from 'classnames';
 import styles from './Toolbar.less';
@@ -16,6 +18,11 @@ const tools = [{
   icon: StrokeIcon,
   type: Tool.Stroke,
   useDropdown: useStrokeDropdown,
+}, {
+  label: '形状',
+  icon: ShapeIcon,
+  type: Tool.Shape,
+  useDropdown: useShapeDropdown,
 }];
 
 export interface ToolbarProps {
