@@ -1,8 +1,9 @@
 import React, { useRef, useEffect, useState, MouseEvent, CSSProperties } from 'react';
-import Tool, { ToolOption } from './enums/Tool';
+import Tool, { ToolOption, Position } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
-import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Position, Stroke } from './StrokeTool';
+import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke } from './StrokeTool';
 import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle } from './ShapeTool';
+import { onTextMouseDown, onTextComplete, drawText, Text } from './TextTool';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
 import styles from './SketchPad.less';
@@ -14,10 +15,11 @@ export interface SketchPadProps {
   userId: string;
 }
 
-type Operation = (Stroke | Shape) & {
+type Operation = (Stroke | Shape | Text) & {
   id: string;
   userId: string;
   timestamp: number;
+  pos: Position;
 };
 
 const DPR = window.devicePixelRatio || 1;
@@ -26,6 +28,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
   const { currentTool, setCurrentTool, userId, currentToolOption } = props;
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
+  const refInput = useRef<HTMLDivElement>(null);
 
   // a  c  e
   // b  d  f
@@ -69,6 +72,9 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
         case Tool.Shape:
           drawRectangle(operation as Shape, context);
           break
+        case Tool.Text:
+          drawText(operation as Text, context, operation.pos);
+          break
         default:
           break
       }
@@ -76,8 +82,8 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
     restoreGlobalTransform();
   }
 
-  const handleCompleteOperation = (tool?: Tool, data?: Operation, pos?: Position) => {
-    if (!tool) {
+  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text, pos?: Position) => {
+    if (!tool || !pos) {
       renderOperations(operationList);
     }
 
@@ -85,6 +91,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
       id: v4(),
       userId,
       timestamp: Date.now(),
+      pos: pos as Position,
     });
 
     let newOperationList = operationList;
@@ -109,6 +116,9 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
         break
       case Tool.Shape:
         onShapeMouseDown(x, y, currentToolOption);
+        break
+      case Tool.Text:
+        onTextMouseDown(e, x, y, currentToolOption, refInput, refCanvas);
         break
       default:
         break
@@ -174,6 +184,10 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
   const canvasStyle: CSSProperties  = {};
   if (currentTool === Tool.Stroke) {
     canvasStyle.cursor = `url(${sketchStrokeCursor}) 0 14, crosshair`;
+  } else if (currentTool === Tool.Shape) {
+    canvasStyle.cursor = `crosshair`; 
+  } else if (currentTool === Tool.Text) {
+    canvasStyle.cursor = `text`; 
   }
 
   return (
@@ -186,6 +200,19 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
         className={styles.canvas}
         style={canvasStyle}
       />
+
+      <div
+        contentEditable="true"
+        suppressContentEditableWarning
+        ref={refInput}
+        style={{ fontSize: `${12}px`, }}
+        className={styles.textInput}
+        onBlur={() => {
+          onTextComplete(refInput, refCanvas, viewMatrix, handleCompleteOperation);
+        }}
+      >
+        输入文本
+      </div>
     </div>
   );
 }

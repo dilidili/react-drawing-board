@@ -3,6 +3,7 @@ import Tool, { ToolOption } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
 import ShapeIcon from './svgs/ShapeIcon';
+import TextIcon from './svgs/TextIcon';
 import { useStrokeDropdown } from './StrokeTool';
 import { useShapeDropdown } from './ShapeTool';
 import { Dropdown } from 'antd';
@@ -23,6 +24,10 @@ const tools = [{
   icon: ShapeIcon,
   type: Tool.Shape,
   useDropdown: useShapeDropdown,
+}, {
+  label: '文本',
+  icon: TextIcon,
+  type: Tool.Text,
 }];
 
 export interface ToolbarProps {

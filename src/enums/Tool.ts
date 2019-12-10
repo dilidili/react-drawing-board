@@ -2,12 +2,20 @@ enum Tool {
   Select = 'Select',
   Stroke = 'Stroke',
   Shape = 'Shape',
+  Text = 'Text',
 }
 
 export enum ShapeType {
   Rectangle = 'Rectangle',
   Oval = 'Oval',
 } 
+
+export interface Position {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
 
 export const strokeSize = [2, 4, 6];
 
@@ -19,6 +27,7 @@ export const defaultToolOption = {
   shapeType: ShapeType.Rectangle,
   shapeBorderColor: strokeColor[0],
   shapeBorderSize: 4,
+  textColor: strokeColor[0],
 } 
 
 export type ToolOption = {
@@ -27,6 +36,7 @@ export type ToolOption = {
   shapeType: ShapeType,
   shapeBorderColor: string,
   shapeBorderSize: number,
+  textColor: string,
 };
 
 export default Tool;
