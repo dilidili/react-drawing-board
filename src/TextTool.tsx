@@ -40,7 +40,7 @@ export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, x: number, y: 
   }
 }
 
-export const onTextComplete = (refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, viewMatrix: number[], handleCompleteOperation: (tool?: Tool, data?: Text, pos?: Position) => void) => {
+export const onTextComplete = (refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, viewMatrix: number[], handleCompleteOperation: (tool?: Tool, data?: Text, pos?: Position) => void, setCurrentTool: (tool: Tool) => void) => {
   if (currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const color = textarea.style.color as string;
@@ -62,6 +62,7 @@ export const onTextComplete = (refInput: RefObject<HTMLDivElement>, refCanvas: R
     };
 
     handleCompleteOperation(Tool.Text, { tool: Tool.Text, text, color }, pos);
+    setCurrentTool(Tool.Select);
     currentText = '';
   }
 }

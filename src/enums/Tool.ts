@@ -3,6 +3,7 @@ enum Tool {
   Stroke = 'Stroke',
   Shape = 'Shape',
   Text = 'Text',
+  Image = 'Image',
 }
 
 export enum ShapeType {

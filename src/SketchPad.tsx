@@ -3,6 +3,7 @@ import Tool, { ToolOption, Position } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
 import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke } from './StrokeTool';
 import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle } from './ShapeTool';
+import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text } from './TextTool';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
@@ -13,9 +14,11 @@ export interface SketchPadProps {
   setCurrentTool: (tool: Tool) => void;
   currentToolOption: ToolOption;
   userId: string;
+  selectImage: string | null;
+  setSelectImage: (image: string | null) => void;
 }
 
-type Operation = (Stroke | Shape | Text) & {
+type Operation = (Stroke | Shape | Text | Image) & {
   id: string;
   userId: string;
   timestamp: number;
@@ -25,7 +28,7 @@ type Operation = (Stroke | Shape | Text) & {
 const DPR = window.devicePixelRatio || 1;
 
 const SketchPad: React.FC<SketchPadProps> = (props) => {
-  const { currentTool, setCurrentTool, userId, currentToolOption } = props;
+  const { currentTool, setCurrentTool, userId, currentToolOption, selectImage, setSelectImage } = props;
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
   const refInput = useRef<HTMLDivElement>(null);
@@ -75,6 +78,10 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
         case Tool.Text:
           drawText(operation as Text, context, operation.pos);
           break
+        case Tool.Image:
+          drawImage(operation as Image, context, operation.pos, operation.id, () => {
+            renderOperations(operations);
+          });
         default:
           break
       }
@@ -82,7 +89,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
     restoreGlobalTransform();
   }
 
-  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text, pos?: Position) => {
+  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image, pos?: Position) => {
     if (!tool || !pos) {
       renderOperations(operationList);
     }
@@ -168,6 +175,14 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
   };
 
   useEffect(() => {
+    if (selectImage && refCanvas.current) {
+      onImageComplete(selectImage, refCanvas.current, viewMatrix, handleCompleteOperation);
+
+      setSelectImage(null);
+    }
+  }, [selectImage]);
+
+  useEffect(() => {
     const canvas = refCanvas.current as HTMLCanvasElement;
 
     // high resolution canvas.
@@ -208,7 +223,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
         style={{ fontSize: `${12}px`, }}
         className={styles.textInput}
         onBlur={() => {
-          onTextComplete(refInput, refCanvas, viewMatrix, handleCompleteOperation);
+          onTextComplete(refInput, refCanvas, viewMatrix, handleCompleteOperation, setCurrentTool);
         }}
       >
         输入文本

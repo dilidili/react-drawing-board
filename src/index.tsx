@@ -11,6 +11,7 @@ interface BlockProps {
 
 const Block: React.FC<BlockProps> = (props) => {
   const [currentTool, setCurrentTool] = useState(Tool.Select);
+  const [selectImage, setSelectImage] = useState<string | null>(null);
   const [currentToolOption, setCurrentToolOption] = useState<ToolOption>(defaultToolOption);
 
   return (
@@ -20,12 +21,15 @@ const Block: React.FC<BlockProps> = (props) => {
         setCurrentTool={setCurrentTool}
         currentToolOption={currentToolOption}
         setCurrentToolOption={setCurrentToolOption}
+        setSelectImage={setSelectImage}
       />
       <SketchPad
         userId={props.userId}
         currentTool={currentTool}
         setCurrentTool={setCurrentTool}
         currentToolOption={currentToolOption}
+        selectImage={selectImage}
+        setSelectImage={setSelectImage}
       />
     </div>
   );

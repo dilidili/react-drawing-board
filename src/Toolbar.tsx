@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, ChangeEventHandler } from 'react';
 import Tool, { ToolOption } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
 import ShapeIcon from './svgs/ShapeIcon';
 import TextIcon from './svgs/TextIcon';
+import ImageIcon from './svgs/ImageIcon';
 import { useStrokeDropdown } from './StrokeTool';
 import { useShapeDropdown } from './ShapeTool';
 import { Dropdown } from 'antd';
@@ -28,6 +29,10 @@ const tools = [{
   label: '文本',
   icon: TextIcon,
   type: Tool.Text,
+}, {
+  label: '图片',
+  icon: ImageIcon,
+  type: Tool.Image,
 }];
 
 export interface ToolbarProps {
@@ -35,10 +40,25 @@ export interface ToolbarProps {
   setCurrentTool: (tool: Tool) => void;
   currentToolOption: ToolOption;
   setCurrentToolOption: (option: ToolOption) => void;
+  setSelectImage: (image: string | null) => void;
 }
 
 const Toolbar: React.FC<ToolbarProps> = (props) => {
-  const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption } = props;
+  const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption, setSelectImage } = props;
+  const refFileInput = useRef<HTMLInputElement>(null);
+
+  const handleFileChange: ChangeEventHandler<HTMLInputElement> = (e) => {
+    const file = e.target.files && e.target.files[0];
+
+    if (file) {
+      let reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const base64data = reader.result;
+        setSelectImage(base64data);
+      }
+    }
+  };
 
   return (
     <div className={styles.container}>
@@ -49,7 +69,13 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               [styles.icon]: true,
               [styles.activeIcon]: currentTool === tool.type,
             })}
-            onClick={() => setCurrentTool(tool.type)}
+            onClick={() => {
+              if (tool.type === Tool.Image && refFileInput.current) {
+                refFileInput.current.click();
+              } else {
+                setCurrentTool(tool.type)
+              }
+            }}
             key={tool.label}
           >
             <tool.icon />
@@ -69,6 +95,14 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           return menu;
         }
       }))}
+
+      <input
+        type="file"
+        style={{ display: 'none' }}
+        accept="image/jpeg, image/png"
+        ref={refFileInput}
+        onChange={handleFileChange}
+      />
     </div>
   )
 } 
