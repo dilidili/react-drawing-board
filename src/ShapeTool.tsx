@@ -11,7 +11,6 @@ export interface Position {
 }
 
 export type Shape = {
-  tool: Tool;
   type: ShapeType,
   color: string;
   size: number;
@@ -29,7 +28,6 @@ let shape: Shape | null = null;
 
 export const onShapeMouseDown = (x: number, y: number, toolOption: ToolOption) => {
   shape = {
-    tool: Tool.Shape,
     type: toolOption.shapeType,
     color: toolOption.shapeBorderColor,
     size: toolOption.shapeBorderSize,

@@ -3,7 +3,6 @@ import Tool, { Position } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
 
 export type Image = {
-  tool: Tool;
   imageData: string;
 }
 
@@ -52,7 +51,6 @@ export const onImageComplete = (data: string, canvas: HTMLCanvasElement, viewMat
     };
 
     handleCompleteOperation(Tool.Image, {
-      tool: Tool.Image,
       imageData: data,
     }, posInfo);
   };

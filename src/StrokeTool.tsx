@@ -9,7 +9,6 @@ interface Point {
 }
 
 export interface Stroke {
-  tool: Tool,
   color: string,
   size: number,
   points: Point[],
@@ -76,7 +75,6 @@ export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D) =>
 
 export function onStrokeMouseDown(x: number, y: number, toolOption: ToolOption) {
   stroke = {
-    tool: Tool.Stroke,
     color: toolOption.strokeColor,
     size: toolOption.strokeSize,
     points: [{ x, y }]
@@ -120,33 +118,31 @@ export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleComp
     let lineData = item;
     let pos = null;
 
-    if (lineData.tool === Tool.Stroke) {
-      let xMax = -Infinity, yMax = -Infinity, xMin = lineData.points[0].x, yMin = lineData.points[0].y;
+    let xMax = -Infinity, yMax = -Infinity, xMin = lineData.points[0].x, yMin = lineData.points[0].y;
 
-      lineData.points.forEach((p) => {
-        if (p.x > xMax) {
-          xMax = p.x
-        }
-        if (p.x < xMin) {
-          xMin = p.x
-        }
-        if (p.y > yMax) {
-          yMax = p.y
-        }
-        if (p.y < yMin) {
-          yMin = p.y
-        }
-      });
+    lineData.points.forEach((p) => {
+      if (p.x > xMax) {
+        xMax = p.x
+      }
+      if (p.x < xMin) {
+        xMin = p.x
+      }
+      if (p.y > yMax) {
+        yMax = p.y
+      }
+      if (p.y < yMin) {
+        yMin = p.y
+      }
+    });
 
-      pos = {
-        x: xMin,
-        y: yMin,
-        w: xMax - xMin,
-        h: yMax - yMin,
-      };
+    pos = {
+      x: xMin,
+      y: yMin,
+      w: xMax - xMin,
+      h: yMax - yMin,
+    };
 
-      handleCompleteOperation(Tool.Stroke, lineData, pos);
-    }
+    handleCompleteOperation(Tool.Stroke, lineData, pos);
   }
 
   return [item];

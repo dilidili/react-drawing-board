@@ -4,12 +4,20 @@ enum Tool {
   Shape = 'Shape',
   Text = 'Text',
   Image = 'Image',
+  Undo = 'Undo',
+  Redo = 'Redo',
+  Clear = 'Clear',
+  Zoom = 'Zoom',
 }
 
 export enum ShapeType {
   Rectangle = 'Rectangle',
   Oval = 'Oval',
 } 
+
+export const MAX_SCALE = 2;
+
+export const MIN_SCALE = 0.1;
 
 export interface Position {
   x: number;

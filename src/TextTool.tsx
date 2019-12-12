@@ -5,7 +5,6 @@ import { mapClientToCanvas } from './utils';
 let currentText = '';
 
 export interface Text {
-  tool: Tool,
   color: string,
   text: string,
 }
@@ -40,12 +39,14 @@ export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, x: number, y: 
   }
 }
 
-export const onTextComplete = (refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, viewMatrix: number[], handleCompleteOperation: (tool?: Tool, data?: Text, pos?: Position) => void, setCurrentTool: (tool: Tool) => void) => {
+export const onTextComplete = (refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, viewMatrix: number[], scale: number, handleCompleteOperation: (tool?: Tool, data?: Text, pos?: Position) => void, setCurrentTool: (tool: Tool) => void) => {
   if (currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const color = textarea.style.color as string;
     const text = textarea.innerText;
     let { top, left, width, height } = textarea.getBoundingClientRect();
+    width = 1 / scale * width;
+    height = 1 / scale * height;
 
     const currentPos = mapClientToCanvas({
       clientX: left,
@@ -61,7 +62,7 @@ export const onTextComplete = (refInput: RefObject<HTMLDivElement>, refCanvas: R
       h: height,
     };
 
-    handleCompleteOperation(Tool.Text, { tool: Tool.Text, text, color }, pos);
+    handleCompleteOperation(Tool.Text, { text, color }, pos);
     setCurrentTool(Tool.Select);
     currentText = '';
   }

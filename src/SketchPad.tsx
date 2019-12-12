@@ -1,5 +1,5 @@
-import React, { useRef, useEffect, useState, MouseEvent, CSSProperties } from 'react';
-import Tool, { ToolOption, Position } from './enums/Tool';
+import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler } from 'react';
+import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
 import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke } from './StrokeTool';
 import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle } from './ShapeTool';
@@ -7,6 +7,7 @@ import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text } from './TextTool';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
+import { useZoomGesture } from './gesture';
 import styles from './SketchPad.less';
 
 export interface SketchPadProps {
@@ -14,21 +15,29 @@ export interface SketchPadProps {
   setCurrentTool: (tool: Tool) => void;
   currentToolOption: ToolOption;
   userId: string;
-  selectImage: string | null;
-  setSelectImage: (image: string | null) => void;
+  scale: number;
+  onScaleChange: (scale: number) => void;
 }
+
+export type SketchPadRef = {
+  selectImage: (image: string) => void;
+  undo: () => void;
+  redo: () => void;
+  clear: () => void;
+};
 
 type Operation = (Stroke | Shape | Text | Image) & {
   id: string;
   userId: string;
   timestamp: number;
   pos: Position;
+  tool: Tool;
 };
 
 const DPR = window.devicePixelRatio || 1;
 
-const SketchPad: React.FC<SketchPadProps> = (props) => {
-  const { currentTool, setCurrentTool, userId, currentToolOption, selectImage, setSelectImage } = props;
+const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
+  const { currentTool, setCurrentTool, userId, currentToolOption, onScaleChange, scale } = props;
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
   const refInput = useRef<HTMLDivElement>(null);
@@ -39,6 +48,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
   const [viewMatrix, setViewMatrix] = useState([1, 0, 0, 1, 0, 0]);
 
   const [operationList, setOperationList] = useState<Operation[]>([]);
+  const [undoHistory, setUndoHistory] = useState<Operation[]>([]);
 
   const saveGlobalTransform = () => {
     if (!refContext.current) return;
@@ -69,6 +79,11 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
     saveGlobalTransform();
     operations.forEach((operation) => {
       switch (operation.tool) {
+        case Tool.Clear:
+          restoreGlobalTransform();
+          context.clearRect(0, 0, context.canvas.width, context.canvas.height);
+          saveGlobalTransform();
+          break;
         case Tool.Stroke:
           drawStroke(operation as Stroke, context);
           break
@@ -89,8 +104,12 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
     restoreGlobalTransform();
   }
 
+  useEffect(() => {
+    renderOperations(operationList);
+  }, [operationList, scale]);
+
   const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image, pos?: Position) => {
-    if (!tool || !pos) {
+    if (!tool) {
       renderOperations(operationList);
     }
 
@@ -99,17 +118,13 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
       userId,
       timestamp: Date.now(),
       pos: pos as Position,
+      tool: tool as Tool,
     });
 
     let newOperationList = operationList;
-    switch(tool) {
-      default:
-        newOperationList = operationList.concat([message]);
-        break;
-    }
-
+    setUndoHistory([]);
+    newOperationList = operationList.concat([message]);
     setOperationList(newOperationList);
-    renderOperations(newOperationList);
   }
 
   const onMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -174,13 +189,22 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
     }
   };
 
-  useEffect(() => {
-    if (selectImage && refCanvas.current) {
-      onImageComplete(selectImage, refCanvas.current, viewMatrix, handleCompleteOperation);
+  const onWheel: WheelEventHandler<HTMLCanvasElement> = (evt) => {
+    evt.stopPropagation();
 
-      setSelectImage(null);
+    const { deltaY, ctrlKey } = evt;
+    const [a, b, c, d, e, f] = viewMatrix;
+    let newScale = a + (ctrlKey ? -deltaY * 1.3 : deltaY) / 100;
+    newScale = Math.max(Math.min(newScale, MAX_SCALE), MIN_SCALE);
+
+    if (refCanvas.current) {
+      const pos = mapClientToCanvas(evt, refCanvas.current, viewMatrix);
+      const scaleChange = newScale - a;
+      setViewMatrix([newScale, b, c, newScale, e - (pos[0] * scaleChange), f - (pos[1] * scaleChange)]);
     }
-  }, [selectImage]);
+
+    onScaleChange(newScale);
+  };
 
   useEffect(() => {
     const canvas = refCanvas.current as HTMLCanvasElement;
@@ -205,6 +229,42 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
     canvasStyle.cursor = `text`; 
   }
 
+  useImperativeHandle(ref, () => {
+    return {
+      selectImage: (image: string) => {
+        if (image && refCanvas.current) {
+          onImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation);
+        }
+      },
+      undo: () => {
+        const undoItem = operationList[operationList.length - 1];
+
+        if (undoItem) {
+          setOperationList(operationList.slice(0, -1));
+          setUndoHistory((undoHistory) => {
+            return undoHistory.concat([undoItem]);
+          });
+        }
+      },
+      redo: () => {
+        if (undoHistory.length > 0) {
+          const redoItem = undoHistory[undoHistory.length - 1];
+
+          setOperationList((operationList) => {
+            return operationList.concat([redoItem]);
+          });
+
+          setUndoHistory(undoHistory.slice(0, -1));
+        }
+      },
+      clear: () => {
+        handleCompleteOperation(Tool.Clear);
+      },
+    };
+  });
+
+  useZoomGesture(refCanvas);
+
   return (
     <div className={styles.container}>
       <canvas
@@ -212,6 +272,7 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
         onMouseUp={onMouseUp}
+        onWheel={onWheel}
         className={styles.canvas}
         style={canvasStyle}
       />
@@ -220,10 +281,10 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
         contentEditable="true"
         suppressContentEditableWarning
         ref={refInput}
-        style={{ fontSize: `${12}px`, }}
+        style={{ fontSize: `${12 * scale}px`, }}
         className={styles.textInput}
         onBlur={() => {
-          onTextComplete(refInput, refCanvas, viewMatrix, handleCompleteOperation, setCurrentTool);
+          onTextComplete(refInput, refCanvas, viewMatrix, scale, handleCompleteOperation, setCurrentTool);
         }}
       >
         输入文本
@@ -232,4 +293,4 @@ const SketchPad: React.FC<SketchPadProps> = (props) => {
   );
 }
 
-export default SketchPad;
+export default forwardRef(SketchPad);

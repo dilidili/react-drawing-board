@@ -5,6 +5,10 @@ import StrokeIcon from './svgs/StrokeIcon';
 import ShapeIcon from './svgs/ShapeIcon';
 import TextIcon from './svgs/TextIcon';
 import ImageIcon from './svgs/ImageIcon';
+import UndoIcon from './svgs/UndoIcon';
+import RedoIcon from './svgs/RedoIcon';
+import ClearIcon from './svgs/ClearIcon';
+import ZoomIcon from './svgs/ZoomIcon';
 import { useStrokeDropdown } from './StrokeTool';
 import { useShapeDropdown } from './ShapeTool';
 import { Dropdown } from 'antd';
@@ -33,6 +37,23 @@ const tools = [{
   label: '图片',
   icon: ImageIcon,
   type: Tool.Image,
+}, {
+  label: '撤销',
+  icon: UndoIcon,
+  type: Tool.Undo,
+}, {
+  label: '重做',
+  icon: RedoIcon,
+  type: Tool.Redo,
+}, {
+  label: '清空',
+  icon: ClearIcon,
+  type: Tool.Clear,
+}, {
+  label: '100%',
+  labelThunk: (props: ToolbarProps) => `${~~(props.scale * 100)}%`,
+  icon: ZoomIcon,
+  type: Tool.Zoom,
 }];
 
 export interface ToolbarProps {
@@ -40,11 +61,15 @@ export interface ToolbarProps {
   setCurrentTool: (tool: Tool) => void;
   currentToolOption: ToolOption;
   setCurrentToolOption: (option: ToolOption) => void;
-  setSelectImage: (image: string | null) => void;
+  selectImage: (image: string) => void;
+  undo: () => void;
+  redo: () => void;
+  clear: () => void;
+  scale: number;
 }
 
 const Toolbar: React.FC<ToolbarProps> = (props) => {
-  const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption, setSelectImage } = props;
+  const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption, selectImage, undo, redo, clear } = props;
   const refFileInput = useRef<HTMLInputElement>(null);
 
   const handleFileChange: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -55,7 +80,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       reader.readAsDataURL(file);
       reader.onloadend = () => {
         const base64data = reader.result;
-        setSelectImage(base64data);
+        selectImage(base64data);
       }
     }
   };
@@ -72,14 +97,20 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             onClick={() => {
               if (tool.type === Tool.Image && refFileInput.current) {
                 refFileInput.current.click();
+              } else if (tool.type === Tool.Undo) {
+                undo();
+              } else if (tool.type === Tool.Redo) {
+                redo();
+              } else if (tool.type === Tool.Clear) {
+                clear();
               } else {
-                setCurrentTool(tool.type)
+                setCurrentTool(tool.type);
               }
             }}
             key={tool.label}
           >
             <tool.icon />
-            <label className={styles.iconLabel}>{tool.label}</label>
+            <label className={styles.iconLabel}>{tool.labelThunk ? tool.labelThunk(props) : tool.label}</label>
           </div>
         )
 
