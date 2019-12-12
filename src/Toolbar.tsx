@@ -9,6 +9,7 @@ import UndoIcon from './svgs/UndoIcon';
 import RedoIcon from './svgs/RedoIcon';
 import ClearIcon from './svgs/ClearIcon';
 import ZoomIcon from './svgs/ZoomIcon';
+import SaveIcon from './svgs/SaveIcon';
 import { useStrokeDropdown } from './StrokeTool';
 import { useShapeDropdown } from './ShapeTool';
 import { Dropdown } from 'antd';
@@ -41,6 +42,9 @@ const tools = [{
   label: '撤销',
   icon: UndoIcon,
   type: Tool.Undo,
+  style: {
+    marginLeft: 'auto',
+  },
 }, {
   label: '重做',
   icon: RedoIcon,
@@ -49,11 +53,18 @@ const tools = [{
   label: '清空',
   icon: ClearIcon,
   type: Tool.Clear,
+  style: {
+    marginRight: 'auto',
+  },
 }, {
   label: '100%',
   labelThunk: (props: ToolbarProps) => `${~~(props.scale * 100)}%`,
   icon: ZoomIcon,
   type: Tool.Zoom,
+}, {
+  label: '保存',
+  icon: SaveIcon,
+  type: Tool.Save,
 }];
 
 export interface ToolbarProps {
@@ -65,11 +76,12 @@ export interface ToolbarProps {
   undo: () => void;
   redo: () => void;
   clear: () => void;
+  save: () => void;
   scale: number;
 }
 
 const Toolbar: React.FC<ToolbarProps> = (props) => {
-  const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption, selectImage, undo, redo, clear } = props;
+  const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption, selectImage, undo, redo, clear, save } = props;
   const refFileInput = useRef<HTMLInputElement>(null);
 
   const handleFileChange: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -94,6 +106,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               [styles.icon]: true,
               [styles.activeIcon]: currentTool === tool.type,
             })}
+            style={tool.style || {}}
             onClick={() => {
               if (tool.type === Tool.Image && refFileInput.current) {
                 refFileInput.current.click();
@@ -103,6 +116,9 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 redo();
               } else if (tool.type === Tool.Clear) {
                 clear();
+              } else if (tool.type === Tool.Zoom) {
+              } else if (tool.type === Tool.Save) {
+                save();
               } else {
                 setCurrentTool(tool.type);
               }

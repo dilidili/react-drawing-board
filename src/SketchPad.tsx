@@ -24,6 +24,7 @@ export type SketchPadRef = {
   undo: () => void;
   redo: () => void;
   clear: () => void;
+  save: () => void;
 };
 
 type Operation = (Stroke | Shape | Text | Image) & {
@@ -259,6 +260,24 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       },
       clear: () => {
         handleCompleteOperation(Tool.Clear);
+      },
+      save: () => {
+        if (refCanvas.current && refContext.current) {
+          const canvas = refCanvas.current;
+          const w = canvas.width;
+          const h = canvas.height;
+          const context = refContext.current;
+          context.globalCompositeOperation = "destination-over";
+          context.fillStyle = "#fff";
+          context.fillRect(0, 0, w, h);
+    
+          const img = canvas.toDataURL('image/png');
+    
+          const a = document.createElement('a');
+          a.href = img;
+          a.download = 'sketch.png';
+          a.click();
+        }
       },
     };
   });

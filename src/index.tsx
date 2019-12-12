@@ -44,6 +44,11 @@ const Block: React.FC<BlockProps> = (props) => {
             refSketch.current.clear();
           }
         }}
+        save={() => {
+          if (refSketch.current) {
+            refSketch.current.save();
+          }
+        }}
       />
       <SketchPad
         ref={refSketch}
