@@ -1,5 +1,6 @@
 import React, { useState, useRef, CSSProperties } from 'react';
 import { v4 } from 'uuid';
+import { animated, useSpring } from 'react-spring';
 import Toolbar from './Toolbar';
 import SketchPad, { SketchPadRef } from './SketchPad';
 import styles from './index.css';
@@ -10,11 +11,17 @@ interface BlockProps {
   style?: CSSProperties;
 }
 
+const AnimatedSketchPad = animated(SketchPad);
+
 const Block: React.FC<BlockProps> = (props) => {
   const [currentTool, setCurrentTool] = useState(Tool.Select);
   const [scale, setScale] = useState(1);
   const [currentToolOption, setCurrentToolOption] = useState<ToolOption>(defaultToolOption);
   const refSketch = useRef<SketchPadRef>(null);
+
+  const animatedProps = useSpring<{
+    value: number
+  }>({ value: scale, });
 
   return (
     <div className={styles.container} style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}>
@@ -50,13 +57,13 @@ const Block: React.FC<BlockProps> = (props) => {
           }
         }}
       />
-      <SketchPad
+      <AnimatedSketchPad
         ref={refSketch}
         userId={props.userId}
         currentTool={currentTool}
         setCurrentTool={setCurrentTool}
         currentToolOption={currentToolOption}
-        scale={scale}
+        scale={animatedProps.value}
         onScaleChange={setScale}
       />
     </div>

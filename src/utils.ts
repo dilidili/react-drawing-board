@@ -110,3 +110,7 @@ export const mapClientToCanvas = (evt: MouseEvent<HTMLCanvasElement>, canvas: HT
     inverse[1][0] * x + inverse[1][1] * y + inverse[1][2],
   ]
 }
+
+export const matrix_multiply = ([a1, b1, c1, d1, e1, f1] :number[], [a2, b2, c2, d2, e2, f2]: number[]) => {
+  return [a1 * a2 + c1 * b2, d1 * b2 + b1 * a2, a1 * c2 + c1 * d2, b1 * c2 + d1 * d2, a1 * e2 + c1 * f2 + e1, b1 * e2 + d1 * f2 + f1];
+}
