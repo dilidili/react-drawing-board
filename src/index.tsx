@@ -1,10 +1,10 @@
-import React, { useState, useRef, CSSProperties } from 'react';
+import React, { useState, useRef, CSSProperties, useEffect } from 'react';
 import { v4 } from 'uuid';
 import { animated, useSpring } from 'react-spring';
 import Toolbar from './Toolbar';
 import SketchPad, { SketchPadRef } from './SketchPad';
 import styles from './index.css';
-import Tool, { ToolOption, defaultToolOption } from './enums/Tool';
+import Tool, { ToolOption, defaultToolOption, ShapeType } from './enums/Tool';
 
 interface BlockProps {
   userId: string;
@@ -22,6 +22,28 @@ const Block: React.FC<BlockProps> = (props) => {
   const animatedProps = useSpring<{
     value: number
   }>({ value: scale, });
+
+  useEffect(() => {
+    const keydownHandler = (evt: KeyboardEvent) => {
+      const { keyCode } = evt;
+      // key 'p'
+      if (keyCode === 80) {
+        setCurrentTool(Tool.Stroke);
+      } else if (keyCode === 82) { // key 'r'
+        setCurrentTool(Tool.Shape);
+        setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Rectangle });
+      } else if (keyCode === 79) { // key 'o'
+        setCurrentTool(Tool.Shape);
+        setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Oval });
+      } else if (keyCode === 84) { // key 't'
+        setCurrentTool(Tool.Text);
+      } 
+    };
+
+    addEventListener('keydown', keydownHandler);
+
+    return () => removeEventListener('keydown', keydownHandler);
+  }, []);
 
   return (
     <div className={styles.container} style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}>

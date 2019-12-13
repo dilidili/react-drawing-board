@@ -301,6 +301,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         ref={refCanvas}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
+        onMouseLeave={onMouseUp}
         onMouseUp={onMouseUp}
         onWheel={onWheel}
         className={styles.canvas}

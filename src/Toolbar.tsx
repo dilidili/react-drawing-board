@@ -21,17 +21,17 @@ const tools = [{
   icon: SelectIcon,
   type: Tool.Select,
 }, {
-  label: '笔触',
+  label: '笔触 p',
   icon: StrokeIcon,
   type: Tool.Stroke,
   useDropdown: useStrokeDropdown,
 }, {
-  label: '形状',
+  label: '形状 r',
   icon: ShapeIcon,
   type: Tool.Shape,
   useDropdown: useShapeDropdown,
 }, {
-  label: '文本',
+  label: '文本 t',
   icon: TextIcon,
   type: Tool.Text,
 }, {
