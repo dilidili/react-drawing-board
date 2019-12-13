@@ -9,6 +9,7 @@ enum Tool {
   Clear = 'Clear',
   Zoom = 'Zoom',
   Save = 'Save',
+  Update = 'Update',
 }
 
 export enum ShapeType {

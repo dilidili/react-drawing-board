@@ -2,6 +2,7 @@ import React from 'react';
 import Tool, { strokeSize, strokeColor, ToolOption } from './enums/Tool';
 import { Icon } from 'antd';
 import styles from './StrokeTool.less'
+import { Operation } from '@/SketchPad';
 
 interface Point {
   x: number,
@@ -43,7 +44,7 @@ const drawLine = (context: CanvasRenderingContext2D, item: Stroke, start: Point,
   context.stroke();
 };
 
-export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D) => {
+export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D, hover: boolean) => {
   const points = stroke.points.filter((_, index) => index % 2);
   if (points.length < 3) {
     return;
@@ -54,13 +55,12 @@ export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D) =>
   context.beginPath();
   context.lineWidth = stroke.size;
   context.globalCompositeOperation = 'source-over';
-  context.strokeStyle = stroke.color;
+  context.strokeStyle = hover ? '#3AB1FE' : stroke.color;
 
   // move to the first point
   context.moveTo(points[0].x, points[0].y);
 
   let i = 0;
-  const j = points.length;
   for (i = 1; i < points.length - 2; i++) {
     var xc = (points[i].x + points[i + 1].x) / 2;
     var yc = (points[i].y + points[i + 1].y) / 2;
@@ -148,7 +148,7 @@ export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleComp
   return [item];
 }
 
-export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool: (tool: Tool) => void) => {
+export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool?: (tool: Tool) => void) => {
   return (
     <div className={styles.strokeMenu}>
       <div className={styles.colorAndSize}>
@@ -160,7 +160,7 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
                 onClick={(evt) => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, strokeSize: size });
-                  setCurrentTool(Tool.Stroke);
+                  setCurrentTool && setCurrentTool(Tool.Stroke);
                 }}
                 style={{ width: size + 4, height: size + 4, background: size === currentToolOption.strokeSize ? '#666666' : '#EEEEEE' }}
               ></div>
@@ -173,7 +173,7 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
             return <div className={styles.color} key={color} onClick={(evt) => {
               evt.stopPropagation();
               setCurrentToolOption({ ...currentToolOption, strokeColor: color });
-              setCurrentTool(Tool.Stroke);
+              setCurrentTool && setCurrentTool(Tool.Stroke);
             }}>
               <div className={styles.fill} style={{ background: color }}></div>
               {currentToolOption.strokeColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}

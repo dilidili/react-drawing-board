@@ -1,11 +1,11 @@
 import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler } from 'react';
-import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE } from './enums/Tool';
+import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, strokeSize, strokeColor } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
-import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke } from './StrokeTool';
+import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke, useStrokeDropdown } from './StrokeTool';
 import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle } from './ShapeTool';
 import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text } from './TextTool';
-import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp } from './SelectTool';
+import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp, SELECT_PADDING } from './SelectTool';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
 import { useZoomGesture } from './gesture';
@@ -28,12 +28,17 @@ export type SketchPadRef = {
   save: () => void;
 };
 
-export type Operation = (Stroke | Shape | Text | Image) & {
+export type Operation = (Stroke | Shape | Text | Image | Update) & {
   id: string;
   userId: string;
   timestamp: number;
   pos: Position;
   tool: Tool;
+};
+
+type Update = {
+  operationId: string,
+  data: Partial<(Stroke | Shape | Text | Image)>,
 };
 
 const DPR = window.devicePixelRatio || 1;
@@ -49,6 +54,8 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
   // 0  0  1
   const [viewMatrix, setViewMatrix] = useState([1, 0, 0, 1, 0, 0]);
 
+  const [hoverOperationId, setHoverOperationId] = useState<string | null>(null);
+  const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
   const [operationList, setOperationList] = useState<Operation[]>([]);
   const [undoHistory, setUndoHistory] = useState<Operation[]>([]);
 
@@ -74,12 +81,25 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     if (!refContext.current) return;
     const context = refContext.current;
 
+    operations.forEach(v => {
+      if (v.tool === Tool.Update) {
+        const targetIndex = operations.findIndex(w => w.id === (v as Update).operationId);
+        if (~targetIndex) {
+          operations[targetIndex] = {...operations[targetIndex], ...(v as Update).data};
+        }
+      }
+    });
+
+    operations = operations.filter(v => v.tool !== Tool.Update);
+
     // clear canvas
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
     saveGlobalTransform();
     operations.forEach((operation) => {
+      const hover = !selectedOperation && operation.id === hoverOperationId;
+
       switch (operation.tool) {
         case Tool.Clear:
           restoreGlobalTransform();
@@ -87,7 +107,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
           saveGlobalTransform();
           break;
         case Tool.Stroke:
-          drawStroke(operation as Stroke, context);
+          drawStroke(operation as Stroke, context, hover);
           break
         case Tool.Shape:
           drawRectangle(operation as Shape, context);
@@ -103,14 +123,25 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
           break
       }
     });
+
+    // selected box
+    if (selectedOperation) {
+      context.beginPath();
+      context.lineWidth = 1;
+      context.strokeStyle = '#d0d0d0';
+      context.rect(selectedOperation.pos.x - 3, selectedOperation.pos.y - 3, selectedOperation.pos.w + 6, selectedOperation.pos.h + 6);
+      context.stroke();
+      context.closePath();
+    }
+
     restoreGlobalTransform();
   }
 
   useEffect(() => {
     renderOperations(operationList);
-  }, [operationList, scale, viewMatrix]);
+  }, [operationList, scale, viewMatrix, hoverOperationId, selectedOperation]);
 
-  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image, pos?: Position) => {
+  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image | Update, pos?: Position) => {
     if (!tool) {
       renderOperations(operationList);
     }
@@ -136,7 +167,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     switch (currentTool) {
       case Tool.Select:
-        onSelectMouseDown(e, x, y, scale, operationList, viewMatrix);
+        onSelectMouseDown(e, x, y, scale, operationList, viewMatrix, setSelectedOperation);
         break;
       case Tool.Stroke:
         onStrokeMouseDown(x, y, currentToolOption);
@@ -159,7 +190,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     switch (currentTool) {
       case Tool.Select:
-        onSelectMouseMove(e, setViewMatrix);
+        onSelectMouseMove(e, x, y, scale, operationList, setViewMatrix, setHoverOperationId);
         break;
       case Tool.Stroke: {
         saveGlobalTransform();
@@ -295,6 +326,56 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
   useZoomGesture(refCanvas);
 
+  let settingMenu = null;
+  if (selectedOperation) {
+    let content = null;
+
+    switch(selectedOperation.tool) {
+      case Tool.Stroke:
+        content = useStrokeDropdown({
+          strokeSize: (selectedOperation as Stroke).size,
+          strokeColor: (selectedOperation as Stroke).color,
+        } as ToolOption, (option: ToolOption) => {
+          const data = {
+            color: option.strokeColor,
+            size: option.strokeSize,
+          };
+
+          handleCompleteOperation(Tool.Update, {
+            operationId: selectedOperation.id,
+            data,
+          });
+
+          setSelectedOperation({ ...selectedOperation, ...data });
+        });
+        break;
+      default:
+        break;
+    }
+
+    const resultRect = {
+      xMin: selectedOperation.pos.x,
+      yMax: selectedOperation.pos.y + selectedOperation.pos.h,
+    };
+
+    const [a, b, c, d, e, f] = viewMatrix;
+    const selectPadding = Math.max(SELECT_PADDING * 1 / scale || 0, SELECT_PADDING);
+    const left = resultRect.xMin;
+    const top = resultRect.yMax + selectPadding;
+
+    const style: CSSProperties = {
+      position: 'absolute',
+      left: (a * left + c * top + e),
+      top: (b * left + d * top + f),
+    };
+
+    settingMenu = (
+      <div style={style}>
+        {content}
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <canvas
@@ -320,6 +401,8 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       >
         输入文本
       </div>
+
+      {settingMenu}
     </div>
   );
 }
