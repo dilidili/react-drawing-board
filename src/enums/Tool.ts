@@ -32,6 +32,12 @@ export const strokeSize = [2, 4, 6];
 
 export const strokeColor = ['#4a4a4a', '#f55b6c', '#f7c924', '#63d321', '#50e3c2', '#59b9ff', '#bd10e0', '#ffffff'];
 
+export enum TextSize {
+  Small = 12,
+  Default = 20,
+  Large = 28,
+}
+
 export const defaultToolOption = {
   strokeSize: strokeSize[1],
   strokeColor: strokeColor[0],
@@ -39,6 +45,7 @@ export const defaultToolOption = {
   shapeBorderColor: strokeColor[0],
   shapeBorderSize: 4,
   textColor: strokeColor[0],
+  textSize: TextSize.Default,
 } 
 
 export type ToolOption = {
@@ -48,6 +55,7 @@ export type ToolOption = {
   shapeBorderColor: string,
   shapeBorderSize: number,
   textColor: string,
+  textSize: TextSize,
 };
 
 export default Tool;

@@ -1,10 +1,10 @@
 import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer } from 'react';
-import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, strokeSize, strokeColor, ShapeType } from './enums/Tool';
+import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
 import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke, useStrokeDropdown, moveStoke } from './StrokeTool';
 import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle, useShapeDropdown } from './ShapeTool';
 import { onImageComplete, Image, drawImage } from './ImageTool';
-import { onTextMouseDown, onTextComplete, drawText, Text } from './TextTool';
+import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp, SELECT_PADDING } from './SelectTool';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
@@ -451,6 +451,38 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
           setSelectedOperation({ ...selectedOperation, ...data });
         }, () => {});
         break;
+      case Tool.Text: {
+        const textOperation: Text = selectedOperation as Text;
+        content = useTextDropdown({
+          textSize: textOperation.size,
+          textColor: textOperation.color,
+        } as ToolOption, (option: ToolOption) => {
+          const data: Partial<Operation> = {
+            color: option.textColor,
+            size: option.textSize,
+          };
+
+          if (refContext.current && option.textSize !== textOperation.size) {
+            const context = refContext.current;
+
+            // font size has changed, need to update pos
+            context.font = `${option.textSize}px ${font}`;
+            data.pos = {
+              ...selectedOperation.pos,
+              w: context.measureText(textOperation.text).width,
+              h: textOperation.text.split('\n').length * option.textSize,
+            };
+          }
+
+          handleCompleteOperation(Tool.Update, {
+            operationId: selectedOperation.id,
+            data,
+          });
+
+          setSelectedOperation({ ...selectedOperation, ...data });
+        }, () => {});
+        break;
+      }
       default:
         break;
     }
