@@ -68,7 +68,7 @@ export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D, ho
   }
 
   // curve through the last two points
-  context.quadraticCurveTo(points[i].x, points[i].y, points[i + 1].x,points[i + 1].y);
+  context.quadraticCurveTo(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
 
   context.stroke();
 }
@@ -77,7 +77,7 @@ export function onStrokeMouseDown(x: number, y: number, toolOption: ToolOption) 
   stroke = {
     color: toolOption.strokeColor,
     size: toolOption.strokeSize,
-    points: [{ x, y }]
+    points: [{ x, y }],
   };
   return [stroke];
 }
@@ -122,16 +122,16 @@ export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleComp
 
     lineData.points.forEach((p) => {
       if (p.x > xMax) {
-        xMax = p.x
+        xMax = p.x;
       }
       if (p.x < xMin) {
-        xMin = p.x
+        xMin = p.x;
       }
       if (p.y > yMax) {
-        yMax = p.y
+        yMax = p.y;
       }
       if (p.y < yMin) {
-        yMin = p.y
+        yMin = p.y;
       }
     });
 
@@ -183,4 +183,14 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
       </div>
     </div>
   )
+}
+
+export const moveStoke = (prev: Stroke, oldPos: Position, newPos: Position) => {
+  const diffX = newPos.x - oldPos.x;
+  const diffY = newPos.y - oldPos.y;
+
+  return prev.points.map(p => ({
+    x: p.x + diffX,
+    y: p.y + diffY,
+  }));
 }

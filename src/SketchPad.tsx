@@ -1,7 +1,7 @@
-import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler } from 'react';
+import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer } from 'react';
 import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, strokeSize, strokeColor } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
-import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke, useStrokeDropdown } from './StrokeTool';
+import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke, useStrokeDropdown, moveStoke } from './StrokeTool';
 import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle } from './ShapeTool';
 import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text } from './TextTool';
@@ -10,6 +10,7 @@ import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
 import { useZoomGesture } from './gesture';
 import styles from './SketchPad.less';
+import Operation from 'antd/lib/transfer/operation';
 
 export interface SketchPadProps {
   currentTool: Tool;
@@ -28,7 +29,7 @@ export type SketchPadRef = {
   save: () => void;
 };
 
-export type Operation = (Stroke | Shape | Text | Image | Update) & {
+export type Operation = (Stroke | Shape | Text | Image | Update | Undo) & {
   id: string;
   userId: string;
   timestamp: number;
@@ -36,12 +37,84 @@ export type Operation = (Stroke | Shape | Text | Image | Update) & {
   tool: Tool;
 };
 
-type Update = {
+export type Undo = {
   operationId: string,
-  data: Partial<(Stroke | Shape | Text | Image)>,
+}
+
+export type Update = {
+  operationId: string,
+  data: Partial<((Stroke | Shape | Text | Image) & {
+    pos: Position,
+  })>,
 };
 
 const DPR = window.devicePixelRatio || 1;
+
+export type OperationListState = {
+  queue: Operation[],
+  reduced: Operation[],
+}
+
+const initialOperationState: OperationListState = {
+  queue: [],
+  reduced: [],
+};
+
+const mergeOperations = (operations: Operation[]): Operation[] => {
+  const undoItemIds = operations.filter(v => v.tool === Tool.Undo).map(v => (v as Undo ).operationId);
+  operations = operations.filter(v => v.tool !== Tool.Undo && undoItemIds.indexOf(v.id) < 0);
+
+  operations.forEach(v => {
+    if (v.tool === Tool.Update) {
+      const update = v as Update;
+      const targetIndex = operations.findIndex(w => w.id === update.operationId);
+      if (~targetIndex) {
+        const target = operations[targetIndex];
+        operations[targetIndex] = { ...operations[targetIndex], ...update.data };
+
+        // move other properties related to pos
+        if (update.data.pos) {
+          switch(target.tool) {
+            case Tool.Stroke:
+              operations[targetIndex] = { ...operations[targetIndex], ...{ points: moveStoke(target as Stroke, target.pos, update.data.pos) } };
+              break;
+            default:
+              break
+          }
+        }
+      }
+    }
+  });
+
+  operations = operations.filter(v => v.tool !== Tool.Update);
+
+  return operations;
+}
+
+const operationListReducer: Reducer<OperationListState, any> = (state, action) => {
+  switch(action.type) {
+    case 'add': {
+      let operation = action.payload.operation as Operation;
+      const newQueue = state.queue.concat([operation]);
+
+      return {
+        queue: newQueue,
+        reduced: mergeOperations(newQueue),
+      };
+    }
+    case 'replaceLast': {
+      let operation = action.payload.operation as Operation;
+      const newQueue = state.queue.slice(0, -1).concat([operation]);
+
+      return {
+        queue: newQueue,
+        reduced: mergeOperations(newQueue),
+      }
+    }
+    default:
+      return state;
+  }
+}
 
 const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
   const { currentTool, setCurrentTool, userId, currentToolOption, onScaleChange, scale } = props;
@@ -56,7 +129,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
   const [hoverOperationId, setHoverOperationId] = useState<string | null>(null);
   const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
-  const [operationList, setOperationList] = useState<Operation[]>([]);
+  const [operationListState, operationListDispatch] = useReducer<typeof operationListReducer>(operationListReducer, initialOperationState);
   const [undoHistory, setUndoHistory] = useState<Operation[]>([]);
 
   const saveGlobalTransform = () => {
@@ -81,24 +154,13 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     if (!refContext.current) return;
     const context = refContext.current;
 
-    operations.forEach(v => {
-      if (v.tool === Tool.Update) {
-        const targetIndex = operations.findIndex(w => w.id === (v as Update).operationId);
-        if (~targetIndex) {
-          operations[targetIndex] = {...operations[targetIndex], ...(v as Update).data};
-        }
-      }
-    });
-
-    operations = operations.filter(v => v.tool !== Tool.Update);
-
     // clear canvas
     context.setTransform(1, 0, 0, 1, 0, 0);
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
     saveGlobalTransform();
     operations.forEach((operation) => {
-      const hover = !selectedOperation && operation.id === hoverOperationId;
+      const hover = (!selectedOperation || selectedOperation.id !== operation.id) && operation.id === hoverOperationId;
 
       switch (operation.tool) {
         case Tool.Clear:
@@ -138,12 +200,13 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
   }
 
   useEffect(() => {
-    renderOperations(operationList);
-  }, [operationList, scale, viewMatrix, hoverOperationId, selectedOperation]);
+    renderOperations(operationListState.reduced);
+  }, [operationListState.reduced, scale, viewMatrix, hoverOperationId, selectedOperation]);
 
-  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image | Update, pos?: Position) => {
+  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image | Update | Undo, pos?: Position) => {
     if (!tool) {
-      renderOperations(operationList);
+      renderOperations(operationListState.reduced);
+      return;
     }
 
     const message = Object.assign({}, data, {
@@ -154,10 +217,13 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       tool: tool as Tool,
     });
 
-    let newOperationList = operationList;
     setUndoHistory([]);
-    newOperationList = operationList.concat([message]);
-    setOperationList(newOperationList);
+    operationListDispatch({
+      type: 'add',
+      payload: {
+        operation: message,
+      },
+    });
   }
 
   const onMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
@@ -167,7 +233,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     switch (currentTool) {
       case Tool.Select:
-        onSelectMouseDown(e, x, y, scale, operationList, viewMatrix, setSelectedOperation);
+        onSelectMouseDown(e, x, y, scale, operationListState, viewMatrix, setSelectedOperation);
         break;
       case Tool.Stroke:
         onStrokeMouseDown(x, y, currentToolOption);
@@ -190,7 +256,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     switch (currentTool) {
       case Tool.Select:
-        onSelectMouseMove(e, x, y, scale, operationList, setViewMatrix, setHoverOperationId);
+        onSelectMouseMove(e, x, y, scale, operationListState, selectedOperation, setViewMatrix, setHoverOperationId, handleCompleteOperation, operationListDispatch, setSelectedOperation);
         break;
       case Tool.Stroke: {
         saveGlobalTransform();
@@ -199,7 +265,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         break;
       }
       case Tool.Shape: {
-        renderOperations(operationList);
+        renderOperations(operationListState.reduced);
         saveGlobalTransform();
         refContext.current && onShapeMouseMove(x, y, refContext.current);
         restoreGlobalTransform();
@@ -280,10 +346,10 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         }
       },
       undo: () => {
-        const undoItem = operationList[operationList.length - 1];
+        const undoItem = operationListState.queue[operationListState.queue.length - 1];
 
         if (undoItem) {
-          setOperationList(operationList.slice(0, -1));
+          handleCompleteOperation(Tool.Undo, { operationId: undoItem.id });
           setUndoHistory((undoHistory) => {
             return undoHistory.concat([undoItem]);
           });
@@ -293,8 +359,11 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         if (undoHistory.length > 0) {
           const redoItem = undoHistory[undoHistory.length - 1];
 
-          setOperationList((operationList) => {
-            return operationList.concat([redoItem]);
+          operationListDispatch({
+            type: 'add',
+            payload: {
+              operation: redoItem,
+            }
           });
 
           setUndoHistory(undoHistory.slice(0, -1));
