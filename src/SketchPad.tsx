@@ -1,8 +1,8 @@
 import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer } from 'react';
-import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, strokeSize, strokeColor } from './enums/Tool';
+import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, strokeSize, strokeColor, ShapeType } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
 import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke, useStrokeDropdown, moveStoke } from './StrokeTool';
-import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle } from './ShapeTool';
+import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle, useShapeDropdown } from './ShapeTool';
 import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text } from './TextTool';
 import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp, SELECT_PADDING } from './SelectTool';
@@ -78,6 +78,19 @@ const mergeOperations = (operations: Operation[]): Operation[] => {
             case Tool.Stroke:
               operations[targetIndex] = { ...operations[targetIndex], ...{ points: moveStoke(target as Stroke, target.pos, update.data.pos) } };
               break;
+            case Tool.Shape: {
+              const newOperation: any = ({ ...operations[targetIndex] });
+              newOperation.start = {
+                x: newOperation.pos.x,
+                y: newOperation.pos.y,
+              };
+              newOperation.end = {
+                x: newOperation.pos.x + newOperation.pos.w,
+                y: newOperation.pos.y + newOperation.pos.h,
+              };
+              operations[targetIndex] = { ...newOperation };
+              break;
+            }
             default:
               break
           }
@@ -172,7 +185,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
           drawStroke(operation as Stroke, context, hover);
           break
         case Tool.Shape:
-          drawRectangle(operation as Shape, context);
+          drawRectangle(operation as Shape, context, hover);
           break
         case Tool.Text:
           drawText(operation as Text, context, operation.pos);
@@ -417,6 +430,26 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
           setSelectedOperation({ ...selectedOperation, ...data });
         });
+        break;
+      case Tool.Shape:
+        content = useShapeDropdown({
+          shapeType: (selectedOperation as Shape).type,
+          shapeBorderColor: (selectedOperation as Shape).color,
+          shapeBorderSize: (selectedOperation as Shape).size,
+        } as ToolOption, (option: ToolOption) => {
+          const data = {
+            type: option.shapeType,
+            color: option.shapeBorderColor,
+            size: option.shapeBorderSize,
+          };
+
+          handleCompleteOperation(Tool.Update, {
+            operationId: selectedOperation.id,
+            data,
+          });
+
+          setSelectedOperation({ ...selectedOperation, ...data });
+        }, () => {});
         break;
       default:
         break;

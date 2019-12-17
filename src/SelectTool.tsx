@@ -88,8 +88,8 @@ export const onSelectMouseMove = (
   if (isDragging) {
     const items = operationListState.queue;
     const diff = {
-      x: e.clientX - lastSelectX,
-      y: e.clientY - lastSelectY,
+      x: (e.clientX - lastSelectX) / scale,
+      y: (e.clientY - lastSelectY) / scale,
     };
 
     if (selectedOperation && startDragPos) {

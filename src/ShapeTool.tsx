@@ -38,7 +38,7 @@ export const onShapeMouseDown = (x: number, y: number, toolOption: ToolOption) =
   return [shape];
 }
 
-const draw = (item: Shape, mouseX: number, mouseY: number, context: CanvasRenderingContext2D) => {
+const draw = (item: Shape, mouseX: number, mouseY: number, context: CanvasRenderingContext2D, hover: boolean) => {
   const startX = mouseX < item.start.x ? mouseX : item.start.x;
   const startY = mouseY < item.start.y ? mouseY : item.start.y;
   const widthX = Math.abs(item.start.x - mouseX);
@@ -48,9 +48,19 @@ const draw = (item: Shape, mouseX: number, mouseY: number, context: CanvasRender
     context.beginPath();
     context.lineWidth = item.size;
     context.strokeStyle = item.color;
-
     context.rect(startX, startY, widthX, widthY);
     context.stroke();
+    context.closePath();
+
+    if (hover) {
+      context.beginPath();
+      context.strokeStyle = '#3AB1FE';
+      context.lineWidth = item.size / 2;
+      context.rect(startX - item.size / 2, startY - item.size / 2, widthX + item.size, widthY + item.size);
+
+      context.stroke();
+      context.closePath();
+    }
   } else if (item.type === ShapeType.Oval) {
     const endX = mouseX >= item.start.x ? mouseX : item.start.x;
     const endY = mouseY >= item.start.y ? mouseY : item.start.y;
@@ -82,6 +92,32 @@ const draw = (item: Shape, mouseX: number, mouseY: number, context: CanvasRender
 
     context.stroke();
     context.closePath();
+
+    if (hover) {
+      context.beginPath();
+      context.strokeStyle = '#3AB1FE';
+      context.lineWidth = item.size / 2;
+
+      if (typeof context.ellipse === 'function') {
+        context.ellipse(centerX, centerY, radiusX + item.size / 2, radiusY + item.size / 2, 0, 0, 2 * Math.PI);
+      } else {
+        let xPos;
+        let yPos;
+        let i = 0;
+        for (i; i < 2 * Math.PI; i += 0.01) {
+          xPos = centerX - ((radiusY + item.size / 2)  * Math.sin(i)) * Math.sin(0) + ((radiusX + item.size / 2) * Math.cos(i)) * Math.cos(0);
+          yPos = centerY + ((radiusX + item.size / 2) * Math.cos(i)) * Math.sin(0) + ((radiusY + item.size / 2) * Math.sin(i)) * Math.cos(0);
+          if (i === 0) {
+            context.moveTo(xPos, yPos);
+          } else {
+            context.lineTo(xPos, yPos);
+          }
+        }
+      }
+
+      context.stroke();
+      context.closePath();
+    }
   }
 }
 
@@ -107,13 +143,13 @@ export const onShapeMouseUp = (x: number, y: number, setCurrentTool: (tool: Tool
 export const onShapeMouseMove = (x: number, y: number, context: CanvasRenderingContext2D) => {
   if (!shape) return;
 
-  draw(shape, x, y, context);
+  draw(shape, x, y, context, false);
 }
 
-export const drawRectangle = (rect: Shape, context: CanvasRenderingContext2D) => {
+export const drawRectangle = (rect: Shape, context: CanvasRenderingContext2D, hover: boolean) => {
   if (!rect.end) return null;
 
-  draw(rect, rect.end.x, rect.end.y, context);
+  draw(rect, rect.end.x, rect.end.y, context, hover);
 }
 
 export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool: (tool: Tool) => void) => {
