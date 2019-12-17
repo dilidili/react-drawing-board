@@ -359,12 +359,19 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         }
       },
       undo: () => {
-        const undoItem = operationListState.queue[operationListState.queue.length - 1];
+        let undoItem: Operation | null = null;
+        const undoIds = operationListState.queue.filter(v => v.tool === Tool.Undo).map(v => (v as Undo).operationId);
+        const validOperations = operationListState.queue.filter(v => v.tool !== Tool.Undo && undoIds.indexOf(v.id) < 0);
 
-        if (undoItem) {
+        if (validOperations.length > 0) {
+          undoItem = validOperations[validOperations.length - 1];
+        }
+
+        if (undoItem !== null) {
+          setSelectedOperation(null);
           handleCompleteOperation(Tool.Undo, { operationId: undoItem.id });
           setUndoHistory((undoHistory) => {
-            return undoHistory.concat([undoItem]);
+            return undoHistory.concat([undoItem as Operation]);
           });
         }
       },
