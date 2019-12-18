@@ -1,7 +1,8 @@
-import { MouseEvent } from 'react';
-import Tool, { Position } from './enums/Tool';
+import { MouseEvent, RefObject } from 'react';
+import Tool, { Position, ToolOption } from './enums/Tool';
+import { Text, onTextMouseDown } from './TextTool';
 import { Stroke } from './StrokeTool';
-import { Operation, Update, OperationListState } from './SketchPad';
+import { Operation, Update, OperationListState, Remove } from './SketchPad';
 import { matrix_multiply } from './utils'
 
 let lastSelectX = 0;
@@ -131,8 +132,30 @@ export const onSelectMouseMove = (
   }
 }
 
-export const onSelectMouseDoubleClick = () => {
-  
+export const onSelectMouseDoubleClick = (
+  x: number,
+  y: number,
+  scale: number,
+  operationListState: OperationListState,
+  handleCompleteOperation: (tool?: Tool, data?: Remove, pos?: Position) => void,
+  viewMatrix: number[],
+  refInput: RefObject<HTMLDivElement>,
+  refCanvas: RefObject<HTMLCanvasElement>,
+) => {
+  const pos: [number, number] = [x, y];
+
+  let selectedItem: Operation | null = findSelectedItem(operationListState.reduced, pos, scale);
+  if (selectedItem !== null && refCanvas.current) {
+    if (selectedItem.tool === Tool.Text) {
+      const operation = selectedItem as Text;
+      const [a, b, c, d, e, f] = viewMatrix;
+
+      const canvas = refCanvas.current;
+      const { top, left } = canvas.getBoundingClientRect();
+      handleCompleteOperation(Tool.Remove, { operationId: selectedItem.id });
+      onTextMouseDown({ clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left, clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top } as MouseEvent<HTMLCanvasElement>, { textSize: operation.size, textColor: operation.color, defaultText: operation.text } as ToolOption, refInput, refCanvas);
+    }
+  }
 }
 
 export const onSelectMouseUp = () => {

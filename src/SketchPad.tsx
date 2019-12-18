@@ -6,6 +6,7 @@ import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangl
 import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp, onSelectMouseDoubleClick, SELECT_PADDING } from './SelectTool';
+import { Icon } from 'antd';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
 import { useZoomGesture } from './gesture';
@@ -29,7 +30,11 @@ export type SketchPadRef = {
   save: () => void;
 };
 
-export type Operation = (Stroke | Shape | Text | Image | Update) & {
+export type Remove = {
+  operationId: string,
+}
+
+export type Operation = (Stroke | Shape | Text | Image | Update | Remove) & {
   id: string;
   userId: string;
   timestamp: number;
@@ -85,7 +90,7 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
     operations.forEach((v, k) => {
       if (v.tool === Tool.Update) {
         const update = v as Update;
-        const targetIndex = operations.findIndex(w => w.id === update.operationId);
+        const targetIndex = operations.findIndex(w => w && w.id === update.operationId);
 
         if (~targetIndex) {
           const target = operations[targetIndex];
@@ -118,7 +123,8 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
       }
     })
 
-    operations = operations.filter(v => v.tool !== Tool.Update);
+    const removeIds = operations.filter(v => v.tool === Tool.Remove).map(v => (v as Remove).operationId);
+    operations = operations.filter(v => v.tool !== Tool.Update && removeIds.indexOf(v.id) < 0); // keep Remove operation to keep undoable
 
     return operations;
 }
@@ -234,7 +240,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     renderOperations(operationListState.reduced);
   }, [operationListState.reduced, scale, viewMatrix, hoverOperationId, selectedOperation]);
 
-  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image | Update, pos?: Position) => {
+  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image | Update | Remove, pos?: Position) => {
     if (!tool) {
       renderOperations(operationListState.reduced);
       return;
@@ -272,7 +278,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         onShapeMouseDown(x, y, currentToolOption);
         break;
       case Tool.Text:
-        onTextMouseDown(e, x, y, currentToolOption, refInput, refCanvas);
+        onTextMouseDown(e, currentToolOption, refInput, refCanvas);
         break;
       default:
         break;
@@ -286,7 +292,8 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     switch (currentTool) {
       case Tool.Select:
-        onSelectMouseDoubleClick();
+        onSelectMouseDoubleClick(x, y, scale, operationListState, handleCompleteOperation, viewMatrix, refInput, refCanvas);
+        setSelectedOperation(null);
         break;
       default:
         break;
@@ -358,6 +365,13 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     onScaleChange(newScale);
   };
+
+  const onRemoveOperation = () => {
+    if (selectedOperation) {
+      setSelectedOperation(null);
+      handleCompleteOperation(Tool.Remove, { operationId: selectedOperation.id });
+    }
+  }
 
   useEffect(() => {
     const canvas = refCanvas.current as HTMLCanvasElement;
@@ -441,6 +455,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
   useZoomGesture(refCanvas);
 
   let settingMenu = null;
+  let removeButton = null;
   if (selectedOperation) {
     let content = null;
 
@@ -521,6 +536,8 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     const resultRect = {
       xMin: selectedOperation.pos.x,
+      xMax: selectedOperation.pos.x + selectedOperation.pos.w,
+      yMin: selectedOperation.pos.y,
       yMax: selectedOperation.pos.y + selectedOperation.pos.h,
     };
 
@@ -529,17 +546,38 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     const left = resultRect.xMin;
     const top = resultRect.yMax + selectPadding;
 
-    const style: CSSProperties = {
+    const menuStyle: CSSProperties = {
       position: 'absolute',
       left: (a * left + c * top + e),
       top: (b * left + d * top + f),
     };
 
     settingMenu = (
-      <div style={style}>
+      <div style={menuStyle}>
         {content}
       </div>
     );
+
+
+    const removeX = selectedOperation.tool === Tool.Text ? resultRect.xMax - 5 : resultRect.xMax - 7;
+    const removeY = selectedOperation.tool === Tool.Text ? resultRect.yMin - 11 : resultRect.yMin - 9;
+    const removeStyle: CSSProperties = {
+      position: 'absolute',
+      left: (a * removeX + c * removeY + e),
+      top: (b * removeX + d * removeY + f),
+      background: 'white',
+      lineHeight: '16px',
+      fontSize: '16px',
+      borderRadius: '50%',
+      cursor: 'pointer',
+      color: '#f45b6c',
+    };
+
+    removeButton = (
+      <div style={removeStyle} onClick={onRemoveOperation}>
+        <Icon type="close-circle" theme="filled" />
+      </div>
+    )
   }
 
   return (
@@ -570,6 +608,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       </div>
 
       {settingMenu}
+      {removeButton}
     </div>
   );
 }

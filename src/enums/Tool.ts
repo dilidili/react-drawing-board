@@ -10,6 +10,7 @@ enum Tool {
   Zoom = 'Zoom',
   Save = 'Save',
   Update = 'Update',
+  Remove = 'Remove',
 }
 
 export enum ShapeType {
@@ -46,6 +47,7 @@ export const defaultToolOption = {
   shapeBorderSize: 4,
   textColor: strokeColor[0],
   textSize: TextSize.Default,
+  defaultText: '输入文本',
 } 
 
 export type ToolOption = {
@@ -56,6 +58,8 @@ export type ToolOption = {
   shapeBorderSize: number,
   textColor: string,
   textSize: TextSize,
+
+  defaultText: string,
 };
 
 export default Tool;

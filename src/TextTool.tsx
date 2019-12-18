@@ -17,7 +17,7 @@ export interface Text {
   text: string,
 }
 
-export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, x: number, y: number, toolOption: ToolOption, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>) => {
+export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, toolOption: ToolOption, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>) => {
   if (!currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const canvas = refCanvas.current;
@@ -33,7 +33,7 @@ export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, x: number, y: 
     textarea.style.fontSize = (toolOption.textSize as number) + 'px';
     textarea.style.lineHeight = (toolOption.textSize as number) + 'px';
     textarea.style.color = toolOption.textColor;
-    textarea.innerText = '输入文本';
+    textarea.innerText = toolOption.defaultText;
 
     setTimeout(() => {
       if (getSelection && Range) {
@@ -45,7 +45,7 @@ export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, x: number, y: 
       }
     }, 0);
 
-    currentText = '输入文本';
+    currentText = toolOption.defaultText;
     currentColor = toolOption.textColor;
     currentSize = toolOption.textSize;
   }
