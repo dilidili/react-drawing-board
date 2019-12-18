@@ -131,6 +131,10 @@ export const onSelectMouseMove = (
   }
 }
 
+export const onSelectMouseDoubleClick = () => {
+  
+}
+
 export const onSelectMouseUp = () => {
   if (isDragging) {
     isDragging = false;
