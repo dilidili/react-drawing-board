@@ -153,7 +153,7 @@ export const onSelectMouseDoubleClick = (
       const canvas = refCanvas.current;
       const { top, left } = canvas.getBoundingClientRect();
       handleCompleteOperation(Tool.Remove, { operationId: selectedItem.id });
-      onTextMouseDown({ clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left, clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top } as MouseEvent<HTMLCanvasElement>, { textSize: operation.size, textColor: operation.color, defaultText: operation.text } as ToolOption, refInput, refCanvas);
+      onTextMouseDown({ clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left, clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top } as MouseEvent<HTMLCanvasElement>, { textSize: operation.size, textColor: operation.color, defaultText: operation.text } as ToolOption, scale, refInput, refCanvas);
     }
   }
 }

@@ -278,7 +278,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         onShapeMouseDown(x, y, currentToolOption);
         break;
       case Tool.Text:
-        onTextMouseDown(e, currentToolOption, refInput, refCanvas);
+        onTextMouseDown(e, currentToolOption, scale, refInput, refCanvas);
         break;
       default:
         break;
@@ -559,8 +559,8 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     );
 
 
-    const removeX = selectedOperation.tool === Tool.Text ? resultRect.xMax - 5 : resultRect.xMax - 7;
-    const removeY = selectedOperation.tool === Tool.Text ? resultRect.yMin - 11 : resultRect.yMin - 9;
+    const removeX = selectedOperation.tool === Tool.Text ? resultRect.xMax - 5 / scale : resultRect.xMax - 7 / scale;
+    const removeY = selectedOperation.tool === Tool.Text ? resultRect.yMin - 11 / scale : resultRect.yMin - 9 / scale;
     const removeStyle: CSSProperties = {
       position: 'absolute',
       left: (a * removeX + c * removeY + e),

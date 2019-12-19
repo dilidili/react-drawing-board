@@ -17,7 +17,7 @@ export interface Text {
   text: string,
 }
 
-export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, toolOption: ToolOption, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>) => {
+export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>) => {
   if (!currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const canvas = refCanvas.current;
@@ -30,8 +30,8 @@ export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, toolOption: To
     textarea.style.display = 'block';
     textarea.style.left = x + canvas.offsetLeft + 'px';
     textarea.style.top = y + canvas.offsetTop + 'px';
-    textarea.style.fontSize = (toolOption.textSize as number) + 'px';
-    textarea.style.lineHeight = (toolOption.textSize as number) + 'px';
+    textarea.style.fontSize = (toolOption.textSize as number) * scale + 'px';
+    textarea.style.lineHeight = (toolOption.textSize as number) * scale + 'px';
     textarea.style.color = toolOption.textColor;
     textarea.innerText = toolOption.defaultText;
 
