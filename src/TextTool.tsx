@@ -4,6 +4,7 @@ import { RefObject, MouseEvent } from 'react';
 import { mapClientToCanvas } from './utils';
 import { Icon } from 'antd';
 import styles from './TextTool.less'
+import { formatMessage } from 'umi-plugin-locale';
 
 let currentText = '';
 let currentColor = '';
@@ -33,7 +34,7 @@ export const onTextMouseDown = (e: MouseEvent<HTMLDivElement>, toolOption: ToolO
     textarea.style.fontSize = (toolOption.textSize as number) * scale + 'px';
     textarea.style.lineHeight = (toolOption.textSize as number) * scale + 'px';
     textarea.style.color = toolOption.textColor;
-    textarea.innerText = toolOption.defaultText;
+    textarea.innerText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : formatMessage(toolOption.defaultText);
 
     setTimeout(() => {
       if (getSelection && Range) {
@@ -45,7 +46,7 @@ export const onTextMouseDown = (e: MouseEvent<HTMLDivElement>, toolOption: ToolO
       }
     }, 0);
 
-    currentText = toolOption.defaultText;
+    currentText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : formatMessage(toolOption.defaultText);
     currentColor = toolOption.textColor;
     currentSize = toolOption.textSize;
   }
@@ -109,7 +110,7 @@ export const useTextDropdown = (currentToolOption: ToolOption, setCurrentToolOpt
                 }}
                 style={{ color: size === currentToolOption.textSize ? '#666' : '#ccc' }}
               >
-                {size === TextSize.Small ? 'Small' : size === TextSize.Default ? 'Default' : 'Large'}
+                {size === TextSize.Small ? formatMessage({ id: 'umi.block.sketch.text.size.small' }) : size === TextSize.Default ? formatMessage({ id: 'umi.block.sketch.text.size.default' }) : formatMessage({ id: 'umi.block.sketch.text.size.large' })}
               </div>
             )
           })}

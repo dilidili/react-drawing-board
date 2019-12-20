@@ -1,4 +1,5 @@
 import React, { useState, useRef, ChangeEventHandler } from 'react';
+import { formatMessage, } from 'umi-plugin-locale';
 import Tool, { ToolOption } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
@@ -17,40 +18,40 @@ import classNames from 'classnames';
 import styles from './Toolbar.less';
 
 const tools = [{
-  label: '选择',
+  label: 'umi.block.sketch.select',
   icon: SelectIcon,
   type: Tool.Select,
 }, {
-  label: '笔触 p',
+  label: 'umi.block.sketch.pencil',
   icon: StrokeIcon,
   type: Tool.Stroke,
   useDropdown: useStrokeDropdown,
 }, {
-  label: '形状 r',
+  label: 'umi.block.sketch.shape',
   icon: ShapeIcon,
   type: Tool.Shape,
   useDropdown: useShapeDropdown,
 }, {
-  label: '文本 t',
+  label: 'umi.block.sketch.text',
   icon: TextIcon,
   type: Tool.Text,
 }, {
-  label: '图片',
+  label: 'umi.block.sketch.image',
   icon: ImageIcon,
   type: Tool.Image,
 }, {
-  label: '撤销',
+  label: 'umi.block.sketch.undo',
   icon: UndoIcon,
   type: Tool.Undo,
   style: {
     marginLeft: 'auto',
   },
 }, {
-  label: '重做',
+  label: 'umi.block.sketch.redo',
   icon: RedoIcon,
   type: Tool.Redo,
 }, {
-  label: '清空',
+  label: 'umi.block.sketch.clear',
   icon: ClearIcon,
   type: Tool.Clear,
   style: {
@@ -62,7 +63,7 @@ const tools = [{
   icon: ZoomIcon,
   type: Tool.Zoom,
 }, {
-  label: '保存',
+  label: 'umi.block.sketch.save',
   icon: SaveIcon,
   type: Tool.Save,
 }];
@@ -126,7 +127,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             key={tool.label}
           >
             <tool.icon />
-            <label className={styles.iconLabel}>{tool.labelThunk ? tool.labelThunk(props) : tool.label}</label>
+            <label className={styles.iconLabel}>{tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}</label>
           </div>
         )
 

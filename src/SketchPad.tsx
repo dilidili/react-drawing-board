@@ -6,6 +6,7 @@ import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangl
 import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp, onSelectMouseDoubleClick, SELECT_PADDING } from './SelectTool';
+import { debounce } from 'lodash';
 import { Icon } from 'antd';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
@@ -330,6 +331,9 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
   const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
   const [operationListState, operationListDispatch] = useReducer<typeof operationListReducer>(operationListReducer, initialOperationState);
 
+  const refOperationListState = useRef<OperationListState>(operationListState);
+  refOperationListState.current = operationListState;
+
   const saveGlobalTransform = () => {
     if (!refContext.current) return;
 
@@ -414,6 +418,23 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     return () => removeEventListener('keydown', keydownHandler);
   }, [selectedOperation && selectedOperation.id]);
+
+  useEffect(() => {
+    const resizeHandler = debounce(() => {
+      const canvas = refCanvas.current;
+      if (canvas && refOperationListState.current) {
+        // high resolution canvas.
+        const rect = canvas.getBoundingClientRect();
+        canvas.width = rect.width * DPR;
+        canvas.height = rect.height * DPR;
+
+        renderOperations(refOperationListState.current.reduced);
+      }
+    }, 200);
+    addEventListener('resize', resizeHandler);
+
+    return () => removeEventListener('resize', resizeHandler);
+  }, []);
 
   useEffect(() => {
     renderOperations(operationListState.reduced);

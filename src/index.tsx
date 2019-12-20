@@ -1,6 +1,7 @@
 import React, { useState, useRef, CSSProperties, useEffect } from 'react';
 import { v4 } from 'uuid';
 import { animated, useSpring } from 'react-spring';
+import { setLocale } from 'umi-plugin-locale';
 import Toolbar from './Toolbar';
 import SketchPad, { SketchPadRef } from './SketchPad';
 import styles from './index.css';
@@ -9,11 +10,14 @@ import Tool, { ToolOption, defaultToolOption, ShapeType } from './enums/Tool';
 interface BlockProps {
   userId: string;
   style?: CSSProperties;
+  locale?: string;
 }
 
 const AnimatedSketchPad = animated(SketchPad);
 
 const Block: React.FC<BlockProps> = (props) => {
+  const { locale, userId } = props;
+
   const [currentTool, setCurrentTool] = useState(Tool.Select);
   const [scale, setScale] = useState(1);
   const [currentToolOption, setCurrentToolOption] = useState<ToolOption>(defaultToolOption);
@@ -22,6 +26,12 @@ const Block: React.FC<BlockProps> = (props) => {
   const animatedProps = useSpring<{
     value: number
   }>({ value: scale, });
+
+  useEffect(() => {
+    if (locale) {
+      setLocale(locale);
+    }
+  }, [locale]);
 
   useEffect(() => {
     const keydownHandler = (evt: KeyboardEvent) => {
@@ -81,7 +91,7 @@ const Block: React.FC<BlockProps> = (props) => {
       />
       <AnimatedSketchPad
         ref={refSketch}
-        userId={props.userId}
+        userId={userId}
         currentTool={currentTool}
         setCurrentTool={setCurrentTool}
         currentToolOption={currentToolOption}

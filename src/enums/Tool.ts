@@ -47,7 +47,9 @@ export const defaultToolOption = {
   shapeBorderSize: 4,
   textColor: strokeColor[0],
   textSize: TextSize.Default,
-  defaultText: '输入文本',
+  defaultText: {
+    id: 'umi.block.sketch.text.placeholder'
+  },
 } 
 
 export type ToolOption = {
@@ -59,7 +61,9 @@ export type ToolOption = {
   textColor: string,
   textSize: TextSize,
 
-  defaultText: string,
+  defaultText: string | {
+    id: string,
+  },
 };
 
 export default Tool;
