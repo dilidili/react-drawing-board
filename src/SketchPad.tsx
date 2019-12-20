@@ -398,6 +398,24 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
   }
 
   useEffect(() => {
+    const keydownHandler = (evt: KeyboardEvent) => {
+      const { keyCode } = evt;
+      // key 'delete'
+      if (keyCode === 8) {
+        if (selectedOperation) {
+          setSelectedOperation(null);
+          handleCompleteOperation(Tool.Remove, { operationId: selectedOperation.id });
+        }
+      } else if (keyCode === 27) { // key 'esc'
+        setSelectedOperation(null);
+      }
+    };
+    addEventListener('keydown', keydownHandler);
+
+    return () => removeEventListener('keydown', keydownHandler);
+  }, [selectedOperation && selectedOperation.id]);
+
+  useEffect(() => {
     renderOperations(operationListState.reduced);
   }, [operationListState.reduced, scale, viewMatrix, hoverOperationId, selectedOperation]);
 
