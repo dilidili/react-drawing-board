@@ -17,7 +17,7 @@ export interface Text {
   text: string,
 }
 
-export const onTextMouseDown = (e: MouseEvent<HTMLCanvasElement>, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>) => {
+export const onTextMouseDown = (e: MouseEvent<HTMLDivElement>, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>) => {
   if (!currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const canvas = refCanvas.current;

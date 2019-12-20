@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer } from 'react';
+import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer, MouseEventHandler, ReactNode, RefObject } from 'react';
 import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
 import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke, useStrokeDropdown, moveStoke } from './StrokeTool';
@@ -51,6 +51,10 @@ export type Update = {
 
 const DPR = window.devicePixelRatio || 1;
 
+const SELECT_BOX_PADDING = 3;
+
+const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
+
 export type OperationListState = {
   queue: Operation[],
   reduced: Operation[],
@@ -85,48 +89,53 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
       }
 
       return r;
-    }, [])
+    }, []);
 
-    operations.forEach((v, k) => {
-      if (v.tool === Tool.Update) {
-        const update = v as Update;
-        const targetIndex = operations.findIndex(w => w && w.id === update.operationId);
+  let clearIndex: number = -1;
+  while ((clearIndex = operations.findIndex(v => v.tool === Tool.Clear)) > 0) {
+    operations = operations.slice(clearIndex);
+  }
 
-        if (~targetIndex) {
-          const target = operations[targetIndex];
-          operations[targetIndex] = { ...operations[targetIndex], ...update.data };
+  operations.forEach((v, k) => {
+    if (v.tool === Tool.Update) {
+      const update = v as Update;
+      const targetIndex = operations.findIndex(w => w && w.id === update.operationId);
 
-          // move other properties related to pos
-          if (update.data.pos) {
-            switch (target.tool) {
-              case Tool.Stroke:
-                operations[targetIndex] = { ...operations[targetIndex], ...{ points: moveStoke(target as Stroke, target.pos, update.data.pos) } };
-                break;
-              case Tool.Shape: {
-                const newOperation: any = ({ ...operations[targetIndex] });
-                newOperation.start = {
-                  x: newOperation.pos.x,
-                  y: newOperation.pos.y,
-                };
-                newOperation.end = {
-                  x: newOperation.pos.x + newOperation.pos.w,
-                  y: newOperation.pos.y + newOperation.pos.h,
-                };
-                operations[targetIndex] = { ...newOperation };
-                break;
-              }
-              default:
-                break;
+      if (~targetIndex) {
+        const target = operations[targetIndex];
+        operations[targetIndex] = { ...operations[targetIndex], ...update.data };
+
+        // move other properties related to pos
+        if (update.data.pos) {
+          switch (target.tool) {
+            case Tool.Stroke:
+              operations[targetIndex] = { ...operations[targetIndex], ...{ points: moveStoke(target as Stroke, target.pos, update.data.pos) } };
+              break;
+            case Tool.Shape: {
+              const newOperation: any = ({ ...operations[targetIndex] });
+              newOperation.start = {
+                x: newOperation.pos.x,
+                y: newOperation.pos.y,
+              };
+              newOperation.end = {
+                x: newOperation.pos.x + newOperation.pos.w,
+                y: newOperation.pos.y + newOperation.pos.h,
+              };
+              operations[targetIndex] = { ...newOperation };
+              break;
             }
+            default:
+              break;
           }
         }
       }
-    })
+    }
+  })
 
-    const removeIds = operations.filter(v => v.tool === Tool.Remove).map(v => (v as Remove).operationId);
-    operations = operations.filter(v => v.tool !== Tool.Update && removeIds.indexOf(v.id) < 0); // keep Remove operation to keep undoable
+  const removeIds = operations.filter(v => v.tool === Tool.Remove).map(v => (v as Remove).operationId);
+  operations = operations.filter(v => v.tool !== Tool.Update && removeIds.indexOf(v.id) < 0); // keep Remove operation to keep undoable
 
-    return operations;
+  return operations;
 }
 
 const operationListReducer: Reducer<OperationListState, any> = (state, action) => {
@@ -152,6 +161,158 @@ const operationListReducer: Reducer<OperationListState, any> = (state, action) =
     default:
       return state;
   }
+}
+
+enum ResizeDirection {
+  TopLeft = 'TopLeft',
+  TopCenter = 'TopCenter',
+  MiddleRight = 'MiddleRight',
+  MiddleLeft = 'MiddleLest',
+  BottomRight = 'BottomRight',
+  BottomCenter = 'BottomCenter',
+  BottomLeft = 'BottomLeft',
+};
+
+let isResizing: null | ResizeDirection = null;
+let startResizePoint: [number, number] = [0, 0];
+let startResizePos: Position | null = null;
+const useResizeHandler = (
+  selectedOperation: Operation | null,
+  viewMatrix: number[],
+  scale: number,
+  items: Operation[],
+  operationListDispatch: React.Dispatch<any>,
+  setSelectedOperation: (operation: Operation) => void,
+  handleCompleteOperation: (tool?: Tool, data?: Stroke | Shape | Text | Image | Update | Remove, pos?: Position) => void,
+  refCanvas: RefObject<HTMLCanvasElement>,
+): {
+  onMouseMove: MouseEventHandler,
+  onMouseUp: MouseEventHandler,
+  resizer: ReactNode,
+} => {
+  if (selectedOperation && (selectedOperation.tool === Tool.Shape || selectedOperation.tool === Tool.Image)) {
+    const [a, b, c, d, e, f] = viewMatrix;
+    const pos = {
+      x: selectedOperation.pos.x - SELECT_BOX_PADDING,
+      y: selectedOperation.pos.y - SELECT_BOX_PADDING,
+      w: selectedOperation.pos.w + 2 * SELECT_BOX_PADDING,
+      h: selectedOperation.pos.h + 2 * SELECT_BOX_PADDING,
+    };
+
+    const tl = [a * pos.x + c * pos.y + e, b * pos.x + d * pos.y + f];
+    const br = [a * (pos.x + pos.w) + c * (pos.y + pos.h) + e, b * (pos.x + pos.w) + d * (pos.y + pos.h) + f];
+    const w = br[0] - tl[0], h = br[1] - tl[1];
+
+    const onMouseDown = (direction: ResizeDirection) => (e: MouseEvent) => {
+      e.stopPropagation();
+
+      if (refCanvas.current) {
+        isResizing = direction;
+        startResizePoint = mapClientToCanvas(e, refCanvas.current, viewMatrix);
+        startResizePos = { ...selectedOperation.pos };
+      }
+    }
+
+    const onMouseMove = (e: MouseEvent) => {
+      if (selectedOperation && isResizing && refCanvas.current && startResizePos) {
+        let pos = mapClientToCanvas(e, refCanvas.current, viewMatrix);
+
+        const diff = {
+          x: pos[0] - startResizePoint[0],
+          y: pos[1] - startResizePoint[1],
+        };
+
+        const updatePos = {
+          ...startResizePos,
+        };
+
+        if (isResizing === ResizeDirection.TopLeft) {
+          diff.x = Math.min(diff.x, updatePos.w);
+          diff.y = Math.min(diff.y, updatePos.h);
+          updatePos.x += diff.x;
+          updatePos.y += diff.y;
+          updatePos.w -= diff.x;
+          updatePos.h -= diff.y;
+        } else if (isResizing === ResizeDirection.TopCenter) {
+          diff.y = Math.min(diff.y, updatePos.h);
+          updatePos.y += diff.y;
+          updatePos.h -= diff.y;
+        } else if (isResizing === ResizeDirection.MiddleRight) {
+          diff.x = Math.max(diff.x, -updatePos.w);
+          updatePos.w += diff.x;
+        } else if (isResizing === ResizeDirection.BottomRight) {
+          diff.x = Math.max(diff.x, -updatePos.w);
+          diff.y = Math.max(diff.y, -updatePos.h);
+          updatePos.w += diff.x;
+          updatePos.h += diff.y;
+        } else if (isResizing === ResizeDirection.BottomCenter) {
+          diff.y = Math.max(diff.y, -updatePos.h);
+          updatePos.h += diff.y;
+        } else if (isResizing === ResizeDirection.BottomLeft) {
+          diff.y = Math.max(diff.y, -updatePos.h);
+          diff.x = Math.min(diff.x, updatePos.w);
+          updatePos.x += diff.x;
+          updatePos.w -= diff.x;
+          updatePos.h += diff.y;
+        } else if (isResizing === ResizeDirection.MiddleLeft) {
+          diff.x = Math.min(diff.x, updatePos.w);
+          updatePos.x += diff.x;
+          updatePos.w -= diff.x;
+        }
+
+        const lastOperation = items[items.length - 1];
+        if (lastOperation && lastOperation.tool === Tool.Update && (lastOperation as Update).operationId === selectedOperation.id && (lastOperation as Update).data.pos) {
+          const update = lastOperation as Update;
+          if (update.data.pos) {
+            update.data.pos = {
+              ...updatePos,
+            };
+  
+            operationListDispatch({
+              type: 'replaceLast',
+              payload: {
+                operation: update,
+              },
+            });
+          }
+        } else {
+          handleCompleteOperation(Tool.Update, {
+            operationId: selectedOperation.id,
+            data: {
+              pos: { ...updatePos },
+            },
+          });
+        }
+
+        setSelectedOperation({...selectedOperation, pos: { ...updatePos }});
+      }
+    }
+
+    const onMouseUp = () => {
+      isResizing = null;
+    }
+
+    return {
+      onMouseMove,
+      onMouseUp,
+      resizer: (
+        <>
+          <div key={ResizeDirection.TopLeft} onMouseDown={onMouseDown(ResizeDirection.TopLeft)} className={styles.resizer} style={{ left: tl[0] + 'px', top: tl[1] + 'px' }} />
+          <div key={ResizeDirection.TopCenter} onMouseDown={onMouseDown(ResizeDirection.TopCenter)} className={styles.resizer} style={{ left: tl[0] + w / 2 + 'px', top: tl[1] + 'px' }} />
+          {/* <div key='tr' className={styles.resizer} style={{ left: tl[0] + w + 'px', top: tl[1] + 'px' }} /> */}
+          <div key={ResizeDirection.MiddleRight} onMouseDown={onMouseDown(ResizeDirection.MiddleRight)} className={styles.resizer} style={{ left: tl[0] + w + 'px', top: tl[1] + h / 2 + 'px' }} />
+          <div key={ResizeDirection.BottomRight} onMouseDown={onMouseDown(ResizeDirection.BottomRight)} className={styles.resizer} style={{ left: br[0] + 'px', top: br[1] + 'px' }} />
+          <div key={ResizeDirection.BottomCenter} onMouseDown={onMouseDown(ResizeDirection.BottomCenter)} className={styles.resizer} style={{ left: br[0] - w / 2 + 'px', top: br[1] + 'px' }} />
+          <div key={ResizeDirection.BottomLeft} onMouseDown={onMouseDown(ResizeDirection.BottomLeft)} className={styles.resizer} style={{ left: br[0] - w + 'px', top: br[1] + 'px' }} />
+          <div key={ResizeDirection.MiddleLeft} onMouseDown={onMouseDown(ResizeDirection.MiddleLeft)} className={styles.resizer} style={{ left: tl[0] + 'px', top: tl[1] + h / 2 + 'px' }} />
+        </>
+      )
+    }
+  } else return {
+    onMouseMove: () => {},
+    onMouseUp: () => {},
+    resizer: null,
+  };
 }
 
 const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
@@ -228,7 +389,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       context.beginPath();
       context.lineWidth = 1;
       context.strokeStyle = '#d0d0d0';
-      context.rect(selectedOperation.pos.x - 3, selectedOperation.pos.y - 3, selectedOperation.pos.w + 6, selectedOperation.pos.h + 6);
+      context.rect(selectedOperation.pos.x - SELECT_BOX_PADDING, selectedOperation.pos.y - SELECT_BOX_PADDING, selectedOperation.pos.w + 2 * SELECT_BOX_PADDING, selectedOperation.pos.h + 2 * SELECT_BOX_PADDING);
       context.stroke();
       context.closePath();
     }
@@ -262,7 +423,13 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     });
   }
 
-  const onMouseDown = (e: MouseEvent<HTMLCanvasElement>) => {
+  const {
+    onMouseMove: onMouseResizeMove,
+    onMouseUp: onMouseResizeUp,
+    resizer,
+  } = useResizeHandler(selectedOperation, viewMatrix, scale, operationListState.queue, operationListDispatch, setSelectedOperation, handleCompleteOperation, refCanvas);
+
+  const onMouseDown = (e: MouseEvent<HTMLDivElement>) => {
     if (!refCanvas.current) return null;
 
     const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);
@@ -300,8 +467,10 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     }
   };
 
-  const onMouseMove = (e: MouseEvent<HTMLCanvasElement>) => {
+  const onMouseMove = (e: MouseEvent<HTMLDivElement>) => {
     if (!refCanvas.current) return null;
+
+    onMouseResizeMove(e);
 
     const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);
 
@@ -327,8 +496,10 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     }
   };
 
-  const onMouseUp = (e: MouseEvent<HTMLCanvasElement>) => {
+  const onMouseUp = (e: MouseEvent<Element>) => {
     if (!refCanvas.current) return null;
+
+    onMouseResizeUp(e);
 
     switch (currentTool) {
       case Tool.Select:
@@ -363,10 +534,14 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       setViewMatrix([newScale, b, c, newScale, e - (pos[0] * scaleChange), f - (pos[1] * scaleChange)]);
     }
 
+    setSelectedOperation(null);
     onScaleChange(newScale);
   };
 
-  const onRemoveOperation = () => {
+  const onRemoveOperation: MouseEventHandler<Element> = (evt) => {
+    evt.preventDefault();
+    evt.stopPropagation();
+
     if (selectedOperation) {
       setSelectedOperation(null);
       handleCompleteOperation(Tool.Remove, { operationId: selectedOperation.id });
@@ -383,7 +558,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     refContext.current = canvas.getContext('2d');
 
     canvas.oncontextmenu = (e) => {
-      e.preventDefault()
+      e.preventDefault();
     }
   }, []);
 
@@ -429,6 +604,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         }
       },
       clear: () => {
+        setSelectedOperation(null);
         handleCompleteOperation(Tool.Clear);
       },
       save: () => {
@@ -553,7 +729,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     };
 
     settingMenu = (
-      <div style={menuStyle}>
+      <div style={menuStyle} onMouseDown={stopPropagation}>
         {content}
       </div>
     );
@@ -574,20 +750,22 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     };
 
     removeButton = (
-      <div style={removeStyle} onClick={onRemoveOperation}>
+      <div style={removeStyle} onMouseDown={onRemoveOperation}>
         <Icon type="close-circle" theme="filled" />
       </div>
     )
   }
 
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      onMouseDown={onMouseDown}
+      onMouseMove={onMouseMove}
+      onMouseLeave={onMouseUp}
+      onMouseUp={onMouseUp}
+    >
       <canvas
         ref={refCanvas}
-        onMouseDown={onMouseDown}
-        onMouseMove={onMouseMove}
-        onMouseLeave={onMouseUp}
-        onMouseUp={onMouseUp}
         onDoubleClick={onDoubleClick}
         onWheel={onWheel}
         className={styles.canvas}
@@ -609,6 +787,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
       {settingMenu}
       {removeButton}
+      {resizer}
     </div>
   );
 }

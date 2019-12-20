@@ -93,7 +93,7 @@ export function matrix_invert(M: any) {
   return I;
 }
 
-export const mapClientToCanvas = (evt: MouseEvent<HTMLCanvasElement>, canvas: HTMLCanvasElement, viewMatrix: number[]): [number, number] => {
+export const mapClientToCanvas = (evt: MouseEvent<Element>, canvas: HTMLCanvasElement, viewMatrix: number[]): [number, number] => {
   const { top, left } = canvas.getBoundingClientRect();
   const [a, b, c, d, e, f] = viewMatrix;
 

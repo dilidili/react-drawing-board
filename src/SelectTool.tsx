@@ -57,7 +57,7 @@ const findSelectedItem = (items: Operation[], pos:[number, number], scale: numbe
   return null;
 }
 
-export const onSelectMouseDown = (e: MouseEvent<HTMLCanvasElement>, x: number, y: number, scale: number, operationListState: OperationListState, viewMatrix: number[], setSelectedOperation: (item: Operation | null) => void) => {
+export const onSelectMouseDown = (e: MouseEvent<HTMLDivElement>, x: number, y: number, scale: number, operationListState: OperationListState, viewMatrix: number[], setSelectedOperation: (item: Operation | null) => void) => {
   const pos: [number, number] = [x, y];
 
   lastSelectX = e.clientX;
@@ -74,7 +74,7 @@ export const onSelectMouseDown = (e: MouseEvent<HTMLCanvasElement>, x: number, y
 }
 
 export const onSelectMouseMove = (
-  e: MouseEvent<HTMLCanvasElement>,
+  e: MouseEvent<HTMLDivElement>,
   x: number,
   y: number,
   scale: number,
@@ -122,7 +122,7 @@ export const onSelectMouseMove = (
 
       setSelectedOperation({...selectedOperation, pos: { ...startDragPos, x: startDragPos.x + diff.x, y: startDragPos.y + diff.y }});
     } else {
-      setViewMatrix(matrix_multiply([1, 0, 0, 1, diff.x, diff.y], startDragViewMatrix));
+      setViewMatrix(matrix_multiply([1, 0, 0, 1, diff.x * scale, diff.y * scale], startDragViewMatrix));
     }
   } else {
     const pos: [number, number] = [x, y];
@@ -153,7 +153,7 @@ export const onSelectMouseDoubleClick = (
       const canvas = refCanvas.current;
       const { top, left } = canvas.getBoundingClientRect();
       handleCompleteOperation(Tool.Remove, { operationId: selectedItem.id });
-      onTextMouseDown({ clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left, clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top } as MouseEvent<HTMLCanvasElement>, { textSize: operation.size, textColor: operation.color, defaultText: operation.text } as ToolOption, scale, refInput, refCanvas);
+      onTextMouseDown({ clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left, clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top } as MouseEvent<HTMLDivElement>, { textSize: operation.size, textColor: operation.color, defaultText: operation.text } as ToolOption, scale, refInput, refCanvas);
     }
   }
 }
