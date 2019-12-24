@@ -1,8 +1,7 @@
 import React from 'react';
 import Tool, { strokeSize, strokeColor, ToolOption } from './enums/Tool';
 import { Icon } from 'antd';
-import styles from './StrokeTool.less'
-import { Operation } from '@/SketchPad';
+import './StrokeTool.less';
 
 interface Point {
   x: number,
@@ -148,11 +147,13 @@ export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleComp
   return [item];
 }
 
-export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool?: (tool: Tool) => void) => {
+export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool: (tool: Tool) => void, prefixCls: string) => {
+  prefixCls += '-strokeTool';
+
   return (
-    <div className={styles.strokeMenu}>
-      <div className={styles.colorAndSize}>
-        <div className={styles.strokeSelector}>
+    <div className={`${prefixCls}-strokeMenu`}>
+      <div className={`${prefixCls}-colorAndSize`}>
+        <div className={`${prefixCls}-strokeSelector`}>
           {strokeSize.map(size => {
             return (
               <div
@@ -167,15 +168,15 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
             )
           })}
         </div>
-        <div className={styles.split}></div>
-        <div className={styles.palatte}>
+        <div className={`${prefixCls}-split`}></div>
+        <div className={`${prefixCls}-palette`}>
           {strokeColor.map(color => {
-            return <div className={styles.color} key={color} onClick={(evt) => {
+            return <div className={`${prefixCls}-color`} key={color} onClick={(evt) => {
               evt.stopPropagation();
               setCurrentToolOption({ ...currentToolOption, strokeColor: color });
               setCurrentTool && setCurrentTool(Tool.Stroke);
             }}>
-              <div className={styles.fill} style={{ background: color }}></div>
+              <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
               {currentToolOption.strokeColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}
             </div>
           })}

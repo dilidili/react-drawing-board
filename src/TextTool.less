@@ -1,15 +1,19 @@
-:local(.strokeMenu) {
+@import './theme';
+
+@textTool-prefix: ~'@{prefix}-textTool';
+
+.@{textTool-prefix}-strokeMenu {
   background: rgba(255,255,255,1);
   box-shadow: 0px 1px 4px 0px rgba(0,0,0,0.2);
   border-radius: 4px;
 
-  :local(.colorAndSize) {
+  .@{textTool-prefix}-colorAndSize {
     display: flex;
     align-items: center;
     padding: 10px;
   }
 
-  :local(.textSizeSelector) {
+  .@{textTool-prefix}-textSizeSelector {
     display: flex;
     align-items: center;
   
@@ -29,13 +33,13 @@
     }
   }
 
-  :local(.shape) {
+  .@{textTool-prefix}-shape {
     display: flex;
     align-items: center;
     border-bottom: 1px dashed #eee;
     padding: 0 5px;
 
-    :local(.shapeItem) {
+    .@{textTool-prefix}-shapeItem {
       width: 25px;
       height: 35px;
       margin-right: 5px;
@@ -44,13 +48,13 @@
       justify-content: center;
       cursor: pointer;
 
-      :local(.rect) {
+      .@{textTool-prefix}-rect {
         width: 15px;
         height: 15px;
         border: 1px solid #ccc;
       }
 
-      :local(.circle) {
+      .@{textTool-prefix}-circle {
         width: 15px;
         height: 15px;
         border: 1px solid #ccc;
@@ -59,7 +63,7 @@
     }
   }
 
-  :local(.split) {
+  .@{textTool-prefix}-split {
     width: 1px;
     height: 20px;
     background: #E9E9E9;
@@ -68,11 +72,11 @@
   }
 }
 
-:local(.palatte) {
+.@{textTool-prefix}-palette {
   display: flex;
   align-items: center;
 
-  :local(.color) {
+  .@{textTool-prefix}-color {
     width:18px;
     height:18px;
     border: 1px solid #E9E9E9;
@@ -84,7 +88,7 @@
     position: relative;
     overflow: hidden;
 
-    :global(.anticon) {
+    .anticon {
       font-size: 10px;
       position: absolute;
       color: white;
@@ -93,12 +97,12 @@
       top: 2px;
     }
 
-    :local(.fill) {
+    .@{textTool-prefix}-fill {
       width: 14px;
       height: 14px;
     }
 
-    :local(.opacityColor) {
+    .@{textTool-prefix}-opacityColor {
       position: absolute;
       top: -4px;
       left: 7px;

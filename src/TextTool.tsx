@@ -1,10 +1,10 @@
 import React from 'react';
 import Tool, { ToolOption, Position, TextSize, strokeColor } from './enums/Tool';
+import { IntlShape, } from 'react-intl';
 import { RefObject, MouseEvent } from 'react';
 import { mapClientToCanvas } from './utils';
 import { Icon } from 'antd';
-import styles from './TextTool.less'
-import { formatMessage } from 'umi-plugin-locale';
+import './TextTool.less';
 
 let currentText = '';
 let currentColor = '';
@@ -18,7 +18,7 @@ export interface Text {
   text: string,
 }
 
-export const onTextMouseDown = (e: MouseEvent<HTMLDivElement>, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>) => {
+export const onTextMouseDown = (e: MouseEvent<HTMLDivElement>, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => {
   if (!currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const canvas = refCanvas.current;
@@ -34,7 +34,7 @@ export const onTextMouseDown = (e: MouseEvent<HTMLDivElement>, toolOption: ToolO
     textarea.style.fontSize = (toolOption.textSize as number) * scale + 'px';
     textarea.style.lineHeight = (toolOption.textSize as number) * scale + 'px';
     textarea.style.color = toolOption.textColor;
-    textarea.innerText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : formatMessage(toolOption.defaultText);
+    textarea.innerText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
 
     setTimeout(() => {
       if (getSelection && Range) {
@@ -46,7 +46,7 @@ export const onTextMouseDown = (e: MouseEvent<HTMLDivElement>, toolOption: ToolO
       }
     }, 0);
 
-    currentText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : formatMessage(toolOption.defaultText);
+    currentText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
     currentColor = toolOption.textColor;
     currentSize = toolOption.textSize;
   }
@@ -94,11 +94,13 @@ export const drawText = (item: Text, context: CanvasRenderingContext2D, pos: Pos
   }
 }
 
-export const useTextDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool?: (tool: Tool) => void) => {
+export const useTextDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool: (tool: Tool) => void, intl: IntlShape, prefixCls: string) => {
+  prefixCls += '-textTool';
+
   return (
-    <div className={styles.strokeMenu}>
-      <div className={styles.colorAndSize}>
-        <div className={styles.textSizeSelector}>
+    <div className={`${prefixCls}-strokeMenu`}>
+      <div className={`${prefixCls}-colorAndSize`}>
+        <div className={`${prefixCls}-textSizeSelector`}>
           {textSize.map(size => {
             return (
               <div
@@ -110,20 +112,20 @@ export const useTextDropdown = (currentToolOption: ToolOption, setCurrentToolOpt
                 }}
                 style={{ color: size === currentToolOption.textSize ? '#666' : '#ccc' }}
               >
-                {size === TextSize.Small ? formatMessage({ id: 'umi.block.sketch.text.size.small' }) : size === TextSize.Default ? formatMessage({ id: 'umi.block.sketch.text.size.default' }) : formatMessage({ id: 'umi.block.sketch.text.size.large' })}
+                {size === TextSize.Small ? intl.formatMessage({ id: 'umi.block.sketch.text.size.small' }) : size === TextSize.Default ? intl.formatMessage({ id: 'umi.block.sketch.text.size.default' }) : intl.formatMessage({ id: 'umi.block.sketch.text.size.large' })}
               </div>
             )
           })}
         </div>
-        <div className={styles.split}></div>
-        <div className={styles.palatte}>
+        <div className={`${prefixCls}-split`}></div>
+        <div className={`${prefixCls}-palette`}>
           {strokeColor.map(color => {
-            return <div className={styles.color} key={color} onClick={(evt) => {
+            return <div className={`${prefixCls}-color`} key={color} onClick={(evt) => {
               evt.stopPropagation();
               setCurrentToolOption({ ...currentToolOption, textColor: color });
               setCurrentTool && setCurrentTool(Tool.Stroke);
             }}>
-              <div className={styles.fill} style={{ background: color }}></div>
+              <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
               {currentToolOption.textColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}
             </div>
           })}

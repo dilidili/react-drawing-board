@@ -1,7 +1,7 @@
 import Tool, { ToolOption, ShapeType, strokeSize, strokeColor, } from './enums/Tool';
-import React from 'react';
+import React, { useContext } from 'react';
 import { Icon } from 'antd';
-import styles from './ShapeTool.less'
+import './ShapeTool.less';
 
 export interface Position {
   x: number;
@@ -152,29 +152,31 @@ export const drawRectangle = (rect: Shape, context: CanvasRenderingContext2D, ho
   draw(rect, rect.end.x, rect.end.y, context, hover);
 }
 
-export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool: (tool: Tool) => void) => {
+export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool: (tool: Tool) => void, prefixCls: string) => {
+  prefixCls = prefixCls += '-shapeTool';
+
   return (
-    <div className={styles.strokeMenu}>
-      <div className={styles.shape}>
+    <div className={`${prefixCls}-strokeMenu`}>
+      <div className={`${prefixCls}-shape`}>
         <div onClick={(evt) => {
           evt.stopPropagation();
           setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Rectangle });
           setCurrentTool(Tool.Shape);
-        }} className={styles.shapeItem} style={currentToolOption.shapeType === ShapeType.Rectangle ? { background: 'rgba(238, 238, 238, 1)' } : {}}>
-          <div className={styles.rect} style={ currentToolOption.shapeType === ShapeType.Rectangle ? { borderColor: currentToolOption.shapeBorderColor } : {}} />
+        }} className={`${prefixCls}-shapeItem`} style={currentToolOption.shapeType === ShapeType.Rectangle ? { background: 'rgba(238, 238, 238, 1)' } : {}}>
+          <div className={`${prefixCls}-rect`} style={ currentToolOption.shapeType === ShapeType.Rectangle ? { borderColor: currentToolOption.shapeBorderColor } : {}} />
         </div>
 
         <div onClick={(evt) => {
           evt.stopPropagation();
           setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Oval });
           setCurrentTool(Tool.Shape);
-        }} className={styles.shapeItem} style={currentToolOption.shapeType === ShapeType.Oval ? { background: 'rgba(238, 238, 238, 1)' } : {}}>
-          <div className={styles.circle} style={ currentToolOption.shapeType === ShapeType.Oval ? { borderColor: currentToolOption.shapeBorderColor } : {}} />
+        }} className={`${prefixCls}-shapeItem`} style={currentToolOption.shapeType === ShapeType.Oval ? { background: 'rgba(238, 238, 238, 1)' } : {}}>
+          <div className={`${prefixCls}-circle`} style={ currentToolOption.shapeType === ShapeType.Oval ? { borderColor: currentToolOption.shapeBorderColor } : {}} />
         </div>
       </div>
 
-      <div className={styles.colorAndSize}>
-        <div className={styles.strokeSelector}>
+      <div className={`${prefixCls}-colorAndSize`}>
+        <div className={`${prefixCls}-strokeSelector`}>
           {strokeSize.map(size => {
             return (
               <div
@@ -189,15 +191,15 @@ export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOp
             )
           })}
         </div>
-        <div className={styles.split}></div>
-        <div className={styles.palatte}>
+        <div className={`${prefixCls}-split`}></div>
+        <div className={`${prefixCls}-palette`}>
           {strokeColor.map(color => {
-            return <div className={styles.color} key={color} onClick={(evt) => {
+            return <div className={`${prefixCls}-color`} key={color} onClick={(evt) => {
               evt.stopPropagation();
               setCurrentToolOption({ ...currentToolOption, shapeBorderColor: color });
               setCurrentTool(Tool.Shape);
             }}>
-              <div className={styles.fill} style={{ background: color }}></div>
+              <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
               {currentToolOption.shapeBorderColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}
             </div>
           })}

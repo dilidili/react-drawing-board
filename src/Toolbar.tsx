@@ -1,5 +1,5 @@
-import React, { useState, useRef, ChangeEventHandler } from 'react';
-import { formatMessage, } from 'umi-plugin-locale';
+import React, { useRef, ChangeEventHandler, useContext } from 'react';
+import { useIntl } from 'react-intl';
 import Tool, { ToolOption } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
@@ -15,7 +15,8 @@ import { useStrokeDropdown } from './StrokeTool';
 import { useShapeDropdown } from './ShapeTool';
 import { Dropdown } from 'antd';
 import classNames from 'classnames';
-import styles from './Toolbar.less';
+import './Toolbar.less';
+import ConfigContext from './ConfigContext';
 
 const tools = [{
   label: 'umi.block.sketch.select',
@@ -84,6 +85,9 @@ export interface ToolbarProps {
 const Toolbar: React.FC<ToolbarProps> = (props) => {
   const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption, selectImage, undo, redo, clear, save } = props;
   const refFileInput = useRef<HTMLInputElement>(null);
+  const { formatMessage } = useIntl();
+  const { prefixCls } = useContext(ConfigContext);
+  const toolbarPrefixCls = prefixCls + '-toolbar';
 
   const handleFileChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -99,13 +103,13 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   };
 
   return (
-    <div className={styles.container}>
+    <div className={`${toolbarPrefixCls}-container`}>
       {tools.map((tool => {
         const menu = (
           <div
             className={classNames({
-              [styles.icon]: true,
-              [styles.activeIcon]: currentTool === tool.type,
+              [`${toolbarPrefixCls}-icon`]: true,
+              [`${toolbarPrefixCls}-activeIcon`]: currentTool === tool.type,
             })}
             style={tool.style || {}}
             onClick={() => {
@@ -127,12 +131,12 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             key={tool.label}
           >
             <tool.icon />
-            <label className={styles.iconLabel}>{tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}</label>
+            <label className={`${toolbarPrefixCls}-iconLabel`}>{tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}</label>
           </div>
         )
 
         if (tool.useDropdown) {
-          const overlay = tool.useDropdown(currentToolOption, setCurrentToolOption, setCurrentTool);
+          const overlay = tool.useDropdown(currentToolOption, setCurrentToolOption, setCurrentTool, prefixCls);
 
           return (
             <Dropdown key={tool.label} overlay={overlay} placement="bottomLeft" trigger={['hover']}>

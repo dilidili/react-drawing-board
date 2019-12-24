@@ -1,16 +1,18 @@
 import React, { useState, useRef, CSSProperties, useEffect } from 'react';
 import { v4 } from 'uuid';
 import { animated, useSpring } from 'react-spring';
-import { setLocale } from 'umi-plugin-locale';
+import { IntlProvider } from 'react-intl';
 import Toolbar from './Toolbar';
 import SketchPad, { SketchPadRef } from './SketchPad';
-import styles from './index.css';
 import Tool, { ToolOption, defaultToolOption, ShapeType } from './enums/Tool';
+import locales, { localeType } from './locales';
+import './index.less';
+import ConfigContext, { DefaultConfig } from './ConfigContext';
 
 interface BlockProps {
   userId: string;
+  locale: localeType;
   style?: CSSProperties;
-  locale?: string;
 }
 
 const AnimatedSketchPad = animated(SketchPad);
@@ -26,12 +28,6 @@ const Block: React.FC<BlockProps> = (props) => {
   const animatedProps = useSpring<{
     value: number
   }>({ value: scale, });
-
-  useEffect(() => {
-    if (locale) {
-      setLocale(locale);
-    }
-  }, [locale]);
 
   useEffect(() => {
     const keydownHandler = (evt: KeyboardEvent) => {
@@ -56,54 +52,63 @@ const Block: React.FC<BlockProps> = (props) => {
   }, []);
 
   return (
-    <div className={styles.container} style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}>
-      <Toolbar
-        currentTool={currentTool}
-        setCurrentTool={setCurrentTool}
-        currentToolOption={currentToolOption}
-        setCurrentToolOption={setCurrentToolOption}
-        scale={scale}
-        selectImage={(image: string) => {
-          if (image && refSketch.current) {
-            refSketch.current.selectImage(image);
-          }
-        }}
-        undo={() => {
-          if (refSketch.current) {
-            refSketch.current.undo();
-          }
-        }}
-        redo={() => {
-          if (refSketch.current) {
-            refSketch.current.redo();
-          }
-        }}
-        clear={() => {
-          if (refSketch.current) {
-            refSketch.current.clear();
-          }
-        }}
-        save={() => {
-          if (refSketch.current) {
-            refSketch.current.save();
-          }
-        }}
-      />
-      <AnimatedSketchPad
-        ref={refSketch}
-        userId={userId}
-        currentTool={currentTool}
-        setCurrentTool={setCurrentTool}
-        currentToolOption={currentToolOption}
-        scale={animatedProps.value}
-        onScaleChange={setScale}
-      />
-    </div>
+    <ConfigContext.Provider value={DefaultConfig}>
+      <IntlProvider locale={locale} messages={locales.messages[locale]}>
+        <ConfigContext.Consumer>
+          {config => (
+            <div className={`${config.prefixCls}-container`} style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}>
+              <Toolbar
+                currentTool={currentTool}
+                setCurrentTool={setCurrentTool}
+                currentToolOption={currentToolOption}
+                setCurrentToolOption={setCurrentToolOption}
+                scale={scale}
+                selectImage={(image: string) => {
+                  if (image && refSketch.current) {
+                    refSketch.current.selectImage(image);
+                  }
+                }}
+                undo={() => {
+                  if (refSketch.current) {
+                    refSketch.current.undo();
+                  }
+                }}
+                redo={() => {
+                  if (refSketch.current) {
+                    refSketch.current.redo();
+                  }
+                }}
+                clear={() => {
+                  if (refSketch.current) {
+                    refSketch.current.clear();
+                  }
+                }}
+                save={() => {
+                  if (refSketch.current) {
+                    refSketch.current.save();
+                  }
+                }}
+              />
+              <AnimatedSketchPad
+                ref={refSketch}
+                userId={userId}
+                currentTool={currentTool}
+                setCurrentTool={setCurrentTool}
+                currentToolOption={currentToolOption}
+                scale={animatedProps.value}
+                onScaleChange={setScale}
+              />
+            </div>
+          )}
+        </ConfigContext.Consumer>
+      </IntlProvider>
+    </ConfigContext.Provider>
   );
 }
 
 Block.defaultProps = {
   userId: v4(),
+  locale: navigator.language as localeType,
 };
 
 export default Block;

@@ -5,14 +5,9 @@ const config: IConfig = {
     ['umi-plugin-block-dev', {}],
     ['umi-plugin-react', {
       antd: true,
-      locale: {
-        default: 'zh-CN',
-        baseNavigator: true,
-        antd: true,
-        baseSeparator: '-',
-      },
     }]
   ],
+  disableCSSModules: true,
 }
 
 export default config;

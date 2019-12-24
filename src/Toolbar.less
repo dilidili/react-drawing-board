@@ -1,4 +1,8 @@
-:local(.container) {
+@import './theme';
+
+@toolbar-prefix: ~'@{prefix}-toolbar';
+
+.@{toolbar-prefix}-container {
   display: flex;
   height: 55px;
   background: rgba(255, 255, 255, 1);
@@ -10,7 +14,7 @@
   z-index: 1;
 }
 
-:local(.icon) {
+.@{toolbar-prefix}-icon {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -32,7 +36,7 @@
   }
 }
 
-:local(.iconLabel) {
+.@{toolbar-prefix}-iconLabel {
   cursor: pointer;
   font-size: 12px;
   font-weight: 400;
@@ -40,6 +44,6 @@
   user-select: none;
 }
 
-:local(.activeIcon) {
+.@{toolbar-prefix}-activeIcon {
   background: rgba(238, 238, 238, 1);
 }

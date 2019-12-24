@@ -1,5 +1,6 @@
-import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer, MouseEventHandler, ReactNode, RefObject } from 'react';
+import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer, MouseEventHandler, ReactNode, RefObject, useContext } from 'react';
 import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, } from './enums/Tool';
+import { useIntl } from 'react-intl';
 import { mapClientToCanvas } from './utils';
 import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke, useStrokeDropdown, moveStoke } from './StrokeTool';
 import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle, useShapeDropdown } from './ShapeTool';
@@ -12,7 +13,8 @@ import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
 import { useZoomGesture } from './gesture';
 import Operation from 'antd/lib/transfer/operation';
-import styles from './SketchPad.less';
+import './SketchPad.less';
+import ConfigContext from './ConfigContext';
 
 export interface SketchPadProps {
   currentTool: Tool;
@@ -186,6 +188,7 @@ const useResizeHandler = (
   setSelectedOperation: (operation: Operation) => void,
   handleCompleteOperation: (tool?: Tool, data?: Stroke | Shape | Text | Image | Update | Remove, pos?: Position) => void,
   refCanvas: RefObject<HTMLCanvasElement>,
+  prefixCls: string,
 ): {
   onMouseMove: MouseEventHandler,
   onMouseUp: MouseEventHandler,
@@ -298,14 +301,13 @@ const useResizeHandler = (
       onMouseUp,
       resizer: (
         <>
-          <div key={ResizeDirection.TopLeft} onMouseDown={onMouseDown(ResizeDirection.TopLeft)} className={styles.resizer} style={{ left: tl[0] + 'px', top: tl[1] + 'px' }} />
-          <div key={ResizeDirection.TopCenter} onMouseDown={onMouseDown(ResizeDirection.TopCenter)} className={styles.resizer} style={{ left: tl[0] + w / 2 + 'px', top: tl[1] + 'px' }} />
-          {/* <div key='tr' className={styles.resizer} style={{ left: tl[0] + w + 'px', top: tl[1] + 'px' }} /> */}
-          <div key={ResizeDirection.MiddleRight} onMouseDown={onMouseDown(ResizeDirection.MiddleRight)} className={styles.resizer} style={{ left: tl[0] + w + 'px', top: tl[1] + h / 2 + 'px' }} />
-          <div key={ResizeDirection.BottomRight} onMouseDown={onMouseDown(ResizeDirection.BottomRight)} className={styles.resizer} style={{ left: br[0] + 'px', top: br[1] + 'px' }} />
-          <div key={ResizeDirection.BottomCenter} onMouseDown={onMouseDown(ResizeDirection.BottomCenter)} className={styles.resizer} style={{ left: br[0] - w / 2 + 'px', top: br[1] + 'px' }} />
-          <div key={ResizeDirection.BottomLeft} onMouseDown={onMouseDown(ResizeDirection.BottomLeft)} className={styles.resizer} style={{ left: br[0] - w + 'px', top: br[1] + 'px' }} />
-          <div key={ResizeDirection.MiddleLeft} onMouseDown={onMouseDown(ResizeDirection.MiddleLeft)} className={styles.resizer} style={{ left: tl[0] + 'px', top: tl[1] + h / 2 + 'px' }} />
+          <div key={ResizeDirection.TopLeft} onMouseDown={onMouseDown(ResizeDirection.TopLeft)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + 'px', top: tl[1] + 'px' }} />
+          <div key={ResizeDirection.TopCenter} onMouseDown={onMouseDown(ResizeDirection.TopCenter)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + w / 2 + 'px', top: tl[1] + 'px' }} />
+          <div key={ResizeDirection.MiddleRight} onMouseDown={onMouseDown(ResizeDirection.MiddleRight)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + w + 'px', top: tl[1] + h / 2 + 'px' }} />
+          <div key={ResizeDirection.BottomRight} onMouseDown={onMouseDown(ResizeDirection.BottomRight)} className={`${prefixCls}-resizer`} style={{ left: br[0] + 'px', top: br[1] + 'px' }} />
+          <div key={ResizeDirection.BottomCenter} onMouseDown={onMouseDown(ResizeDirection.BottomCenter)} className={`${prefixCls}-resizer`} style={{ left: br[0] - w / 2 + 'px', top: br[1] + 'px' }} />
+          <div key={ResizeDirection.BottomLeft} onMouseDown={onMouseDown(ResizeDirection.BottomLeft)} className={`${prefixCls}-resizer`} style={{ left: br[0] - w + 'px', top: br[1] + 'px' }} />
+          <div key={ResizeDirection.MiddleLeft} onMouseDown={onMouseDown(ResizeDirection.MiddleLeft)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + 'px', top: tl[1] + h / 2 + 'px' }} />
         </>
       )
     }
@@ -321,6 +323,9 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
   const refInput = useRef<HTMLDivElement>(null);
+  const intl = useIntl();
+  const { prefixCls } = useContext(ConfigContext);
+  const sketchpadPrefixCls = prefixCls + '-sketchpad';
 
   // a  c  e
   // b  d  f
@@ -466,7 +471,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     onMouseMove: onMouseResizeMove,
     onMouseUp: onMouseResizeUp,
     resizer,
-  } = useResizeHandler(selectedOperation, viewMatrix, scale, operationListState.queue, operationListDispatch, setSelectedOperation, handleCompleteOperation, refCanvas);
+  } = useResizeHandler(selectedOperation, viewMatrix, scale, operationListState.queue, operationListDispatch, setSelectedOperation, handleCompleteOperation, refCanvas, sketchpadPrefixCls);
 
   const onMouseDown = (e: MouseEvent<HTMLDivElement>) => {
     if (!refCanvas.current) return null;
@@ -484,7 +489,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         onShapeMouseDown(x, y, currentToolOption);
         break;
       case Tool.Text:
-        onTextMouseDown(e, currentToolOption, scale, refInput, refCanvas);
+        onTextMouseDown(e, currentToolOption, scale, refInput, refCanvas, intl);
         break;
       default:
         break;
@@ -691,7 +696,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
           });
 
           setSelectedOperation({ ...selectedOperation, ...data });
-        });
+        }, () => {}, prefixCls);
         break;
       case Tool.Shape:
         content = useShapeDropdown({
@@ -711,7 +716,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
           });
 
           setSelectedOperation({ ...selectedOperation, ...data });
-        }, () => { });
+        }, () => {}, prefixCls);
         break;
       case Tool.Text: {
         const textOperation: Text = selectedOperation as Text;
@@ -742,7 +747,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
           });
 
           setSelectedOperation({ ...selectedOperation, ...data });
-        }, () => { });
+        }, () => {}, intl, prefixCls);
         break;
       }
       default:
@@ -797,7 +802,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
   return (
     <div
-      className={styles.container}
+      className={`${sketchpadPrefixCls}-container`}
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseUp}
@@ -807,7 +812,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         ref={refCanvas}
         onDoubleClick={onDoubleClick}
         onWheel={onWheel}
-        className={styles.canvas}
+        className={`${sketchpadPrefixCls}-canvas`}
         style={canvasStyle}
       />
 
@@ -816,7 +821,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         suppressContentEditableWarning
         ref={refInput}
         style={{ fontSize: `${12 * scale}px`, }}
-        className={styles.textInput}
+        className={`${sketchpadPrefixCls}-textInput`}
         onBlur={() => {
           onTextComplete(refInput, refCanvas, viewMatrix, scale, handleCompleteOperation, setCurrentTool);
         }}

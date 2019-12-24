@@ -1,15 +1,20 @@
-:local(.container) {
+@import './theme';
+
+@sketchpad-prefix: ~'@{prefix}-sketchpad';
+
+.@{sketchpad-prefix}-container {
   position: relative;
   height: calc(100% - 55px);
+  background-color: white;
   width: 100%;
 }
 
-:local(.canvas) {
+.@{sketchpad-prefix}-canvas {
   width: 100%;
   height: 100%;
 }
 
-:local(.textInput) {
+.@{sketchpad-prefix}-textInput {
   position: absolute;
   outline: none;
   display: none;
@@ -18,7 +23,7 @@
   line-height: 1.42em;
 }
 
-:local(.resizer) {
+.@{sketchpad-prefix}-resizer {
   position: absolute;
   width: 7px;
   height: 7px;

@@ -1,26 +1,33 @@
 {
-  "name": "@umi-block/umi-block-sketch",
-  "version": "0.0.1",
+  "name": "react-drawing-board",
+  "version": "0.0.2",
   "description": "",
-  "main": "src/index.js",
+  "main": "lib/index.js",
   "authors": {
     "name": "",
     "email": ""
   },
-  "repository": "umijs/umi-blocks/umi-block-sketch",
+  "repository": "https://github.com/dilidili/react-drawing-board",
+  "files": [
+    "src",
+    "lib"
+  ],
   "scripts": {
-    "dev": "umi dev"
+    "dev": "umi dev",
+    "build": "father build"
   },
   "dependencies": {
     "antd": "^3.26.0",
     "classnames": "^2.2.6",
     "react": ">=16.0.0",
+    "react-intl": "^3.9.2",
     "react-spring": "^8.0.27",
     "uuid": "^3.3.3"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.9",
     "@types/uuid": "^3.4.6",
+    "father": "^2.29.1",
     "umi": "^2.9.0",
     "umi-plugin-block-dev": "^2.0.0",
     "umi-plugin-react": "^1.14.8",
