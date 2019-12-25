@@ -1,5 +1,7 @@
 # React Drawing board
 
+![preview](https://github.com/dilidili/react-drawing-board/blob/master/preview.png)
+
 **A browser-ready efficient drawing board.**
 
 - Support for drawing strokes, shapes, texts and images.
