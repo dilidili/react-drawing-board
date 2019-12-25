@@ -10,6 +10,7 @@ enum Tool {
   Zoom = 'Zoom',
   Save = 'Save',
   Update = 'Update',
+  LazyUpdate = 'LazyUpdate',
   Remove = 'Remove',
 }
 

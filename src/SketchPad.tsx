@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer, MouseEventHandler, ReactNode, RefObject, useContext } from 'react';
+import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer, MouseEventHandler, ReactNode, RefObject, useContext, useCallback } from 'react';
 import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, } from './enums/Tool';
 import { useIntl } from 'react-intl';
 import { mapClientToCanvas } from './utils';
@@ -8,7 +8,7 @@ import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp, onSelectMouseDoubleClick, SELECT_PADDING } from './SelectTool';
 import { debounce } from 'lodash';
-import { Icon } from 'antd';
+import { Icon, Upload } from 'antd';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
 import { useZoomGesture } from './gesture';
@@ -23,7 +23,13 @@ export interface SketchPadProps {
   userId: string;
   scale: number;
   onScaleChange: (scale: number) => void;
+
+  // controlled mode
+  operations?: Operation[];
+  onChange?: onChangeCallback;
 }
+
+export type onChangeCallback = (newOperaton: Operation, operationsAfter: Operation[]) => void;
 
 export type SketchPadRef = {
   selectImage: (image: string) => void;
@@ -62,11 +68,6 @@ export type OperationListState = {
   queue: Operation[],
   reduced: Operation[],
 }
-
-const initialOperationState: OperationListState = {
-  queue: [],
-  reduced: [],
-};
 
 const reduceOperations = (operations: Operation[]): Operation[] => {
   const undoHistory: Operation[] = [];
@@ -141,16 +142,22 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
   return operations;
 }
 
-const operationListReducer: Reducer<OperationListState, any> = (state, action) => {
+const operationListReducer: (isControlled: boolean, onChange: onChangeCallback | undefined) => Reducer<OperationListState, any> = (isControlled, onChange) => (state, action) => {
   switch (action.type) {
     case 'add': {
       let operation = action.payload.operation as Operation;
+      const isLazy = action.payload.isLazy;
       const newQueue = state.queue.concat([operation]);
 
-      return {
-        queue: newQueue,
-        reduced: reduceOperations(newQueue),
-      };
+      if (!isControlled || isLazy) {
+        return {
+          queue: newQueue,
+          reduced: reduceOperations(newQueue),
+        };
+      } else {
+        onChange && onChange(operation, newQueue);
+        return state;
+      }
     }
     case 'replaceLast': {
       let operation = action.payload.operation as Operation;
@@ -161,6 +168,23 @@ const operationListReducer: Reducer<OperationListState, any> = (state, action) =
         reduced: reduceOperations(newQueue),
       }
     }
+    case 'replaceAll': {
+      let newQueue = action.payload.queue as Operation[];
+
+      return {
+        queue: newQueue,
+        reduced: reduceOperations(newQueue),
+      }
+    }
+    case 'completeLazyUpdate': {
+      let operation = state.queue[state.queue.length - 1];
+      if (isControlled && operation && operation.tool === Tool.Update) {
+        onChange && onChange(operation, state.queue);
+      }
+
+      return state;
+    }
+
     default:
       return state;
   }
@@ -280,7 +304,7 @@ const useResizeHandler = (
             });
           }
         } else {
-          handleCompleteOperation(Tool.Update, {
+          handleCompleteOperation(Tool.LazyUpdate, {
             operationId: selectedOperation.id,
             data: {
               pos: { ...updatePos },
@@ -293,6 +317,10 @@ const useResizeHandler = (
     }
 
     const onMouseUp = () => {
+      operationListDispatch({
+        type: 'completeLazyUpdate',
+      });
+
       isResizing = null;
     }
 
@@ -319,7 +347,8 @@ const useResizeHandler = (
 }
 
 const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
-  const { currentTool, setCurrentTool, userId, currentToolOption, onScaleChange, scale } = props;
+  const { currentTool, setCurrentTool, userId, currentToolOption, onScaleChange, scale, operations, onChange } = props;
+
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
   const refInput = useRef<HTMLDivElement>(null);
@@ -334,7 +363,23 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
   const [hoverOperationId, setHoverOperationId] = useState<string | null>(null);
   const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
-  const [operationListState, operationListDispatch] = useReducer<typeof operationListReducer>(operationListReducer, initialOperationState);
+
+  const isControlled = !!operations;
+  const reducer = useCallback(operationListReducer(isControlled, onChange), []);
+  const [operationListState, operationListDispatch] = useReducer<Reducer<OperationListState, any>>(reducer, {
+    queue: [],
+    reduced: [],
+  });
+  if (isControlled) {
+    useEffect(() => {
+      operationListDispatch({
+        type: 'replaceAll',
+        payload: {
+          queue: operations,
+        },
+      });
+    }, [(operations as Operation[]).length]);
+  }
 
   const refOperationListState = useRef<OperationListState>(operationListState);
   refOperationListState.current = operationListState;
@@ -451,6 +496,10 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       return;
     }
 
+    // coerce update.
+    const isLazy = tool === Tool.LazyUpdate;
+    tool = isLazy ? Tool.Update : tool;
+
     const message = Object.assign({}, data, {
       id: v4(),
       userId,
@@ -463,6 +512,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       type: 'add',
       payload: {
         operation: message,
+        isLazy,
       },
     });
   }
@@ -503,7 +553,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     switch (currentTool) {
       case Tool.Select:
-        onSelectMouseDoubleClick(x, y, scale, operationListState, handleCompleteOperation, viewMatrix, refInput, refCanvas);
+        onSelectMouseDoubleClick(x, y, scale, operationListState, handleCompleteOperation, viewMatrix, refInput, refCanvas, intl);
         setSelectedOperation(null);
         break;
       default:
@@ -547,7 +597,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
 
     switch (currentTool) {
       case Tool.Select:
-        onSelectMouseUp();
+        onSelectMouseUp(operationListDispatch);
         break;
 
       case Tool.Stroke: {

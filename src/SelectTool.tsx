@@ -4,12 +4,14 @@ import { Text, onTextMouseDown } from './TextTool';
 import { Stroke } from './StrokeTool';
 import { Operation, Update, OperationListState, Remove } from './SketchPad';
 import { matrix_multiply } from './utils'
+import { IntlShape } from 'react-intl';
 
 let lastSelectX = 0;
 let lastSelectY = 0;
 let isDragging = false;
 let startDragPos: Position | null = null; 
 let startDragViewMatrix = [1, 0, 0, 1, 0, 0];
+let isLazy = false;
 
 export const SELECT_PADDING = 10;
 
@@ -112,7 +114,8 @@ export const onSelectMouseMove = (
           });
         }
       } else {
-        handleCompleteOperation(Tool.Update, {
+        isLazy = true;
+        handleCompleteOperation(Tool.LazyUpdate, {
           operationId: selectedOperation.id,
           data: {
             pos: { ...startDragPos, x: startDragPos.x + diff.x, y: startDragPos.y + diff.y, }
@@ -141,6 +144,7 @@ export const onSelectMouseDoubleClick = (
   viewMatrix: number[],
   refInput: RefObject<HTMLDivElement>,
   refCanvas: RefObject<HTMLCanvasElement>,
+  intl: IntlShape,
 ) => {
   const pos: [number, number] = [x, y];
 
@@ -153,12 +157,20 @@ export const onSelectMouseDoubleClick = (
       const canvas = refCanvas.current;
       const { top, left } = canvas.getBoundingClientRect();
       handleCompleteOperation(Tool.Remove, { operationId: selectedItem.id });
-      onTextMouseDown({ clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left, clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top } as MouseEvent<HTMLDivElement>, { textSize: operation.size, textColor: operation.color, defaultText: operation.text } as ToolOption, scale, refInput, refCanvas);
+      onTextMouseDown({ clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left, clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top } as MouseEvent<HTMLDivElement>, { textSize: operation.size, textColor: operation.color, defaultText: operation.text } as ToolOption, scale, refInput, refCanvas, intl);
     }
   }
 }
 
-export const onSelectMouseUp = () => {
+export const onSelectMouseUp = (operationListDispatch: React.Dispatch<any>,) => {
+  if (isLazy) {
+    isLazy = false;
+
+    operationListDispatch({
+      type: 'completeLazyUpdate',
+    });
+  }
+
   if (isDragging) {
     isDragging = false;
   }

@@ -3,22 +3,32 @@ import { v4 } from 'uuid';
 import { animated, useSpring } from 'react-spring';
 import { IntlProvider } from 'react-intl';
 import Toolbar from './Toolbar';
-import SketchPad, { SketchPadRef } from './SketchPad';
+import SketchPad, { SketchPadRef, Operation, onChangeCallback } from './SketchPad';
 import Tool, { ToolOption, defaultToolOption, ShapeType } from './enums/Tool';
 import locales, { localeType } from './locales';
 import './index.less';
 import ConfigContext, { DefaultConfig } from './ConfigContext';
 
 interface BlockProps {
-  userId: string;
-  locale: localeType;
+  userId?: string;
+  locale?: localeType;
+
+  // controlled mode
+  operations?: Operation[];
+  onChange?: onChangeCallback;
+
   style?: CSSProperties;
 }
 
 const AnimatedSketchPad = animated(SketchPad);
 
+const defaultProps = {
+  userId: v4(),
+  locale: navigator.language as localeType,
+};
+
 const Block: React.FC<BlockProps> = (props) => {
-  const { locale, userId } = props;
+  const { locale, userId, operations, onChange, } = { ...defaultProps, ...props };
 
   const [currentTool, setCurrentTool] = useState(Tool.Select);
   const [scale, setScale] = useState(1);
@@ -97,6 +107,8 @@ const Block: React.FC<BlockProps> = (props) => {
                 currentToolOption={currentToolOption}
                 scale={animatedProps.value}
                 onScaleChange={setScale}
+                operations={operations}
+                onChange={onChange}
               />
             </div>
           )}
@@ -105,10 +117,5 @@ const Block: React.FC<BlockProps> = (props) => {
     </ConfigContext.Provider>
   );
 }
-
-Block.defaultProps = {
-  userId: v4(),
-  locale: navigator.language as localeType,
-};
 
 export default Block;
