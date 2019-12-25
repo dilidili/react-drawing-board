@@ -1,6 +1,6 @@
 # React Drawing board
 
-![preview](https://github.com/dilidili/react-drawing-board/blob/master/preview.png)
+![preview](https://raw.githubusercontent.com/dilidili/react-drawing-board/master/preview.png)
 
 **A browser-ready efficient drawing board.**
 
