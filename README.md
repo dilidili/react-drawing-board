@@ -1,4 +1,4 @@
-React Drawing board
+# React Drawing board
 
 **A browser-ready efficient drawing board.**
 
@@ -41,3 +41,12 @@ const Demo: React.FC = () => {
   )
 }
 ```
+
+## Props
+| Props    | Description                              | Type       | Default |
+|-----------|------------------------------------------|------------|---------|
+| userId(optional) | identify for operation source | string | uuid.v4() |
+| locale(optional) | 'en-US' or 'zh-CN' | string | navigator.language |
+| operations(optional) | operations on drawing board | Operation[] | undefined |
+| onChange(optional) | called when user draw some operations | (newOperaton: Operation, operationsAfter: Operation[]) => void | undefined |
+| style(optional) | element style | CSSProperties | undefined |
