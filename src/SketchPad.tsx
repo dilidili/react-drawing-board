@@ -10,7 +10,7 @@ import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp, onSelectMouseDou
 import { debounce } from 'lodash';
 import { Icon, Upload } from 'antd';
 import { v4 } from 'uuid';
-import sketchStrokeCursor from './images/sketch_stroke_cursor.png';
+import sketchStrokeCursor from './images/sketch_stroke_cursor';
 import { useZoomGesture } from './gesture';
 import Operation from 'antd/lib/transfer/operation';
 import './SketchPad.less';
