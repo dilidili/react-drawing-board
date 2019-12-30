@@ -1,6 +1,6 @@
 # React Drawing board
 
-browser drawing board created with canvas and React.
+Browser drawing board created with canvas and React.
 
 ## Preview
 
