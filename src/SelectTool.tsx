@@ -1,4 +1,4 @@
-import { MouseEvent, RefObject } from 'react';
+import { MouseEvent as ReactMouseEvent, RefObject } from 'react';
 import Tool, { Position, ToolOption } from './enums/Tool';
 import { Text, onTextMouseDown } from './TextTool';
 import { Stroke } from './StrokeTool';
@@ -59,7 +59,7 @@ const findSelectedItem = (items: Operation[], pos:[number, number], scale: numbe
   return null;
 }
 
-export const onSelectMouseDown = (e: MouseEvent<HTMLDivElement>, x: number, y: number, scale: number, operationListState: OperationListState, viewMatrix: number[], setSelectedOperation: (item: Operation | null) => void) => {
+export const onSelectMouseDown = (e: ReactMouseEvent<HTMLDivElement>, x: number, y: number, scale: number, operationListState: OperationListState, viewMatrix: number[], setSelectedOperation: (item: Operation | null) => void) => {
   const pos: [number, number] = [x, y];
 
   lastSelectX = e.clientX;
@@ -76,7 +76,7 @@ export const onSelectMouseDown = (e: MouseEvent<HTMLDivElement>, x: number, y: n
 }
 
 export const onSelectMouseMove = (
-  e: MouseEvent<HTMLDivElement>,
+  e: ReactMouseEvent<HTMLDivElement>,
   x: number,
   y: number,
   scale: number,
@@ -157,7 +157,7 @@ export const onSelectMouseDoubleClick = (
       const canvas = refCanvas.current;
       const { top, left } = canvas.getBoundingClientRect();
       handleCompleteOperation(Tool.Remove, { operationId: selectedItem.id });
-      onTextMouseDown({ clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left, clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top } as MouseEvent<HTMLDivElement>, { textSize: operation.size, textColor: operation.color, defaultText: operation.text } as ToolOption, scale, refInput, refCanvas, intl);
+      onTextMouseDown({ clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left, clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top } as ReactMouseEvent<HTMLDivElement>, { textSize: operation.size, textColor: operation.color, defaultText: operation.text } as ToolOption, scale, refInput, refCanvas, intl);
     }
   }
 }

@@ -1,7 +1,7 @@
 import React from 'react';
 import Tool, { ToolOption, Position, TextSize, strokeColor } from './enums/Tool';
 import { IntlShape, } from 'react-intl';
-import { RefObject, MouseEvent } from 'react';
+import { RefObject, MouseEvent as ReactMouseEvent } from 'react';
 import { mapClientToCanvas } from './utils';
 import { Icon } from 'antd';
 import './TextTool.less';
@@ -18,7 +18,7 @@ export interface Text {
   text: string,
 }
 
-export const onTextMouseDown = (e: MouseEvent<HTMLDivElement>, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => {
+export const onTextMouseDown = (e: ReactMouseEvent<HTMLDivElement>, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => {
   if (!currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const canvas = refCanvas.current;
@@ -39,10 +39,13 @@ export const onTextMouseDown = (e: MouseEvent<HTMLDivElement>, toolOption: ToolO
     setTimeout(() => {
       if (getSelection && Range) {
         var selection = getSelection();
-        selection.removeAllRanges();
-        var range = new Range();
-        range.selectNodeContents(textarea);
-        selection.addRange(range);
+
+        if (selection) {
+          selection.removeAllRanges();
+          var range = new Range();
+          range.selectNodeContents(textarea);
+          selection.addRange(range);
+        }
       }
     }, 0);
 
@@ -63,7 +66,7 @@ export const onTextComplete = (refInput: RefObject<HTMLDivElement>, refCanvas: R
     const currentPos = mapClientToCanvas({
       clientX: left,
       clientY: top,
-    } as MouseEvent<HTMLCanvasElement>, refCanvas.current, viewMatrix);
+    } as ReactMouseEvent<HTMLCanvasElement>, refCanvas.current, viewMatrix);
 
     textarea.style.display = 'none';
 

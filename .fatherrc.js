@@ -1,6 +1,5 @@
 export default {
   entry: './src/index.tsx',
-  disableTypeCheck: true,
   lessInBabelMode: true,
   extractCSS: true,
   cjs: {

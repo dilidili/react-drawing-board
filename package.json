@@ -1,6 +1,6 @@
 {
   "name": "react-drawing-board",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "",
   "main": "lib/index.js",
   "authors": {
@@ -17,6 +17,7 @@
     "build": "father build"
   },
   "dependencies": {
+    "@types/vfile-message": "^2.0.0",
     "antd": "^3.26.0",
     "classnames": "^2.2.6",
     "react": ">=16.0.0",

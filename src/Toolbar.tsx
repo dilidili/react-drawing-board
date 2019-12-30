@@ -97,7 +97,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       reader.readAsDataURL(file);
       reader.onloadend = () => {
         const base64data = reader.result;
-        selectImage(base64data);
+        selectImage(base64data as string);
       }
     }
   };

@@ -107,6 +107,7 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
 
       if (~targetIndex) {
         const target = operations[targetIndex];
+        // @ts-ignore
         operations[targetIndex] = { ...operations[targetIndex], ...update.data };
 
         // move other properties related to pos
@@ -796,6 +797,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
             data,
           });
 
+          // @ts-ignore
           setSelectedOperation({ ...selectedOperation, ...data });
         }, () => {}, intl, prefixCls);
         break;

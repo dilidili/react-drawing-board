@@ -35,7 +35,7 @@ const Demo: React.FC = () => {
   const [operations, setOperations] = useState<Operation[]>([]);
 
   return (
-    <Block
+    <DrawingBoard
       userId="user1" // identify for different players.
       operations={operations}
       onChange={(newOperation, afterOperation) => {
