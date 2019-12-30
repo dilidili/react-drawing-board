@@ -1,5 +1,7 @@
 # React Drawing board
 
+browser drawing board created with canvas and React.
+
 ## Preview
 
 ![preview](https://raw.githubusercontent.com/dilidili/react-drawing-board/master/preview.png)
