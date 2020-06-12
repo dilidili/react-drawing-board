@@ -93,7 +93,7 @@ export function onStrokeMouseMove(x: number, y: number, context: CanvasRendering
   return [stroke];
 }
 
-export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleCompleteOperation: (tool?: Tool, data?: Stroke, pos?: Position) => void) {
+export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleCompleteOperation: (tool?: Tool, data?: Stroke, pos?: Position) => void , currentTool = Tool.Stroke) {
   if (!stroke) {
     return;
   };
@@ -141,7 +141,7 @@ export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleComp
       h: yMax - yMin,
     };
 
-    handleCompleteOperation(Tool.Stroke, lineData, pos);
+    handleCompleteOperation(currentTool, lineData, pos);
   }
 
   return [item];

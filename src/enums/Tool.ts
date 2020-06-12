@@ -7,6 +7,7 @@ enum Tool {
   Undo = 'Undo',
   Redo = 'Redo',
   Clear = 'Clear',
+  Eraser = 'Eraser',
   Zoom = 'Zoom',
   Save = 'Save',
   Update = 'Update',

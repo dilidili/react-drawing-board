@@ -7,6 +7,7 @@ import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangl
 import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp, onSelectMouseDoubleClick, SELECT_PADDING } from './SelectTool';
+import { defaultToolOption } from './enums/Tool';
 import { debounce } from 'lodash';
 import { Icon, Upload } from 'antd';
 import { v4 } from 'uuid';
@@ -113,6 +114,7 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
         // move other properties related to pos
         if (update.data.pos) {
           switch (target.tool) {
+            case Tool.Eraser:
             case Tool.Stroke:
               operations[targetIndex] = { ...operations[targetIndex], ...{ points: moveStoke(target as Stroke, target.pos, update.data.pos) } };
               break;
@@ -421,6 +423,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
           context.clearRect(0, 0, context.canvas.width, context.canvas.height);
           saveGlobalTransform();
           break;
+        case Tool.Eraser:
         case Tool.Stroke:
           drawStroke(operation as Stroke, context, hover);
           break
@@ -536,6 +539,13 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       case Tool.Stroke:
         onStrokeMouseDown(x, y, currentToolOption);
         break;
+      case Tool.Eraser: 
+        onStrokeMouseDown(x, y, {
+          ...currentToolOption,
+          strokeSize: defaultToolOption.strokeSize * 2 / scale,
+          strokeColor: 'rgba(255, 255, 255, 1)',
+        });
+        break;
       case Tool.Shape:
         onShapeMouseDown(x, y, currentToolOption);
         break;
@@ -573,6 +583,7 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       case Tool.Select:
         onSelectMouseMove(e, x, y, scale, operationListState, selectedOperation, setViewMatrix, setHoverOperationId, handleCompleteOperation, operationListDispatch, setSelectedOperation);
         break;
+      case Tool.Eraser:
       case Tool.Stroke: {
         saveGlobalTransform();
         refContext.current && onStrokeMouseMove(x, y, refContext.current);
@@ -600,7 +611,10 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       case Tool.Select:
         onSelectMouseUp(operationListDispatch);
         break;
-
+      case Tool.Eraser: {
+        refContext.current && onStrokeMouseUp(setCurrentTool, handleCompleteOperation, Tool.Eraser);
+        break;
+      }
       case Tool.Stroke: {
         refContext.current && onStrokeMouseUp(setCurrentTool, handleCompleteOperation);
         break;

@@ -11,6 +11,7 @@ import RedoIcon from './svgs/RedoIcon';
 import ClearIcon from './svgs/ClearIcon';
 import ZoomIcon from './svgs/ZoomIcon';
 import SaveIcon from './svgs/SaveIcon';
+import EraserIcon from './svgs/EraserIcon';
 import { useStrokeDropdown } from './StrokeTool';
 import { useShapeDropdown } from './ShapeTool';
 import { Dropdown } from 'antd';
@@ -51,6 +52,10 @@ const tools = [{
   label: 'umi.block.sketch.redo',
   icon: RedoIcon,
   type: Tool.Redo,
+}, {
+  label: 'umi.block.sketch.eraser',
+  icon: EraserIcon,
+  type: Tool.Eraser,
 }, {
   label: 'umi.block.sketch.clear',
   icon: ClearIcon,

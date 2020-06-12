@@ -7,6 +7,7 @@ export default {
   'umi.block.sketch.undo': 'Undo',
   'umi.block.sketch.redo': 'Redo',
   'umi.block.sketch.clear': 'Clear',
+  'umi.block.sketch.eraser': 'Eraser',
   'umi.block.sketch.save': 'Save',
 
   'umi.block.sketch.text.placeholder': 'Type something',

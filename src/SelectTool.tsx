@@ -35,7 +35,7 @@ const findSelectedItem = (items: Operation[], pos:[number, number], scale: numbe
   for(let i = items.length - 1; i >= 0; i--) {
     const item = items[i];
 
-    if (item.tool === Tool.Stroke && rectContain(item.pos, pos, 0)) {
+    if ((item.tool === Tool.Stroke || item.tool === Tool.Eraser) && rectContain(item.pos, pos, 0)) {
       const points = (item as Stroke).points;
       if (points.some(p => (p.x - pos[0])**2 + (p.y - pos[1])**2 < (selectPadding * 2)**2)) {
         return item;
