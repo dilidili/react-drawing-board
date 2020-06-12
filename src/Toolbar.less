@@ -2,6 +2,28 @@
 
 @toolbar-prefix: ~'@{prefix}-toolbar';
 
+.ant-layout-sider-children {
+  .@{toolbar-prefix}-container {
+    width: 55px;
+    height: 100%;
+    flex-direction: column;
+    padding-top: 20px;
+    padding-bottom: 20px;
+    padding-right: 0;
+    padding-left: 0;
+    border-radius: 0px 0px 0px 0px;
+    overflow: auto;
+  }
+
+  .@{toolbar-prefix}-icon {
+    width: 100%;
+    cursor: pointer;
+    margin: 7px 0px;
+    height: 50px;
+    flex-shrink: 0;
+  }
+}
+
 .@{toolbar-prefix}-container {
   display: flex;
   height: 55px;

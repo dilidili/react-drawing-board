@@ -57,3 +57,5 @@ const Demo: React.FC = () => {
 | operations(optional) | operations on drawing board | Operation[] | undefined |
 | onChange(optional) | called when user draw some operations | (newOperaton: Operation, operationsAfter: Operation[]) => void | undefined |
 | style(optional) | element style | CSSProperties | undefined |
+| className(optional) | element classname | string | undefined |
+| toolbarPlacement(optional) | the position of toolbar | 'top' or 'left' or 'right' | 'top' |

@@ -85,10 +85,11 @@ export interface ToolbarProps {
   clear: () => void;
   save: () => void;
   scale: number;
+  toolbarPlacement: 'top' | 'left' | 'right';
 }
 
 const Toolbar: React.FC<ToolbarProps> = (props) => {
-  const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption, selectImage, undo, redo, clear, save } = props;
+  const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption, selectImage, undo, redo, clear, save, toolbarPlacement } = props;
   const refFileInput = useRef<HTMLInputElement>(null);
   const { formatMessage } = useIntl();
   const { prefixCls } = useContext(ConfigContext);
@@ -144,7 +145,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           const overlay = tool.useDropdown(currentToolOption, setCurrentToolOption, setCurrentTool, prefixCls);
 
           return (
-            <Dropdown key={tool.label} overlay={overlay} placement="bottomLeft" trigger={['hover']}>
+            <Dropdown key={tool.label} overlay={overlay} placement={toolbarPlacement === 'top' || toolbarPlacement === 'left' ? 'bottomLeft' : 'bottomRight'} trigger={['hover']}>
               {menu}
             </Dropdown>
           )
