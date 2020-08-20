@@ -7,6 +7,7 @@ import Toolbar from './Toolbar';
 import SketchPad, { SketchPadRef, Operation, onChangeCallback } from './SketchPad';
 import Tool, { ToolOption, defaultToolOption, ShapeType } from './enums/Tool';
 import locales, { localeType } from './locales';
+import { isMobileDevice } from './utils';
 import './index.less';
 import ConfigContext, { DefaultConfig } from './ConfigContext';
 
@@ -70,14 +71,14 @@ const Block: React.FC<BlockProps> = (props) => {
   }, []);
 
   const renderWithLayout = (toolbar: React.ReactElement, sketchPad: React.ReactElement) => {
-    if (toolbarPlacement === 'top') {
-      return <Layout hasSider={false}>
-        <Header>{toolbar}</Header>
+    if (toolbarPlacement === 'left' || isMobileDevice) {
+      return <Layout style={{ flexDirection: 'row' }}>
+        <Sider width={isMobileDevice ? 40 : 55}>{toolbar}</Sider>
         <Content>{sketchPad}</Content>
       </Layout>
-    } else if (toolbarPlacement === 'left') {
-      return <Layout style={{ flexDirection: 'row' }}>
-        <Sider width={55}>{toolbar}</Sider>
+    } else if (toolbarPlacement === 'top') {
+      return <Layout hasSider={false}>
+        <Header>{toolbar}</Header>
         <Content>{sketchPad}</Content>
       </Layout>
     } else if (toolbarPlacement === 'right') {

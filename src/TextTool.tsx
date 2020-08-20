@@ -18,7 +18,10 @@ export interface Text {
   text: string,
 }
 
-export const onTextMouseDown = (e: ReactMouseEvent<HTMLDivElement>, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => {
+export const onTextMouseDown = (e: {
+  clientX: number,
+  clientY: number,
+}, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => {
   if (!currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const canvas = refCanvas.current;

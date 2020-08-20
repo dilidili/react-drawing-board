@@ -1,5 +1,6 @@
 import React from 'react';
 import Tool, { strokeSize, strokeColor, ToolOption } from './enums/Tool';
+import { isMobileDevice } from './utils';
 import { Icon } from 'antd';
 import './StrokeTool.less';
 
@@ -99,7 +100,7 @@ export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleComp
   };
 
   // click to back to select mode.
-  if (stroke.points.length < 6) {
+  if (stroke.points.length < 6 && !isMobileDevice) {
     setCurrentTool(Tool.Select);
     handleCompleteOperation();
 

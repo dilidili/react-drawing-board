@@ -93,7 +93,10 @@ export function matrix_invert(M: any) {
   return I;
 }
 
-export const mapClientToCanvas = (evt: ReactMouseEvent<Element>, canvas: HTMLCanvasElement, viewMatrix: number[]): [number, number] => {
+export const mapClientToCanvas = (evt: {
+  clientX: number,
+  clientY: number,
+}, canvas: HTMLCanvasElement, viewMatrix: number[]): [number, number] => {
   const { top, left } = canvas.getBoundingClientRect();
   const [a, b, c, d, e, f] = viewMatrix;
 
@@ -114,3 +117,8 @@ export const mapClientToCanvas = (evt: ReactMouseEvent<Element>, canvas: HTMLCan
 export const matrix_multiply = ([a1, b1, c1, d1, e1, f1] :number[], [a2, b2, c2, d2, e2, f2]: number[]) => {
   return [a1 * a2 + c1 * b2, d1 * b2 + b1 * a2, a1 * c2 + c1 * d2, b1 * c2 + d1 * d2, a1 * e2 + c1 * f2 + e1, b1 * e2 + d1 * f2 + f1];
 }
+
+export const detectMobileDevice = () => {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+export const isMobileDevice = detectMobileDevice();

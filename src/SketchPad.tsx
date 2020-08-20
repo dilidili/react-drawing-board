@@ -217,8 +217,12 @@ const useResizeHandler = (
   refCanvas: RefObject<HTMLCanvasElement>,
   prefixCls: string,
 ): {
-  onMouseMove: MouseEventHandler,
-  onMouseUp: MouseEventHandler,
+  onMouseMove: (e: {
+    clientX: number, clientY: number
+  }) => void,
+  onMouseUp: (e: {
+    clientX: number, clientY: number
+  }) => void,
   resizer: ReactNode,
 } => {
   if (selectedOperation && (selectedOperation.tool === Tool.Shape || selectedOperation.tool === Tool.Image)) {
@@ -244,7 +248,10 @@ const useResizeHandler = (
       }
     }
 
-    const onMouseMove = (e: MouseEvent) => {
+    const onMouseMove = (e: {
+      clientX: number,
+      clientY: number,
+    }) => {
       if (selectedOperation && isResizing && refCanvas.current && startResizePos) {
         let pos = mapClientToCanvas(e, refCanvas.current, viewMatrix);
 
@@ -349,7 +356,7 @@ const useResizeHandler = (
   };
 }
 
-const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
+const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, ref) => {
   const { currentTool, setCurrentTool, userId, currentToolOption, onScaleChange, scale, operations, onChange } = props;
 
   const refCanvas = useRef<HTMLCanvasElement>(null);
@@ -527,7 +534,10 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     resizer,
   } = useResizeHandler(selectedOperation, viewMatrix, scale, operationListState.queue, operationListDispatch, setSelectedOperation, handleCompleteOperation, refCanvas, sketchpadPrefixCls);
 
-  const onMouseDown = (e: MouseEvent<HTMLDivElement>) => {
+  const onMouseDown = (e: {
+    clientX: number,
+    clientY: number,
+  }) => {
     if (!refCanvas.current) return null;
 
     const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);
@@ -557,6 +567,12 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     }
   };
 
+  const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.changedTouches[0]) {
+      onMouseDown(e.changedTouches[0]);
+    }
+  }
+
   const onDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
     if (!refCanvas.current) return null;
 
@@ -572,7 +588,10 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     }
   };
 
-  const onMouseMove = (e: MouseEvent<HTMLDivElement>) => {
+  const onMouseMove = (e: {
+    clientX: number,
+    clientY: number,
+  }) => {
     if (!refCanvas.current) return null;
 
     onMouseResizeMove(e);
@@ -602,7 +621,16 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
     }
   };
 
-  const onMouseUp = (e: MouseEvent<Element>) => {
+  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.changedTouches[0]) {
+      onMouseMove(e.changedTouches[0]);
+    }
+  }
+
+  const onMouseUp = (e: {
+    clientX: number,
+    clientY: number,
+  }) => {
     if (!refCanvas.current) return null;
 
     onMouseResizeUp(e);
@@ -628,6 +656,12 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
         break;
     }
   };
+
+  const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
+    if (e.changedTouches[0]) {
+      onMouseUp(e.changedTouches[0]);
+    }
+  }
 
   const onWheel: WheelEventHandler<HTMLCanvasElement> = (evt) => {
     evt.stopPropagation();
@@ -872,6 +906,9 @@ const SketchPad: React.FC<SketchPadProps> = (props, ref) => {
       onMouseDown={onMouseDown}
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseUp}
+      onTouchStart={onTouchStart}
+      onTouchMove={onTouchMove}
+      onTouchEnd={onTouchEnd}
       onMouseUp={onMouseUp}
     >
       <canvas

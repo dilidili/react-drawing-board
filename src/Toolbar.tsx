@@ -1,4 +1,5 @@
 import React, { useRef, ChangeEventHandler, useContext } from 'react';
+import { useSpring, animated } from 'react-spring';
 import { useIntl } from 'react-intl';
 import Tool, { ToolOption } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
@@ -17,6 +18,7 @@ import { useShapeDropdown } from './ShapeTool';
 import { Dropdown } from 'antd';
 import classNames from 'classnames';
 import './Toolbar.less';
+import { isMobileDevice } from './utils';
 import ConfigContext from './ConfigContext';
 
 const tools = [{
@@ -108,16 +110,32 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
     }
   };
 
+
   return (
-    <div className={`${toolbarPrefixCls}-container`}>
+    <div className={classNames({
+      [`${toolbarPrefixCls}-container`]: true,
+      [`${toolbarPrefixCls}-mobile-container`]: isMobileDevice,
+    })}>
       {tools.map((tool => {
+        let borderTopStyle = 'none';
+        if (isMobileDevice) {
+          borderTopStyle = tool.type === Tool.Stroke && currentToolOption.strokeColor ? `3px solid ${currentToolOption.strokeColor}` : 'none'
+        }
+
+        const iconAnimateProps = useSpring({
+          left: isMobileDevice && currentTool !== tool.type ? -12 : 0,
+          borderTop: borderTopStyle,
+          ...(tool.style || {})
+        });
+
         const menu = (
-          <div
+          <animated.div
             className={classNames({
               [`${toolbarPrefixCls}-icon`]: true,
-              [`${toolbarPrefixCls}-activeIcon`]: currentTool === tool.type,
+              [`${toolbarPrefixCls}-activeIcon`]: currentTool === tool.type && !isMobileDevice,
+              [`${toolbarPrefixCls}-mobile-icon`]: isMobileDevice,
             })}
-            style={tool.style || {}}
+            style={iconAnimateProps}
             onClick={() => {
               if (tool.type === Tool.Image && refFileInput.current) {
                 refFileInput.current.click();
@@ -137,15 +155,15 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             key={tool.label}
           >
             <tool.icon />
-            <label className={`${toolbarPrefixCls}-iconLabel`}>{tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}</label>
-          </div>
+            {!isMobileDevice ? <label className={`${toolbarPrefixCls}-iconLabel`}>{tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}</label> : null}
+          </animated.div>
         )
 
         if (tool.useDropdown) {
           const overlay = tool.useDropdown(currentToolOption, setCurrentToolOption, setCurrentTool, prefixCls);
 
           return (
-            <Dropdown key={tool.label} overlay={overlay} placement={toolbarPlacement === 'top' || toolbarPlacement === 'left' ? 'bottomLeft' : 'bottomRight'} trigger={['hover']}>
+            <Dropdown key={tool.label} overlay={overlay} placement={toolbarPlacement === 'top' || toolbarPlacement === 'left' ? 'bottomLeft' : 'bottomRight'} trigger={[isMobileDevice ? 'click' : 'hover']}>
               {menu}
             </Dropdown>
           )

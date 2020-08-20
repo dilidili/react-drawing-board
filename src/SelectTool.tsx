@@ -59,7 +59,10 @@ const findSelectedItem = (items: Operation[], pos:[number, number], scale: numbe
   return null;
 }
 
-export const onSelectMouseDown = (e: ReactMouseEvent<HTMLDivElement>, x: number, y: number, scale: number, operationListState: OperationListState, viewMatrix: number[], setSelectedOperation: (item: Operation | null) => void) => {
+export const onSelectMouseDown = (e: {
+  clientX: number,
+  clientY: number,
+}, x: number, y: number, scale: number, operationListState: OperationListState, viewMatrix: number[], setSelectedOperation: (item: Operation | null) => void) => {
   const pos: [number, number] = [x, y];
 
   lastSelectX = e.clientX;
@@ -76,7 +79,10 @@ export const onSelectMouseDown = (e: ReactMouseEvent<HTMLDivElement>, x: number,
 }
 
 export const onSelectMouseMove = (
-  e: ReactMouseEvent<HTMLDivElement>,
+  e: {
+    clientX: number,
+    clientY: number,
+  },
   x: number,
   y: number,
   scale: number,
