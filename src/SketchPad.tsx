@@ -13,6 +13,7 @@ import { Icon, Upload } from 'antd';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor';
 import { useZoomGesture } from './gesture';
+import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 import Operation from 'antd/lib/transfer/operation';
 import './SketchPad.less';
 import ConfigContext from './ConfigContext';
@@ -364,6 +365,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   const refInput = useRef<HTMLDivElement>(null);
   const intl = useIntl();
   const { prefixCls } = useContext(ConfigContext);
+  const enableSketchPadContext = useContext(EnableSketchPadContext);
+
   const sketchpadPrefixCls = prefixCls + '-sketchpad';
 
   // a  c  e
@@ -539,6 +542,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     clientY: number,
   }) => {
     if (!refCanvas.current) return null;
+    if (!enableSketchPadContext.enable) return null;
 
     const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);
 
@@ -593,6 +597,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     clientY: number,
   }) => {
     if (!refCanvas.current) return null;
+    if (!enableSketchPadContext.enable) return null;
 
     onMouseResizeMove(e);
 
@@ -632,6 +637,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     clientY: number,
   }) => {
     if (!refCanvas.current) return null;
+    if (!enableSketchPadContext.enable) return null;
 
     onMouseResizeUp(e);
 

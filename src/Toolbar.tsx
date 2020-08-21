@@ -20,6 +20,7 @@ import classNames from 'classnames';
 import './Toolbar.less';
 import { isMobileDevice } from './utils';
 import ConfigContext from './ConfigContext';
+import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 
 const tools = [{
   label: 'umi.block.sketch.select',
@@ -95,6 +96,8 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const refFileInput = useRef<HTMLInputElement>(null);
   const { formatMessage } = useIntl();
   const { prefixCls } = useContext(ConfigContext);
+  const enableSketchPadContext = useContext(EnableSketchPadContext);
+
   const toolbarPrefixCls = prefixCls + '-toolbar';
 
   const handleFileChange: ChangeEventHandler<HTMLInputElement> = (e) => {
@@ -110,7 +113,6 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
     }
   };
 
-
   return (
     <div className={classNames({
       [`${toolbarPrefixCls}-container`]: true,
@@ -119,7 +121,13 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       {tools.map((tool => {
         let borderTopStyle = 'none';
         if (isMobileDevice) {
-          borderTopStyle = tool.type === Tool.Stroke && currentToolOption.strokeColor ? `3px solid ${currentToolOption.strokeColor}` : 'none'
+          if (tool.type === Tool.Stroke && currentToolOption.strokeColor) {
+            borderTopStyle = `3px solid ${currentToolOption.strokeColor}`;
+          }
+
+          if (tool.type === Tool.Shape && currentToolOption.shapeBorderColor) {
+            borderTopStyle = `3px solid ${currentToolOption.shapeBorderColor}`;
+          }
         }
 
         const iconAnimateProps = useSpring({
@@ -163,7 +171,15 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           const overlay = tool.useDropdown(currentToolOption, setCurrentToolOption, setCurrentTool, prefixCls);
 
           return (
-            <Dropdown key={tool.label} overlay={overlay} placement={toolbarPlacement === 'top' || toolbarPlacement === 'left' ? 'bottomLeft' : 'bottomRight'} trigger={[isMobileDevice ? 'click' : 'hover']}>
+            <Dropdown
+              key={tool.label}
+              overlay={overlay}
+              placement={toolbarPlacement === 'top' || toolbarPlacement === 'left' ? 'bottomLeft' : 'bottomRight'}
+              trigger={[isMobileDevice ? 'click' : 'hover']}
+              onVisibleChange={(visible) => {
+                enableSketchPadContext.setEnable(!visible);
+              }}
+            >
               {menu}
             </Dropdown>
           )

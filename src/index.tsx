@@ -1,11 +1,12 @@
-import React, { useState, useRef, CSSProperties, useEffect, ReactElement } from 'react';
+import React, { useState, useRef, CSSProperties, useEffect, useReducer, useMemo } from 'react';
 import { v4 } from 'uuid';
-import { animated, useSpring } from 'react-spring';
+import { animated, useSpring, } from 'react-spring';
 import { IntlProvider } from 'react-intl';
 import { Layout } from 'antd';
 import Toolbar from './Toolbar';
 import SketchPad, { SketchPadRef, Operation, onChangeCallback } from './SketchPad';
 import Tool, { ToolOption, defaultToolOption, ShapeType } from './enums/Tool';
+import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 import locales, { localeType } from './locales';
 import { isMobileDevice } from './utils';
 import './index.less';
@@ -36,12 +37,17 @@ const defaultProps = {
   toolbarPlacement: 'top',
 };
 
+const enableSketchPadReducer = (state: boolean, action: boolean) => {
+  return action;
+}
+
 const Block: React.FC<BlockProps> = (props) => {
   const { locale, userId, operations, onChange, toolbarPlacement, clsssName } = { ...defaultProps, ...props };
 
   const [currentTool, setCurrentTool] = useState(Tool.Select);
   const [scale, setScale] = useState(1);
   const [currentToolOption, setCurrentToolOption] = useState<ToolOption>(defaultToolOption);
+  const enableSketchPad = useReducer(enableSketchPadReducer, true);
   const refSketch = useRef<SketchPadRef>(null);
 
   const animatedProps = useSpring<{
@@ -91,62 +97,71 @@ const Block: React.FC<BlockProps> = (props) => {
     }
   };
 
+  const enableSketchPadContextValue = useMemo(() => {
+    return {
+      enable: enableSketchPad[0],
+      setEnable: enableSketchPad[1],
+    };
+  }, [...enableSketchPad]);
+
   return (
     <ConfigContext.Provider value={DefaultConfig}>
       <IntlProvider locale={locale} messages={locales.messages[locale]}>
-        <ConfigContext.Consumer>
-          {config => (
-            <div className={`${config.prefixCls}-container ${clsssName || ''}`} style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}>
-              {renderWithLayout((
-                <Toolbar
-                  toolbarPlacement={toolbarPlacement}
-                  currentTool={currentTool}
-                  setCurrentTool={setCurrentTool}
-                  currentToolOption={currentToolOption}
-                  setCurrentToolOption={setCurrentToolOption}
-                  scale={scale}
-                  selectImage={(image: string) => {
-                    if (image && refSketch.current) {
-                      refSketch.current.selectImage(image);
-                    }
-                  }}
-                  undo={() => {
-                    if (refSketch.current) {
-                      refSketch.current.undo();
-                    }
-                  }}
-                  redo={() => {
-                    if (refSketch.current) {
-                      refSketch.current.redo();
-                    }
-                  }}
-                  clear={() => {
-                    if (refSketch.current) {
-                      refSketch.current.clear();
-                    }
-                  }}
-                  save={() => {
-                    if (refSketch.current) {
-                      refSketch.current.save();
-                    }
-                  }}
-                />
-              ), (
-                <AnimatedSketchPad
-                  ref={refSketch}
-                  userId={userId}
-                  currentTool={currentTool}
-                  setCurrentTool={setCurrentTool}
-                  currentToolOption={currentToolOption}
-                  scale={animatedProps.value}
-                  onScaleChange={setScale}
-                  operations={operations}
-                  onChange={onChange}
-                />
-              ))}
-            </div>
-          )}
-        </ConfigContext.Consumer>
+        <EnableSketchPadContext.Provider value={enableSketchPadContextValue}>
+          <ConfigContext.Consumer>
+            {config => (
+              <div className={`${config.prefixCls}-container ${clsssName || ''}`} style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}>
+                {renderWithLayout((
+                  <Toolbar
+                    toolbarPlacement={toolbarPlacement}
+                    currentTool={currentTool}
+                    setCurrentTool={setCurrentTool}
+                    currentToolOption={currentToolOption}
+                    setCurrentToolOption={setCurrentToolOption}
+                    scale={scale}
+                    selectImage={(image: string) => {
+                      if (image && refSketch.current) {
+                        refSketch.current.selectImage(image);
+                      }
+                    }}
+                    undo={() => {
+                      if (refSketch.current) {
+                        refSketch.current.undo();
+                      }
+                    }}
+                    redo={() => {
+                      if (refSketch.current) {
+                        refSketch.current.redo();
+                      }
+                    }}
+                    clear={() => {
+                      if (refSketch.current) {
+                        refSketch.current.clear();
+                      }
+                    }}
+                    save={() => {
+                      if (refSketch.current) {
+                        refSketch.current.save();
+                      }
+                    }}
+                  />
+                ), (
+                  <AnimatedSketchPad
+                    ref={refSketch}
+                    userId={userId}
+                    currentTool={currentTool}
+                    setCurrentTool={setCurrentTool}
+                    currentToolOption={currentToolOption}
+                    scale={animatedProps.value}
+                    onScaleChange={setScale}
+                    operations={operations}
+                    onChange={onChange}
+                  />
+                ))}
+              </div>
+            )}
+          </ConfigContext.Consumer>
+        </EnableSketchPadContext.Provider>
       </IntlProvider>
     </ConfigContext.Provider>
   );
