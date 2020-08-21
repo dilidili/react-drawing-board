@@ -45,7 +45,7 @@ const drawLine = (context: CanvasRenderingContext2D, item: Stroke, start: Point,
 };
 
 export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D, hover: boolean) => {
-  const points = stroke.points.filter((_, index) => index % 2);
+  const points = stroke.points.filter((_, index) => index % 2 === 0);
   if (points.length < 3) {
     return;
   };
@@ -100,8 +100,11 @@ export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleComp
   };
 
   // click to back to select mode.
-  if (stroke.points.length < 6 && !isMobileDevice) {
-    setCurrentTool(Tool.Select);
+  if (stroke.points.length < 6) {
+    if (!isMobileDevice) {
+      setCurrentTool(Tool.Select);
+    }
+
     handleCompleteOperation();
 
     points = [];
@@ -164,6 +167,11 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
                   setCurrentToolOption({ ...currentToolOption, strokeSize: size });
                   setCurrentTool && setCurrentTool(Tool.Stroke);
                 }}
+                onTouchStart={(evt) => {
+                  evt.stopPropagation();
+                  setCurrentToolOption({ ...currentToolOption, strokeSize: size });
+                  setCurrentTool && setCurrentTool(Tool.Stroke);
+                }}
                 style={{ width: size + 4, height: size + 4, background: size === currentToolOption.strokeSize ? '#666666' : '#EEEEEE' }}
               ></div>
             )
@@ -172,14 +180,25 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
         <div className={`${prefixCls}-split`}></div>
         <div className={`${prefixCls}-palette`}>
           {strokeColor.map(color => {
-            return <div className={`${prefixCls}-color`} key={color} onClick={(evt) => {
-              evt.stopPropagation();
-              setCurrentToolOption({ ...currentToolOption, strokeColor: color });
-              setCurrentTool && setCurrentTool(Tool.Stroke);
-            }}>
-              <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
-              {currentToolOption.strokeColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}
-            </div>
+            return (
+              <div
+                className={`${prefixCls}-color`}
+                key={color}
+                onClick={(evt) => {
+                  evt.stopPropagation();
+                  setCurrentToolOption({ ...currentToolOption, strokeColor: color });
+                  setCurrentTool && setCurrentTool(Tool.Stroke);
+                }}
+                onTouchStart={(evt) => {
+                  evt.stopPropagation();
+                  setCurrentToolOption({ ...currentToolOption, strokeColor: color });
+                  setCurrentTool && setCurrentTool(Tool.Stroke);
+                }}
+              >
+                <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
+                {currentToolOption.strokeColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}
+              </div>
+            );
           })}
         </div>
       </div>

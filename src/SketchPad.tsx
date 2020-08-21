@@ -681,7 +681,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     onScaleChange(newScale);
   };
 
-  const onRemoveOperation: MouseEventHandler<Element> = (evt) => {
+  const onRemoveOperation = (evt: React.TouchEvent | React.MouseEvent) => {
     evt.preventDefault();
     evt.stopPropagation();
 
@@ -894,7 +894,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     };
 
     removeButton = (
-      <div style={removeStyle} onMouseDown={onRemoveOperation}>
+      <div style={removeStyle} onMouseDown={onRemoveOperation} onTouchStart={onRemoveOperation}>
         <Icon type="close-circle" theme="filled" />
       </div>
     )

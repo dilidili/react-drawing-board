@@ -3,7 +3,7 @@ import Tool, { Position, ToolOption } from './enums/Tool';
 import { Text, onTextMouseDown } from './TextTool';
 import { Stroke } from './StrokeTool';
 import { Operation, Update, OperationListState, Remove } from './SketchPad';
-import { matrix_multiply } from './utils'
+import { matrix_multiply, isMobileDevice } from './utils'
 import { IntlShape } from 'react-intl';
 
 let lastSelectX = 0;
@@ -133,7 +133,7 @@ export const onSelectMouseMove = (
     } else {
       setViewMatrix(matrix_multiply([1, 0, 0, 1, diff.x * scale, diff.y * scale], startDragViewMatrix));
     }
-  } else {
+  } else if (!isMobileDevice) {
     const pos: [number, number] = [x, y];
 
     let selectedItem: Operation | null = findSelectedItem(operationListState.reduced, pos, scale);
