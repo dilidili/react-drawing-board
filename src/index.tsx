@@ -79,7 +79,7 @@ const Block: React.FC<BlockProps> = (props) => {
   const renderWithLayout = (toolbar: React.ReactElement, sketchPad: React.ReactElement) => {
     if (toolbarPlacement === 'left' || isMobileDevice) {
       return <Layout style={{ flexDirection: 'row' }}>
-        <Sider width={isMobileDevice ? 40 : 55}>{toolbar}</Sider>
+        <Sider width={isMobileDevice ? 40 : 55} theme='light'>{toolbar}</Sider>
         <Content>{sketchPad}</Content>
       </Layout>
     } else if (toolbarPlacement === 'top') {
@@ -90,7 +90,7 @@ const Block: React.FC<BlockProps> = (props) => {
     } else if (toolbarPlacement === 'right') {
       return <Layout style={{ flexDirection: 'row' }}>
         <Content>{sketchPad}</Content>
-        <Sider width={55}>{toolbar}</Sider>
+        <Sider width={55} theme='light'>{toolbar}</Sider>
       </Layout>
     } else {
       return null;

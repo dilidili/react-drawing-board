@@ -249,6 +249,16 @@ const useResizeHandler = (
       }
     }
 
+    const onTouchStart = (direction: ResizeDirection) => (e: React.TouchEvent) => {
+      e.stopPropagation();
+
+      if (refCanvas.current && e.touches[0]) {
+        isResizing = direction;
+        startResizePoint = mapClientToCanvas(e.touches[0], refCanvas.current, viewMatrix);
+        startResizePos = { ...selectedOperation.pos };
+      }
+    }
+
     const onMouseMove = (e: {
       clientX: number,
       clientY: number,
@@ -340,13 +350,13 @@ const useResizeHandler = (
       onMouseUp,
       resizer: (
         <>
-          <div key={ResizeDirection.TopLeft} onMouseDown={onMouseDown(ResizeDirection.TopLeft)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + 'px', top: tl[1] + 'px' }} />
-          <div key={ResizeDirection.TopCenter} onMouseDown={onMouseDown(ResizeDirection.TopCenter)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + w / 2 + 'px', top: tl[1] + 'px' }} />
-          <div key={ResizeDirection.MiddleRight} onMouseDown={onMouseDown(ResizeDirection.MiddleRight)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + w + 'px', top: tl[1] + h / 2 + 'px' }} />
-          <div key={ResizeDirection.BottomRight} onMouseDown={onMouseDown(ResizeDirection.BottomRight)} className={`${prefixCls}-resizer`} style={{ left: br[0] + 'px', top: br[1] + 'px' }} />
-          <div key={ResizeDirection.BottomCenter} onMouseDown={onMouseDown(ResizeDirection.BottomCenter)} className={`${prefixCls}-resizer`} style={{ left: br[0] - w / 2 + 'px', top: br[1] + 'px' }} />
-          <div key={ResizeDirection.BottomLeft} onMouseDown={onMouseDown(ResizeDirection.BottomLeft)} className={`${prefixCls}-resizer`} style={{ left: br[0] - w + 'px', top: br[1] + 'px' }} />
-          <div key={ResizeDirection.MiddleLeft} onMouseDown={onMouseDown(ResizeDirection.MiddleLeft)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + 'px', top: tl[1] + h / 2 + 'px' }} />
+          <div key={ResizeDirection.TopLeft} onTouchStart={onTouchStart(ResizeDirection.TopLeft)} onMouseDown={onMouseDown(ResizeDirection.TopLeft)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + 'px', top: tl[1] + 'px' }} />
+          <div key={ResizeDirection.TopCenter} onTouchStart={onTouchStart(ResizeDirection.TopCenter)} onMouseDown={onMouseDown(ResizeDirection.TopCenter)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + w / 2 + 'px', top: tl[1] + 'px' }} />
+          <div key={ResizeDirection.MiddleRight} onTouchStart={onTouchStart(ResizeDirection.MiddleRight)} onMouseDown={onMouseDown(ResizeDirection.MiddleRight)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + w + 'px', top: tl[1] + h / 2 + 'px' }} />
+          <div key={ResizeDirection.BottomRight} onTouchStart={onTouchStart(ResizeDirection.BottomRight)} onMouseDown={onMouseDown(ResizeDirection.BottomRight)} className={`${prefixCls}-resizer`} style={{ left: br[0] + 'px', top: br[1] + 'px' }} />
+          <div key={ResizeDirection.BottomCenter} onTouchStart={onTouchStart(ResizeDirection.BottomCenter)} onMouseDown={onMouseDown(ResizeDirection.BottomCenter)} className={`${prefixCls}-resizer`} style={{ left: br[0] - w / 2 + 'px', top: br[1] + 'px' }} />
+          <div key={ResizeDirection.BottomLeft} onTouchStart={onTouchStart(ResizeDirection.BottomLeft)} onMouseDown={onMouseDown(ResizeDirection.BottomLeft)} className={`${prefixCls}-resizer`} style={{ left: br[0] - w + 'px', top: br[1] + 'px' }} />
+          <div key={ResizeDirection.MiddleLeft} onTouchStart={onTouchStart(ResizeDirection.MiddleLeft)} onMouseDown={onMouseDown(ResizeDirection.MiddleLeft)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + 'px', top: tl[1] + h / 2 + 'px' }} />
         </>
       )
     }
@@ -363,6 +373,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
   const refInput = useRef<HTMLDivElement>(null);
+  const lastTapRef = useRef<number>(0);
   const intl = useIntl();
   const { prefixCls } = useContext(ConfigContext);
   const enableSketchPadContext = useContext(EnableSketchPadContext);
@@ -572,12 +583,23 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   };
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+
     if (e.changedTouches[0]) {
-      onMouseDown(e.changedTouches[0]);
+      if (e.timeStamp - lastTapRef.current < 300) {
+        onDoubleClick(e.changedTouches[0]);
+      } else {
+        onMouseDown(e.changedTouches[0]);
+      }
     }
+
+    lastTapRef.current = e.timeStamp;
   }
 
-  const onDoubleClick = (e: MouseEvent<HTMLCanvasElement>) => {
+  const onDoubleClick = (e: {
+    clientX: number,
+    clientY: number,
+  }) => {
     if (!refCanvas.current) return null;
 
     const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);

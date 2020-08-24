@@ -66,12 +66,12 @@ const tools = [{
   style: {
     marginRight: 'auto',
   },
-}, {
+}, ...(!isMobileDevice ? [{
   label: '100%',
   labelThunk: (props: ToolbarProps) => `${~~(props.scale * 100)}%`,
   icon: ZoomIcon,
   type: Tool.Zoom,
-}, {
+}] : []), {
   label: 'umi.block.sketch.save',
   icon: SaveIcon,
   type: Tool.Save,
@@ -121,12 +121,17 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       {tools.map((tool => {
         let borderTopStyle = 'none';
         if (isMobileDevice) {
+          console.log(currentToolOption)
           if (tool.type === Tool.Stroke && currentToolOption.strokeColor) {
             borderTopStyle = `3px solid ${currentToolOption.strokeColor}`;
           }
 
           if (tool.type === Tool.Shape && currentToolOption.shapeBorderColor) {
             borderTopStyle = `3px solid ${currentToolOption.shapeBorderColor}`;
+          }
+
+          if (tool.type === Tool.Text && currentToolOption.textColor) {
+            borderTopStyle = `3px solid ${currentToolOption.textColor}`;
           }
         }
 

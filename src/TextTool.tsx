@@ -111,6 +111,11 @@ export const useTextDropdown = (currentToolOption: ToolOption, setCurrentToolOpt
             return (
               <div
                 key={size}
+                onTouchStart={(evt) => {
+                  evt.stopPropagation();
+                  setCurrentToolOption({ ...currentToolOption, textSize: size });
+                  setCurrentTool && setCurrentTool(Tool.Stroke);
+                }}
                 onClick={(evt) => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, textSize: size });
@@ -126,11 +131,18 @@ export const useTextDropdown = (currentToolOption: ToolOption, setCurrentToolOpt
         <div className={`${prefixCls}-split`}></div>
         <div className={`${prefixCls}-palette`}>
           {strokeColor.map(color => {
-            return <div className={`${prefixCls}-color`} key={color} onClick={(evt) => {
-              evt.stopPropagation();
-              setCurrentToolOption({ ...currentToolOption, textColor: color });
-              setCurrentTool && setCurrentTool(Tool.Stroke);
-            }}>
+            return <div className={`${prefixCls}-color`} key={color}
+              onClick={(evt) => {
+                evt.stopPropagation();
+                setCurrentToolOption({ ...currentToolOption, textColor: color });
+                setCurrentTool && setCurrentTool(Tool.Stroke);
+              }}
+              onTouchStart={(evt) => {
+                evt.stopPropagation();
+                setCurrentToolOption({ ...currentToolOption, textColor: color });
+                setCurrentTool && setCurrentTool(Tool.Stroke);
+              }}
+            >
               <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
               {currentToolOption.textColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}
             </div>

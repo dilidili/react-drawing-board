@@ -158,19 +158,34 @@ export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOp
   return (
     <div className={`${prefixCls}-strokeMenu`}>
       <div className={`${prefixCls}-shape`}>
-        <div onClick={(evt) => {
-          evt.stopPropagation();
-          setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Rectangle });
-          setCurrentTool(Tool.Shape);
-        }} className={`${prefixCls}-shapeItem`} style={currentToolOption.shapeType === ShapeType.Rectangle ? { background: 'rgba(238, 238, 238, 1)' } : {}}>
+        <div
+          onClick={(evt) => {
+            evt.stopPropagation();
+            setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Rectangle });
+            setCurrentTool(Tool.Shape);
+          }}
+          onTouchStart={(evt) => {
+            evt.stopPropagation();
+            setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Rectangle });
+            setCurrentTool(Tool.Shape);
+          }}
+          className={`${prefixCls}-shapeItem`} style={currentToolOption.shapeType === ShapeType.Rectangle ? { background: 'rgba(238, 238, 238, 1)' } : {}}>
           <div className={`${prefixCls}-rect`} style={ currentToolOption.shapeType === ShapeType.Rectangle ? { borderColor: currentToolOption.shapeBorderColor } : {}} />
         </div>
 
-        <div onClick={(evt) => {
-          evt.stopPropagation();
-          setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Oval });
-          setCurrentTool(Tool.Shape);
-        }} className={`${prefixCls}-shapeItem`} style={currentToolOption.shapeType === ShapeType.Oval ? { background: 'rgba(238, 238, 238, 1)' } : {}}>
+        <div
+          onTouchStart={(evt) => {
+            evt.stopPropagation();
+            setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Oval });
+            setCurrentTool(Tool.Shape);
+          }}
+          onClick={(evt) => {
+            evt.stopPropagation();
+            setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Oval });
+            setCurrentTool(Tool.Shape);
+          }}
+          className={`${prefixCls}-shapeItem`} style={currentToolOption.shapeType === ShapeType.Oval ? { background: 'rgba(238, 238, 238, 1)' } : {}}
+        >
           <div className={`${prefixCls}-circle`} style={ currentToolOption.shapeType === ShapeType.Oval ? { borderColor: currentToolOption.shapeBorderColor } : {}} />
         </div>
       </div>
@@ -181,6 +196,11 @@ export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOp
             return (
               <div
                 key={size}
+                onTouchStart={(evt) => {
+                  evt.stopPropagation();
+                  setCurrentToolOption({ ...currentToolOption, shapeBorderSize: size });
+                  setCurrentTool(Tool.Shape);
+                }}
                 onClick={(evt) => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, shapeBorderSize: size });
@@ -194,11 +214,20 @@ export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOp
         <div className={`${prefixCls}-split`}></div>
         <div className={`${prefixCls}-palette`}>
           {strokeColor.map(color => {
-            return <div className={`${prefixCls}-color`} key={color} onClick={(evt) => {
-              evt.stopPropagation();
-              setCurrentToolOption({ ...currentToolOption, shapeBorderColor: color });
-              setCurrentTool(Tool.Shape);
-            }}>
+            return <div
+              className={`${prefixCls}-color`}
+              key={color}
+              onTouchStart={(evt) => {
+                evt.stopPropagation();
+                setCurrentToolOption({ ...currentToolOption, shapeBorderColor: color });
+                setCurrentTool(Tool.Shape);
+              }}
+              onClick={(evt) => {
+                evt.stopPropagation();
+                setCurrentToolOption({ ...currentToolOption, shapeBorderColor: color });
+                setCurrentTool(Tool.Shape);
+              }}
+            >
               <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
               {currentToolOption.shapeBorderColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}
             </div>
