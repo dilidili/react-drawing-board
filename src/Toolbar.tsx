@@ -121,7 +121,6 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       {tools.map((tool => {
         let borderTopStyle = 'none';
         if (isMobileDevice) {
-          console.log(currentToolOption)
           if (tool.type === Tool.Stroke && currentToolOption.strokeColor) {
             borderTopStyle = `3px solid ${currentToolOption.strokeColor}`;
           }

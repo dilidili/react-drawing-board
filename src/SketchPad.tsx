@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer, MouseEventHandler, ReactNode, RefObject, useContext, useCallback } from 'react';
 import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, } from './enums/Tool';
 import { useIntl } from 'react-intl';
-import { mapClientToCanvas } from './utils';
+import { mapClientToCanvas, isMobileDevice } from './utils';
 import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke, useStrokeDropdown, moveStoke } from './StrokeTool';
 import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle, useShapeDropdown } from './ShapeTool';
 import { onImageComplete, Image, drawImage } from './ImageTool';
@@ -14,9 +14,9 @@ import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor';
 import { useZoomGesture } from './gesture';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
-import Operation from 'antd/lib/transfer/operation';
 import './SketchPad.less';
 import ConfigContext from './ConfigContext';
+import { usePinch } from 'react-use-gesture';
 
 export interface SketchPadProps {
   currentTool: Tool;
@@ -374,6 +374,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
   const refInput = useRef<HTMLDivElement>(null);
   const lastTapRef = useRef<number>(0);
+  const lastPinchDistanceRef = useRef<number>(0);
   const intl = useIntl();
   const { prefixCls } = useContext(ConfigContext);
   const enableSketchPadContext = useContext(EnableSketchPadContext);
@@ -515,6 +516,26 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     renderOperations(operationListState.reduced);
   }, [operationListState.reduced, scale, viewMatrix, hoverOperationId, selectedOperation]);
 
+  // disable default scrolling on mobile device.
+  // refer: https://stackoverflow.com/questions/49500339/cant-prevent-touchmove-from-scrolling-window-on-ios
+  useEffect(() => {
+    const handler = (e: TouchEvent) => {
+      // only disable scroll when interact with this board.
+      if (lastTapRef.current) {
+        e.preventDefault();
+      }
+      onTouchMoveRef.current && onTouchMoveRef.current(e);
+    };
+
+    document.addEventListener('touchmove', handler, {
+      passive: false,
+    });
+
+    return () => {
+      document.removeEventListener('touchmove', handler);
+    }
+  }, []);
+
   const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image | Update | Remove, pos?: Position) => {
     if (!tool) {
       renderOperations(operationListState.reduced);
@@ -583,14 +604,17 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   };
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-
-    if (e.changedTouches[0]) {
+    if (e.changedTouches.length === 1) {
       if (e.timeStamp - lastTapRef.current < 300) {
         onDoubleClick(e.changedTouches[0]);
       } else {
         onMouseDown(e.changedTouches[0]);
       }
+    } else if (e.changedTouches.length === 2) {
+      lastPinchDistanceRef.current = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      ); 
     }
 
     lastTapRef.current = e.timeStamp;
@@ -610,6 +634,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         setSelectedOperation(null);
         break;
       default:
+        setCurrentTool(Tool.Select);
         break;
     }
   };
@@ -648,11 +673,23 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     }
   };
 
-  const onTouchMove = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.changedTouches[0]) {
+  const onTouchMove = (e: TouchEvent) => {
+    if (e.changedTouches.length === 1) {
       onMouseMove(e.changedTouches[0]);
+    } else if (e.changedTouches.length === 2) {
+      const newPinchDistance = Math.hypot(
+        e.touches[0].pageX - e.touches[1].pageX,
+        e.touches[0].pageY - e.touches[1].pageY
+      ); 
+
+      onScaleChange(((newPinchDistance - lastPinchDistanceRef.current) / 5 + 1) * scale);
+      lastPinchDistanceRef.current = newPinchDistance;
     }
   }
+  const onTouchMoveRef = useRef(onTouchMove);
+  useEffect(() => {
+    onTouchMoveRef.current = onTouchMove;
+  }, [onTouchMove]);
 
   const onMouseUp = (e: {
     clientX: number,
@@ -689,10 +726,21 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     if (e.changedTouches[0]) {
       onMouseUp(e.changedTouches[0]);
     }
+
+    lastTapRef.current = 0;
   }
 
-  const onWheel: WheelEventHandler<HTMLCanvasElement> = (evt) => {
-    evt.stopPropagation();
+  const onWheel = (evt: {
+    stopPropagation?: React.WheelEvent<HTMLCanvasElement>['stopPropagation'];
+    deltaY: number;
+    ctrlKey: boolean;
+    clientX: number;
+    clientY: number;
+    forceWheel?: boolean;
+  }) => {
+    if (isMobileDevice && !evt.forceWheel) return;
+
+    evt.stopPropagation && evt.stopPropagation();
 
     const { deltaY, ctrlKey } = evt;
     const [a, b, c, d, e, f] = viewMatrix;
@@ -800,6 +848,20 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   });
 
   useZoomGesture(refCanvas);
+  const bindPinch = usePinch((state) => {
+    const { ctrlKey, origin, delta } = state;
+
+    if (origin) {
+      console.log(delta);
+      onWheel({
+        deltaY: delta[1],
+        ctrlKey,
+        clientX: origin[0],
+        clientY: origin[1],
+        forceWheel: true,
+      });
+    }
+  });
 
   let settingMenu = null;
   let removeButton = null;
@@ -935,7 +997,6 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       onMouseMove={onMouseMove}
       onMouseLeave={onMouseUp}
       onTouchStart={onTouchStart}
-      onTouchMove={onTouchMove}
       onTouchEnd={onTouchEnd}
       onMouseUp={onMouseUp}
     >
@@ -945,6 +1006,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         onWheel={onWheel}
         className={`${sketchpadPrefixCls}-canvas`}
         style={canvasStyle}
+        {...bindPinch()}
       />
 
       <div

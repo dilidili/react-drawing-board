@@ -128,6 +128,11 @@ export const onShapeMouseUp = (x: number, y: number, setCurrentTool: (tool: Tool
   shape = null;
   item.end = { x, y };
 
+  // avoid touch by mistake.
+  if (Math.abs(item.start.x - item.end.x) + Math.abs(item.start.x - item.end.x) < 6) {
+    return;
+  }
+
   handleCompleteOperation(Tool.Shape, item, {
     x: Math.min(item.start.x, item.end.x),
     y: Math.min(item.start.y, item.end.y),
