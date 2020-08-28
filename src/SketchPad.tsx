@@ -372,9 +372,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
-  const refInput = useRef<HTMLDivElement>(null);
+  const refInput = useRef<HTMLInputElement>(null);
   const lastTapRef = useRef<number>(0);
-  const lastPinchDistanceRef = useRef<number>(0);
   const intl = useIntl();
   const { prefixCls } = useContext(ConfigContext);
   const enableSketchPadContext = useContext(EnableSketchPadContext);
@@ -604,17 +603,12 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   };
 
   const onTouchStart = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.changedTouches.length === 1) {
+    if (e.touches.length === 1) {
       if (e.timeStamp - lastTapRef.current < 300) {
-        onDoubleClick(e.changedTouches[0]);
+        onDoubleClick(e.touches[0]);
       } else {
-        onMouseDown(e.changedTouches[0]);
+        onMouseDown(e.touches[0]);
       }
-    } else if (e.changedTouches.length === 2) {
-      lastPinchDistanceRef.current = Math.hypot(
-        e.touches[0].pageX - e.touches[1].pageX,
-        e.touches[0].pageY - e.touches[1].pageY
-      ); 
     }
 
     lastTapRef.current = e.timeStamp;
@@ -674,16 +668,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   };
 
   const onTouchMove = (e: TouchEvent) => {
-    if (e.changedTouches.length === 1) {
-      onMouseMove(e.changedTouches[0]);
-    } else if (e.changedTouches.length === 2) {
-      const newPinchDistance = Math.hypot(
-        e.touches[0].pageX - e.touches[1].pageX,
-        e.touches[0].pageY - e.touches[1].pageY
-      ); 
-
-      onScaleChange(((newPinchDistance - lastPinchDistanceRef.current) / 5 + 1) * scale);
-      lastPinchDistanceRef.current = newPinchDistance;
+    if (e.touches.length === 1) {
+      onMouseMove(e.touches[0]);
     }
   }
   const onTouchMoveRef = useRef(onTouchMove);
@@ -723,7 +709,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   };
 
   const onTouchEnd = (e: React.TouchEvent<HTMLDivElement>) => {
-    if (e.changedTouches[0]) {
+    if (e.changedTouches.length === 1) {
       onMouseUp(e.changedTouches[0]);
     }
 
@@ -852,9 +838,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     const { ctrlKey, origin, delta } = state;
 
     if (origin) {
-      console.log(delta);
       onWheel({
-        deltaY: delta[1],
+        deltaY: delta[0],
         ctrlKey,
         clientX: origin[0],
         clientY: origin[1],
@@ -1000,6 +985,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       onTouchEnd={onTouchEnd}
       onMouseUp={onMouseUp}
     >
+      <div id='test'></div>
       <canvas
         ref={refCanvas}
         onDoubleClick={onDoubleClick}
@@ -1009,9 +995,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         {...bindPinch()}
       />
 
-      <div
-        contentEditable="true"
-        suppressContentEditableWarning
+      <textarea
         ref={refInput}
         style={{ fontSize: `${12 * scale}px`, }}
         className={`${sketchpadPrefixCls}-textInput`}
@@ -1019,8 +1003,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           onTextComplete(refInput, refCanvas, viewMatrix, scale, handleCompleteOperation, setCurrentTool);
         }}
       >
-        输入文本
-      </div>
+      </textarea>
 
       {settingMenu}
       {removeButton}

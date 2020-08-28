@@ -10,5 +10,7 @@ export default {
   messages: {
     ['en-US']: enUS,
     ['zh-CN']: zhCN,
+    ['en']: enUS,
+    ['zh']: zhCN,
   },
 };

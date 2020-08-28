@@ -42,7 +42,7 @@ const enableSketchPadReducer = (state: boolean, action: boolean) => {
 }
 
 const Block: React.FC<BlockProps> = (props) => {
-  const { locale, userId, operations, onChange, toolbarPlacement, clsssName } = { ...defaultProps, ...props };
+  const { userId, operations, onChange, toolbarPlacement, clsssName } = { ...defaultProps, ...props };
 
   const [currentTool, setCurrentTool] = useState(Tool.Select);
   const [scale, setScale] = useState(1);
@@ -103,6 +103,8 @@ const Block: React.FC<BlockProps> = (props) => {
       setEnable: enableSketchPad[1],
     };
   }, [...enableSketchPad]);
+
+  const locale = props.locale && locales.messages[props.locale] ? props.locale : localeType.enUS;
 
   return (
     <ConfigContext.Provider value={DefaultConfig}>

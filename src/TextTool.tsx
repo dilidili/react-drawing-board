@@ -21,7 +21,7 @@ export interface Text {
 export const onTextMouseDown = (e: {
   clientX: number,
   clientY: number,
-}, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => {
+}, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLInputElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => {
   if (!currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const canvas = refCanvas.current;
@@ -36,20 +36,12 @@ export const onTextMouseDown = (e: {
     textarea.style.top = y + canvas.offsetTop + 'px';
     textarea.style.fontSize = (toolOption.textSize as number) * scale + 'px';
     textarea.style.lineHeight = (toolOption.textSize as number) * scale + 'px';
+    textarea.style.height = (toolOption.textSize as number) * scale + 'px';
     textarea.style.color = toolOption.textColor;
-    textarea.innerText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
+    textarea.value = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
 
     setTimeout(() => {
-      if (getSelection && Range) {
-        var selection = getSelection();
-
-        if (selection) {
-          selection.removeAllRanges();
-          var range = new Range();
-          range.selectNodeContents(textarea);
-          selection.addRange(range);
-        }
-      }
+      textarea.select && textarea.select();
     }, 0);
 
     currentText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
@@ -58,10 +50,10 @@ export const onTextMouseDown = (e: {
   }
 }
 
-export const onTextComplete = (refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, viewMatrix: number[], scale: number, handleCompleteOperation: (tool?: Tool, data?: Text, pos?: Position) => void, setCurrentTool: (tool: Tool) => void) => {
+export const onTextComplete = (refInput: RefObject<HTMLInputElement>, refCanvas: RefObject<HTMLCanvasElement>, viewMatrix: number[], scale: number, handleCompleteOperation: (tool?: Tool, data?: Text, pos?: Position) => void, setCurrentTool: (tool: Tool) => void) => {
   if (currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
-    const text = textarea.innerText;
+    const text = textarea.value;
     let { top, left, width, height } = textarea.getBoundingClientRect();
     width = 1 / scale * width;
     height = 1 / scale * height;
