@@ -71,11 +71,11 @@ const tools = [{
   labelThunk: (props: ToolbarProps) => `${~~(props.scale * 100)}%`,
   icon: ZoomIcon,
   type: Tool.Zoom,
-}] : []), {
+}] : []), ...(!isMobileDevice ? [{
   label: 'umi.block.sketch.save',
   icon: SaveIcon,
   type: Tool.Save,
-}];
+}]: [])];
 
 export interface ToolbarProps {
   currentTool: Tool;
@@ -127,10 +127,6 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
           if (tool.type === Tool.Shape && currentToolOption.shapeBorderColor) {
             borderTopStyle = `3px solid ${currentToolOption.shapeBorderColor}`;
-          }
-
-          if (tool.type === Tool.Text && currentToolOption.textColor) {
-            borderTopStyle = `3px solid ${currentToolOption.textColor}`;
           }
         }
 

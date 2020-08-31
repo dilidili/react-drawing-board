@@ -2,7 +2,7 @@ import React from 'react';
 import Tool, { ToolOption, Position, TextSize, strokeColor } from './enums/Tool';
 import { IntlShape, } from 'react-intl';
 import { RefObject, MouseEvent as ReactMouseEvent } from 'react';
-import { mapClientToCanvas } from './utils';
+import { mapClientToCanvas, isMobileDevice } from './utils';
 import { Icon } from 'antd';
 import './TextTool.less';
 
@@ -21,7 +21,7 @@ export interface Text {
 export const onTextMouseDown = (e: {
   clientX: number,
   clientY: number,
-}, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLInputElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => {
+}, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => {
   if (!currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
     const canvas = refCanvas.current;
@@ -38,16 +38,24 @@ export const onTextMouseDown = (e: {
     textarea.style.lineHeight = (toolOption.textSize as number) * scale + 'px';
     textarea.style.height = (toolOption.textSize as number) * scale + 'px';
     textarea.style.color = toolOption.textColor;
-    textarea.value = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
-    textarea.defaultValue = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
-    textarea.autofocus = true;
+    textarea.innerText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
 
-    setInterval(() => {
-      // textarea.select && textarea.select();
-      textarea.autofocus = true;
-      textarea.click && textarea.click();
+    if (isMobileDevice) {
       textarea.focus();
-    }, 1000);
+    }
+
+    setTimeout(() => {
+      if (getSelection && Range) {
+        const selection = getSelection();
+
+        if (selection) {
+          selection.removeAllRanges();
+          var range = new Range();
+          range.selectNodeContents(textarea);
+          selection.addRange(range);
+        }
+      }
+    }, 0);
 
     currentText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
     currentColor = toolOption.textColor;
@@ -55,13 +63,14 @@ export const onTextMouseDown = (e: {
   }
 }
 
-export const onTextComplete = (refInput: RefObject<HTMLInputElement>, refCanvas: RefObject<HTMLCanvasElement>, viewMatrix: number[], scale: number, handleCompleteOperation: (tool?: Tool, data?: Text, pos?: Position) => void, setCurrentTool: (tool: Tool) => void) => {
+export const onTextComplete = (refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, viewMatrix: number[], scale: number, handleCompleteOperation: (tool?: Tool, data?: Text, pos?: Position) => void, setCurrentTool: (tool: Tool) => void) => {
   if (currentText && refInput.current && refCanvas.current) {
     const textarea = refInput.current;
-    const text = textarea.value;
+    const text = textarea.innerText;
     let { top, left, width, height } = textarea.getBoundingClientRect();
     width = 1 / scale * width;
-    height = 1 / scale * height;
+    const lineHeight = parseInt(textarea.style.lineHeight.replace('px', ''));
+    height = 1 / scale * lineHeight * text.split('\n').length;
 
     const currentPos = mapClientToCanvas({
       clientX: left,
@@ -89,11 +98,11 @@ export const drawText = (item: Text, context: CanvasRenderingContext2D, pos: Pos
   context.globalCompositeOperation = 'source-over';
   context.font = `${item.size}px ${font}`;
   context.fillStyle = item.color || '#4a4a4a';
-  context.textBaseline = 'top';
+  context.textBaseline = 'middle';
 
   const lines = item.text.split('\n');
   for (var i = 0; i < lines.length; i++) {
-    context.fillText(lines[i], pos.x, pos.y + (i * item.size));
+    context.fillText(lines[i], pos.x, pos.y + item.size / 2 + (i * item.size)); // add half line height cause to textBaseline middle
   }
 }
 

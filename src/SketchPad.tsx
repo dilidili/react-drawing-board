@@ -16,7 +16,7 @@ import { useZoomGesture } from './gesture';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 import './SketchPad.less';
 import ConfigContext from './ConfigContext';
-import { usePinch } from 'react-use-gesture';
+import { usePinch, useWheel } from 'react-use-gesture';
 
 export interface SketchPadProps {
   currentTool: Tool;
@@ -377,8 +377,6 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   const intl = useIntl();
   const { prefixCls } = useContext(ConfigContext);
   const enableSketchPadContext = useContext(EnableSketchPadContext);
-
-  const [_, forceUpdate] = useState([]);
 
   const sketchpadPrefixCls = prefixCls + '-sketchpad';
 
@@ -849,6 +847,19 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       });
     }
   });
+  const bindWheel = useWheel((state) => {
+    const { ctrlKey, event, delta } = state;
+
+    if (event && 'clientX' in event) {
+      onWheel({
+        deltaY: delta[1],
+        ctrlKey,
+        clientX: event.clientX + 0,
+        clientY: event.clientY + 0,
+        forceWheel: true,
+      });
+    }
+  });
 
   let settingMenu = null;
   let removeButton = null;
@@ -910,10 +921,13 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
             // font size has changed, need to update pos
             context.font = `${option.textSize}px ${font}`;
+            context.textBaseline = 'alphabetic';
+            // measureText does not support multi-line
+            const lines = textOperation.text.split('\n');
             data.pos = {
               ...selectedOperation.pos,
-              w: context.measureText(textOperation.text).width,
-              h: textOperation.text.split('\n').length * option.textSize,
+              w: Math.max(...(lines.map(line => context.measureText(line).width))),
+              h: lines.length * option.textSize,
             };
           }
 
@@ -977,13 +991,6 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     )
   }
 
-  useLayoutEffect(() => {
-    if (refInput.current) {
-      refInput.current.style.width = `${Math.max(refInput.current.scrollWidth, 200)}px`;
-      refInput.current.style.height = `${refInput.current.scrollHeight}px`;
-    }
-  });
-
   return (
     <div
       className={`${sketchpadPrefixCls}-container`}
@@ -998,24 +1005,22 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       <canvas
         ref={refCanvas}
         onDoubleClick={onDoubleClick}
-        onWheel={onWheel}
         className={`${sketchpadPrefixCls}-canvas`}
         style={canvasStyle}
         {...bindPinch()}
+        {...bindWheel()}
       />
 
-      <textarea
+      <div
         ref={refInput}
+        contentEditable
         style={{ fontSize: `${12 * scale}px`, }}
         className={`${sketchpadPrefixCls}-textInput`}
-        onChange={() => {
-          forceUpdate([]);
-        }}
         onBlur={() => {
           onTextComplete(refInput, refCanvas, viewMatrix, scale, handleCompleteOperation, setCurrentTool);
         }}
       >
-      </textarea>
+      </div>
 
       {settingMenu}
       {removeButton}

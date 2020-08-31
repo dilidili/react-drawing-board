@@ -7,14 +7,22 @@ export type Image = {
 }
 
 const _cacheImgs: {
-  [any: string]: ImageBitmap;
+  [any: string]: HTMLImageElement;
 } = {};
 
 export const drawImage = (item: Image, context: CanvasRenderingContext2D, pos: Position, id: string, rerender: () => void) => {
   if (!_cacheImgs[id]) {
     fetch(item.imageData)
       .then(res => res.blob())
-      .then(blob => createImageBitmap(blob))
+      .then(blob => {
+        return new Promise<HTMLImageElement>((resolve, reject) => {
+          let img = document.createElement('img');
+          img.addEventListener('load', function() {
+            resolve(this);
+          });
+          img.src = URL.createObjectURL(blob);
+        });
+      })
       .then(imageBitmap => {
         _cacheImgs[id] = imageBitmap;
         rerender();
