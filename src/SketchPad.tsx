@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer, MouseEventHandler, ReactNode, RefObject, useContext, useCallback } from 'react';
+import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer, MouseEventHandler, ReactNode, RefObject, useContext, useCallback, useLayoutEffect } from 'react';
 import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, } from './enums/Tool';
 import { useIntl } from 'react-intl';
 import { mapClientToCanvas, isMobileDevice } from './utils';
@@ -377,6 +377,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   const intl = useIntl();
   const { prefixCls } = useContext(ConfigContext);
   const enableSketchPadContext = useContext(EnableSketchPadContext);
+
+  const [_, forceUpdate] = useState([]);
 
   const sketchpadPrefixCls = prefixCls + '-sketchpad';
 
@@ -975,6 +977,13 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     )
   }
 
+  useLayoutEffect(() => {
+    if (refInput.current) {
+      refInput.current.style.width = `${Math.max(refInput.current.scrollWidth, 200)}px`;
+      refInput.current.style.height = `${refInput.current.scrollHeight}px`;
+    }
+  });
+
   return (
     <div
       className={`${sketchpadPrefixCls}-container`}
@@ -999,6 +1008,9 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         ref={refInput}
         style={{ fontSize: `${12 * scale}px`, }}
         className={`${sketchpadPrefixCls}-textInput`}
+        onChange={() => {
+          forceUpdate([]);
+        }}
         onBlur={() => {
           onTextComplete(refInput, refCanvas, viewMatrix, scale, handleCompleteOperation, setCurrentTool);
         }}

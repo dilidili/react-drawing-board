@@ -39,10 +39,15 @@ export const onTextMouseDown = (e: {
     textarea.style.height = (toolOption.textSize as number) * scale + 'px';
     textarea.style.color = toolOption.textColor;
     textarea.value = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
+    textarea.defaultValue = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
+    textarea.autofocus = true;
 
-    setTimeout(() => {
-      textarea.select && textarea.select();
-    }, 0);
+    setInterval(() => {
+      // textarea.select && textarea.select();
+      textarea.autofocus = true;
+      textarea.click && textarea.click();
+      textarea.focus();
+    }, 1000);
 
     currentText = typeof toolOption.defaultText === 'string' ? toolOption.defaultText : intl.formatMessage(toolOption.defaultText);
     currentColor = toolOption.textColor;
