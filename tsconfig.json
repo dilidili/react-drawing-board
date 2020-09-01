@@ -9,7 +9,7 @@
     "esModuleInterop": true,
     "sourceMap": true,
     "baseUrl": ".",
-    "strict": true,
+    "strict": false,
     "paths": {
       "@/*": ["src/*"]
     },

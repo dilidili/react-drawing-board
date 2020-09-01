@@ -14,6 +14,7 @@ Browser drawing board created with canvas and React.
 - Easily zoom or pan the board content.
 - Ability to save screenshot.
 - Ability to be used as a Pictionary board for long distance communication.
+- Working for mobile users.
 
 ## Installation
 

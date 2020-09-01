@@ -89,7 +89,7 @@ export const onSelectMouseMove = (
   operationListState: OperationListState,
   selectedOperation: Operation | null,
   setViewMatrix: (viewMatrix: number[]) => void,
-  setHoverOperationId: (id: string | null) => void,
+  setHoverOperationId: (id: any) => void,
   handleCompleteOperation: (tool?: Tool, data?: Update, pos?: Position) => void,
   operationListDispatch: React.Dispatch<any>,
   setSelectedOperation: (operation: Operation | null) => void,
