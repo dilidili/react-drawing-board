@@ -33,12 +33,17 @@ export interface SketchPadProps {
 
 export type onChangeCallback = (newOperaton: Operation, operationsAfter: Operation[]) => void;
 
+export type onSaveCallback = (image: {
+  canvas: HTMLCanvasElement,
+  dataUrl: string,
+}) => void;
+
 export type SketchPadRef = {
   selectImage: (image: string) => void;
   undo: () => void;
   redo: () => void;
   clear: () => void;
-  save: () => void;
+  save: (handleSave?: onSaveCallback) => void;
 };
 
 export type Remove = {
@@ -812,7 +817,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         setSelectedOperation(null);
         handleCompleteOperation(Tool.Clear);
       },
-      save: () => {
+      save: (handleSave?: onSaveCallback) => {
         if (refCanvas.current && refContext.current) {
           const canvas = refCanvas.current;
           const w = canvas.width;
@@ -822,12 +827,19 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           context.fillStyle = "#fff";
           context.fillRect(0, 0, w, h);
 
-          const img = canvas.toDataURL('image/png');
+          const dataUrl = canvas.toDataURL('image/png');
 
-          const a = document.createElement('a');
-          a.href = img;
-          a.download = 'sketch.png';
-          a.click();
+          if (handleSave) {
+            handleSave({
+              canvas,
+              dataUrl,
+            });
+          } else {
+            const a = document.createElement('a');
+            a.href = dataUrl;
+            a.download = 'sketch.png';
+            a.click();
+          }
         }
       },
     };

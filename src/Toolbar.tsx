@@ -88,7 +88,7 @@ export interface ToolbarProps {
   clear: () => void;
   save: () => void;
   scale: number;
-  toolbarPlacement: 'top' | 'left' | 'right';
+  toolbarPlacement: string;
 }
 
 const Toolbar: React.FC<ToolbarProps> = (props) => {

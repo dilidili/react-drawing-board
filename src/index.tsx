@@ -4,7 +4,7 @@ import { animated, useSpring, } from 'react-spring';
 import { IntlProvider } from 'react-intl';
 import { Layout } from 'antd';
 import Toolbar from './Toolbar';
-import SketchPad, { SketchPadRef, Operation, onChangeCallback } from './SketchPad';
+import SketchPad, { SketchPadRef, Operation, onChangeCallback, onSaveCallback } from './SketchPad';
 import Tool, { ToolOption, defaultToolOption, ShapeType } from './enums/Tool';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 import locales, { localeType } from './locales';
@@ -21,12 +21,13 @@ interface BlockProps {
   // controlled mode
   operations?: Operation[];
   onChange?: onChangeCallback;
+  onSave?: onSaveCallback;
 
   style?: CSSProperties;
 
   clsssName?: string;
 
-  toolbarPlacement: 'top' | 'left' | 'right';
+  toolbarPlacement?: 'top' | 'left' | 'right';
 }
 
 const AnimatedSketchPad = animated(SketchPad);
@@ -42,7 +43,7 @@ const enableSketchPadReducer = (state: boolean, action: boolean) => {
 }
 
 const Block: React.FC<BlockProps> = (props) => {
-  const { userId, operations, onChange, toolbarPlacement, clsssName } = { ...defaultProps, ...props };
+  const { userId, operations, onChange, toolbarPlacement, clsssName, onSave } = { ...defaultProps, ...props };
 
   const [currentTool, setCurrentTool] = useState(Tool.Select);
   const [scale, setScale] = useState(1);
@@ -143,7 +144,7 @@ const Block: React.FC<BlockProps> = (props) => {
                     }}
                     save={() => {
                       if (refSketch.current) {
-                        refSketch.current.save();
+                        refSketch.current.save(onSave);
                       }
                     }}
                   />
