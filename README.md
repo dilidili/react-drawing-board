@@ -61,3 +61,5 @@ const Demo: React.FC = () => {
 | style(optional) | element style | CSSProperties | undefined |
 | className(optional) | element classname | string | undefined |
 | toolbarPlacement(optional) | the position of toolbar | 'top' or 'left' or 'right' | 'top' |
+| viewMatrix(optional) | control the current perspective  | undefined |
+| onViewMatrixChange(optional) | (viewMatrix: ViewMatrix) => void  | undefined |

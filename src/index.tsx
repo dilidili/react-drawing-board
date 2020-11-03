@@ -1,14 +1,20 @@
 import React, { useState, useRef, CSSProperties, useEffect, useReducer, useMemo } from 'react';
 import { v4 } from 'uuid';
-import { animated, useSpring, } from 'react-spring';
+import { animated } from 'react-spring';
 import { IntlProvider } from 'react-intl';
 import { Layout } from 'antd';
 import Toolbar from './Toolbar';
-import SketchPad, { SketchPadRef, Operation, onChangeCallback, onSaveCallback } from './SketchPad';
+import SketchPad, {
+  SketchPadRef,
+  Operation,
+  onChangeCallback,
+  onSaveCallback,
+  ViewMatrix,
+} from './SketchPad';
 import Tool, { ToolOption, defaultToolOption, ShapeType } from './enums/Tool';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 import locales, { localeType } from './locales';
-import { isMobileDevice } from './utils';
+import { extract_scale_from_matrix, isMobileDevice } from './utils';
 import './index.less';
 import ConfigContext, { DefaultConfig } from './ConfigContext';
 
@@ -18,10 +24,12 @@ interface BlockProps {
   userId?: string;
   locale?: localeType;
 
-  // controlled mode
+  // controlled mode.
   operations?: Operation[];
   onChange?: onChangeCallback;
   onSave?: onSaveCallback;
+  viewMatrix?: ViewMatrix;
+  onViewMatrixChange?: (viewMatrix: ViewMatrix) => void;
 
   style?: CSSProperties;
 
@@ -32,7 +40,7 @@ interface BlockProps {
 
 const AnimatedSketchPad = animated(SketchPad);
 
-const defaultProps = {
+const defaultProps: Partial<BlockProps> = {
   userId: v4(),
   locale: navigator.language as localeType,
   toolbarPlacement: 'top',
@@ -40,20 +48,40 @@ const defaultProps = {
 
 const enableSketchPadReducer = (state: boolean, action: boolean) => {
   return action;
-}
+};
 
 const Block: React.FC<BlockProps> = (props) => {
-  const { userId, operations, onChange, toolbarPlacement, clsssName, onSave } = { ...defaultProps, ...props };
+  const {
+    userId,
+    operations,
+    onChange,
+    toolbarPlacement,
+    clsssName,
+    onSave,
+    viewMatrix: viewMatrixProp,
+    onViewMatrixChange,
+  } = {
+    ...defaultProps,
+    ...props,
+  };
 
   const [currentTool, setCurrentTool] = useState(Tool.Select);
-  const [scale, setScale] = useState(1);
   const [currentToolOption, setCurrentToolOption] = useState<ToolOption>(defaultToolOption);
   const enableSketchPad = useReducer(enableSketchPadReducer, true);
   const refSketch = useRef<SketchPadRef>(null);
 
-  const animatedProps = useSpring<{
-    value: number
-  }>({ value: scale, });
+  // control view matrix.
+  const [stateViewMatrix, setStateViewMatrix] = useState<ViewMatrix>([1, 0, 0, 1, 0, 0]);
+  const viewMatrix = viewMatrixProp || stateViewMatrix;
+  const setViewMatrix = (newViewMatrix: ViewMatrix) => {
+    if (onViewMatrixChange) {
+      onViewMatrixChange(newViewMatrix);
+    } else {
+      setStateViewMatrix(newViewMatrix);
+    }
+  };
+
+  const scale = extract_scale_from_matrix(viewMatrix);
 
   useEffect(() => {
     const keydownHandler = (evt: KeyboardEvent) => {
@@ -61,15 +89,18 @@ const Block: React.FC<BlockProps> = (props) => {
       // key 'p'
       if (keyCode === 80) {
         setCurrentTool(Tool.Stroke);
-      } else if (keyCode === 82) { // key 'r'
+      } else if (keyCode === 82) {
+        // key 'r'
         setCurrentTool(Tool.Shape);
         setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Rectangle });
-      } else if (keyCode === 79) { // key 'o'
+      } else if (keyCode === 79) {
+        // key 'o'
         setCurrentTool(Tool.Shape);
         setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Oval });
-      } else if (keyCode === 84) { // key 't'
+      } else if (keyCode === 84) {
+        // key 't'
         setCurrentTool(Tool.Text);
-      } 
+      }
     };
 
     addEventListener('keydown', keydownHandler);
@@ -79,20 +110,30 @@ const Block: React.FC<BlockProps> = (props) => {
 
   const renderWithLayout = (toolbar: React.ReactElement, sketchPad: React.ReactElement) => {
     if (toolbarPlacement === 'left' || isMobileDevice) {
-      return <Layout style={{ flexDirection: 'row' }}>
-        <Sider width={isMobileDevice ? 40 : 55} theme='light'>{toolbar}</Sider>
-        <Content>{sketchPad}</Content>
-      </Layout>
+      return (
+        <Layout style={{ flexDirection: 'row' }}>
+          <Sider width={isMobileDevice ? 40 : 55} theme="light">
+            {toolbar}
+          </Sider>
+          <Content>{sketchPad}</Content>
+        </Layout>
+      );
     } else if (toolbarPlacement === 'top') {
-      return <Layout hasSider={false}>
-        <Header>{toolbar}</Header>
-        <Content>{sketchPad}</Content>
-      </Layout>
+      return (
+        <Layout hasSider={false}>
+          <Header>{toolbar}</Header>
+          <Content>{sketchPad}</Content>
+        </Layout>
+      );
     } else if (toolbarPlacement === 'right') {
-      return <Layout style={{ flexDirection: 'row' }}>
-        <Content>{sketchPad}</Content>
-        <Sider width={55} theme='light'>{toolbar}</Sider>
-      </Layout>
+      return (
+        <Layout style={{ flexDirection: 'row' }}>
+          <Content>{sketchPad}</Content>
+          <Sider width={55} theme="light">
+            {toolbar}
+          </Sider>
+        </Layout>
+      );
     } else {
       return null;
     }
@@ -112,9 +153,12 @@ const Block: React.FC<BlockProps> = (props) => {
       <IntlProvider locale={locale} messages={locales.messages[locale]}>
         <EnableSketchPadContext.Provider value={enableSketchPadContextValue}>
           <ConfigContext.Consumer>
-            {config => (
-              <div className={`${config.prefixCls}-container ${clsssName || ''}`} style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}>
-                {renderWithLayout((
+            {(config) => (
+              <div
+                className={`${config.prefixCls}-container ${clsssName || ''}`}
+                style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}
+              >
+                {renderWithLayout(
                   <Toolbar
                     toolbarPlacement={toolbarPlacement}
                     currentTool={currentTool}
@@ -147,20 +191,19 @@ const Block: React.FC<BlockProps> = (props) => {
                         refSketch.current.save(onSave);
                       }
                     }}
-                  />
-                ), (
+                  />,
                   <AnimatedSketchPad
                     ref={refSketch}
                     userId={userId}
                     currentTool={currentTool}
                     setCurrentTool={setCurrentTool}
                     currentToolOption={currentToolOption}
-                    scale={animatedProps.value}
-                    onScaleChange={setScale}
+                    viewMatrix={viewMatrix}
+                    onViewMatrixChange={setViewMatrix}
                     operations={operations}
                     onChange={onChange}
-                  />
-                ))}
+                  />,
+                )}
               </div>
             )}
           </ConfigContext.Consumer>
@@ -168,6 +211,6 @@ const Block: React.FC<BlockProps> = (props) => {
       </IntlProvider>
     </ConfigContext.Provider>
   );
-}
+};
 
 export default Block;

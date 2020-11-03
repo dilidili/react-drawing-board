@@ -1,12 +1,48 @@
-import React, { useRef, useEffect, useState, MouseEvent, CSSProperties, useImperativeHandle, forwardRef, WheelEventHandler, useReducer, Reducer, MouseEventHandler, ReactNode, RefObject, useContext, useCallback, useLayoutEffect } from 'react';
-import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, } from './enums/Tool';
+import React, {
+  useRef,
+  useEffect,
+  useState,
+  MouseEvent,
+  CSSProperties,
+  useImperativeHandle,
+  forwardRef,
+  useReducer,
+  Reducer,
+  MouseEventHandler,
+  ReactNode,
+  RefObject,
+  useContext,
+  useCallback,
+} from 'react';
+import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE } from './enums/Tool';
 import { useIntl } from 'react-intl';
-import { mapClientToCanvas, isMobileDevice } from './utils';
-import { onStrokeMouseDown, onStrokeMouseMove, onStrokeMouseUp, drawStroke, Stroke, useStrokeDropdown, moveStoke } from './StrokeTool';
-import { onShapeMouseDown, onShapeMouseMove, onShapeMouseUp, Shape, drawRectangle, useShapeDropdown } from './ShapeTool';
+import { mapClientToCanvas, isMobileDevice, extract_scale_from_matrix } from './utils';
+import {
+  onStrokeMouseDown,
+  onStrokeMouseMove,
+  onStrokeMouseUp,
+  drawStroke,
+  Stroke,
+  useStrokeDropdown,
+  moveStoke,
+} from './StrokeTool';
+import {
+  onShapeMouseDown,
+  onShapeMouseMove,
+  onShapeMouseUp,
+  Shape,
+  drawRectangle,
+  useShapeDropdown,
+} from './ShapeTool';
 import { onImageComplete, Image, drawImage } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
-import { onSelectMouseDown, onSelectMouseMove, onSelectMouseUp, onSelectMouseDoubleClick, SELECT_PADDING } from './SelectTool';
+import {
+  onSelectMouseDown,
+  onSelectMouseMove,
+  onSelectMouseUp,
+  onSelectMouseDoubleClick,
+  SELECT_PADDING,
+} from './SelectTool';
 import { defaultToolOption } from './enums/Tool';
 import { debounce } from 'lodash';
 import { Icon, Upload } from 'antd';
@@ -23,20 +59,17 @@ export interface SketchPadProps {
   setCurrentTool: (tool: Tool) => void;
   currentToolOption: ToolOption;
   userId: string;
-  scale: number;
-  onScaleChange: (scale: number) => void;
 
-  // controlled mode
+  // controlled mode.
   operations?: Operation[];
   onChange?: onChangeCallback;
+  viewMatrix: ViewMatrix;
+  onViewMatrixChange: (viewMatrix: ViewMatrix) => void;
 }
 
 export type onChangeCallback = (newOperaton: Operation, operationsAfter: Operation[]) => void;
 
-export type onSaveCallback = (image: {
-  canvas: HTMLCanvasElement,
-  dataUrl: string,
-}) => void;
+export type onSaveCallback = (image: { canvas: HTMLCanvasElement; dataUrl: string }) => void;
 
 export type SketchPadRef = {
   selectImage: (image: string) => void;
@@ -47,8 +80,8 @@ export type SketchPadRef = {
 };
 
 export type Remove = {
-  operationId: string,
-}
+  operationId: string;
+};
 
 export type Operation = (Stroke | Shape | Text | Image | Update | Remove) & {
   id: string;
@@ -59,10 +92,12 @@ export type Operation = (Stroke | Shape | Text | Image | Update | Remove) & {
 };
 
 export type Update = {
-  operationId: string,
-  data: Partial<((Stroke | Shape | Text | Image) & {
-    pos: Position,
-  })>,
+  operationId: string;
+  data: Partial<
+    (Stroke | Shape | Text | Image) & {
+      pos: Position;
+    }
+  >;
 };
 
 const DPR = window.devicePixelRatio || 1;
@@ -72,9 +107,9 @@ const SELECT_BOX_PADDING = 3;
 const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
 
 export type OperationListState = {
-  queue: Operation[],
-  reduced: Operation[],
-}
+  queue: Operation[];
+  reduced: Operation[];
+};
 
 const reduceOperations = (operations: Operation[]): Operation[] => {
   const undoHistory: Operation[] = [];
@@ -103,14 +138,14 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
     }, []);
 
   let clearIndex: number = -1;
-  while ((clearIndex = operations.findIndex(v => v.tool === Tool.Clear)) > 0) {
+  while ((clearIndex = operations.findIndex((v) => v.tool === Tool.Clear)) > 0) {
     operations = operations.slice(clearIndex);
   }
 
   operations.forEach((v, k) => {
     if (v.tool === Tool.Update) {
       const update = v as Update;
-      const targetIndex = operations.findIndex(w => w && w.id === update.operationId);
+      const targetIndex = operations.findIndex((w) => w && w.id === update.operationId);
 
       if (~targetIndex) {
         const target = operations[targetIndex];
@@ -122,10 +157,13 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
           switch (target.tool) {
             case Tool.Eraser:
             case Tool.Stroke:
-              operations[targetIndex] = { ...operations[targetIndex], ...{ points: moveStoke(target as Stroke, target.pos, update.data.pos) } };
+              operations[targetIndex] = {
+                ...operations[targetIndex],
+                ...{ points: moveStoke(target as Stroke, target.pos, update.data.pos) },
+              };
               break;
             case Tool.Shape: {
-              const newOperation: any = ({ ...operations[targetIndex] });
+              const newOperation: any = { ...operations[targetIndex] };
               newOperation.start = {
                 x: newOperation.pos.x,
                 y: newOperation.pos.y,
@@ -143,15 +181,20 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
         }
       }
     }
-  })
+  });
 
-  const removeIds = operations.filter(v => v.tool === Tool.Remove).map(v => (v as Remove).operationId);
-  operations = operations.filter(v => v.tool !== Tool.Update && removeIds.indexOf(v.id) < 0); // keep Remove operation to keep undoable
+  const removeIds = operations
+    .filter((v) => v.tool === Tool.Remove)
+    .map((v) => (v as Remove).operationId);
+  operations = operations.filter((v) => v.tool !== Tool.Update && removeIds.indexOf(v.id) < 0); // keep Remove operation to keep undoable
 
   return operations;
-}
+};
 
-const operationListReducer: (isControlled: boolean, onChange: onChangeCallback | undefined) => Reducer<OperationListState, any> = (isControlled, onChange) => (state, action) => {
+const operationListReducer: (
+  isControlled: boolean,
+  onChange: onChangeCallback | undefined,
+) => Reducer<OperationListState, any> = (isControlled, onChange) => (state, action) => {
   switch (action.type) {
     case 'add': {
       let operation = action.payload.operation as Operation;
@@ -175,7 +218,7 @@ const operationListReducer: (isControlled: boolean, onChange: onChangeCallback |
       return {
         queue: newQueue,
         reduced: reduceOperations(newQueue),
-      }
+      };
     }
     case 'replaceAll': {
       let newQueue = action.payload.queue as Operation[];
@@ -183,7 +226,7 @@ const operationListReducer: (isControlled: boolean, onChange: onChangeCallback |
       return {
         queue: newQueue,
         reduced: reduceOperations(newQueue),
-      }
+      };
     }
     case 'completeLazyUpdate': {
       let operation = state.queue[state.queue.length - 1];
@@ -197,7 +240,7 @@ const operationListReducer: (isControlled: boolean, onChange: onChangeCallback |
     default:
       return state;
   }
-}
+};
 
 enum ResizeDirection {
   TopLeft = 'TopLeft',
@@ -207,7 +250,7 @@ enum ResizeDirection {
   BottomRight = 'BottomRight',
   BottomCenter = 'BottomCenter',
   BottomLeft = 'BottomLeft',
-};
+}
 
 let isResizing: null | ResizeDirection = null;
 let startResizePoint: [number, number] = [0, 0];
@@ -215,23 +258,25 @@ let startResizePos: Position | null = null;
 const useResizeHandler = (
   selectedOperation: Operation | null,
   viewMatrix: number[],
-  scale: number,
   items: Operation[],
   operationListDispatch: React.Dispatch<any>,
   setSelectedOperation: (operation: Operation) => void,
-  handleCompleteOperation: (tool?: Tool, data?: Stroke | Shape | Text | Image | Update | Remove, pos?: Position) => void,
+  handleCompleteOperation: (
+    tool?: Tool,
+    data?: Stroke | Shape | Text | Image | Update | Remove,
+    pos?: Position,
+  ) => void,
   refCanvas: RefObject<HTMLCanvasElement>,
   prefixCls: string,
 ): {
-  onMouseMove: (e: {
-    clientX: number, clientY: number
-  }) => void,
-  onMouseUp: (e: {
-    clientX: number, clientY: number
-  }) => void,
-  resizer: ReactNode,
+  onMouseMove: (e: { clientX: number; clientY: number }) => void;
+  onMouseUp: (e: { clientX: number; clientY: number }) => void;
+  resizer: ReactNode;
 } => {
-  if (selectedOperation && (selectedOperation.tool === Tool.Shape || selectedOperation.tool === Tool.Image)) {
+  if (
+    selectedOperation &&
+    (selectedOperation.tool === Tool.Shape || selectedOperation.tool === Tool.Image)
+  ) {
     const [a, b, c, d, e, f] = viewMatrix;
     const pos = {
       x: selectedOperation.pos.x - SELECT_BOX_PADDING,
@@ -241,8 +286,12 @@ const useResizeHandler = (
     };
 
     const tl = [a * pos.x + c * pos.y + e, b * pos.x + d * pos.y + f];
-    const br = [a * (pos.x + pos.w) + c * (pos.y + pos.h) + e, b * (pos.x + pos.w) + d * (pos.y + pos.h) + f];
-    const w = br[0] - tl[0], h = br[1] - tl[1];
+    const br = [
+      a * (pos.x + pos.w) + c * (pos.y + pos.h) + e,
+      b * (pos.x + pos.w) + d * (pos.y + pos.h) + f,
+    ];
+    const w = br[0] - tl[0],
+      h = br[1] - tl[1];
 
     const onMouseDown = (direction: ResizeDirection) => (e: MouseEvent) => {
       e.stopPropagation();
@@ -252,7 +301,7 @@ const useResizeHandler = (
         startResizePoint = mapClientToCanvas(e, refCanvas.current, viewMatrix);
         startResizePos = { ...selectedOperation.pos };
       }
-    }
+    };
 
     const onTouchStart = (direction: ResizeDirection) => (e: React.TouchEvent) => {
       e.stopPropagation();
@@ -262,12 +311,9 @@ const useResizeHandler = (
         startResizePoint = mapClientToCanvas(e.touches[0], refCanvas.current, viewMatrix);
         startResizePos = { ...selectedOperation.pos };
       }
-    }
+    };
 
-    const onMouseMove = (e: {
-      clientX: number,
-      clientY: number,
-    }) => {
+    const onMouseMove = (e: { clientX: number; clientY: number }) => {
       if (selectedOperation && isResizing && refCanvas.current && startResizePos) {
         let pos = mapClientToCanvas(e, refCanvas.current, viewMatrix);
 
@@ -315,13 +361,18 @@ const useResizeHandler = (
         }
 
         const lastOperation = items[items.length - 1];
-        if (lastOperation && lastOperation.tool === Tool.Update && (lastOperation as Update).operationId === selectedOperation.id && (lastOperation as Update).data.pos) {
+        if (
+          lastOperation &&
+          lastOperation.tool === Tool.Update &&
+          (lastOperation as Update).operationId === selectedOperation.id &&
+          (lastOperation as Update).data.pos
+        ) {
           const update = lastOperation as Update;
           if (update.data.pos) {
             update.data.pos = {
               ...updatePos,
             };
-  
+
             operationListDispatch({
               type: 'replaceLast',
               payload: {
@@ -338,9 +389,9 @@ const useResizeHandler = (
           });
         }
 
-        setSelectedOperation({...selectedOperation, pos: { ...updatePos }});
+        setSelectedOperation({ ...selectedOperation, pos: { ...updatePos } });
       }
-    }
+    };
 
     const onMouseUp = () => {
       operationListDispatch({
@@ -348,32 +399,89 @@ const useResizeHandler = (
       });
 
       isResizing = null;
-    }
+    };
 
     return {
       onMouseMove,
       onMouseUp,
       resizer: (
         <>
-          <div key={ResizeDirection.TopLeft} onTouchStart={onTouchStart(ResizeDirection.TopLeft)} onMouseDown={onMouseDown(ResizeDirection.TopLeft)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + 'px', top: tl[1] + 'px' }} />
-          <div key={ResizeDirection.TopCenter} onTouchStart={onTouchStart(ResizeDirection.TopCenter)} onMouseDown={onMouseDown(ResizeDirection.TopCenter)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + w / 2 + 'px', top: tl[1] + 'px' }} />
-          <div key={ResizeDirection.MiddleRight} onTouchStart={onTouchStart(ResizeDirection.MiddleRight)} onMouseDown={onMouseDown(ResizeDirection.MiddleRight)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + w + 'px', top: tl[1] + h / 2 + 'px' }} />
-          <div key={ResizeDirection.BottomRight} onTouchStart={onTouchStart(ResizeDirection.BottomRight)} onMouseDown={onMouseDown(ResizeDirection.BottomRight)} className={`${prefixCls}-resizer`} style={{ left: br[0] + 'px', top: br[1] + 'px' }} />
-          <div key={ResizeDirection.BottomCenter} onTouchStart={onTouchStart(ResizeDirection.BottomCenter)} onMouseDown={onMouseDown(ResizeDirection.BottomCenter)} className={`${prefixCls}-resizer`} style={{ left: br[0] - w / 2 + 'px', top: br[1] + 'px' }} />
-          <div key={ResizeDirection.BottomLeft} onTouchStart={onTouchStart(ResizeDirection.BottomLeft)} onMouseDown={onMouseDown(ResizeDirection.BottomLeft)} className={`${prefixCls}-resizer`} style={{ left: br[0] - w + 'px', top: br[1] + 'px' }} />
-          <div key={ResizeDirection.MiddleLeft} onTouchStart={onTouchStart(ResizeDirection.MiddleLeft)} onMouseDown={onMouseDown(ResizeDirection.MiddleLeft)} className={`${prefixCls}-resizer`} style={{ left: tl[0] + 'px', top: tl[1] + h / 2 + 'px' }} />
+          <div
+            key={ResizeDirection.TopLeft}
+            onTouchStart={onTouchStart(ResizeDirection.TopLeft)}
+            onMouseDown={onMouseDown(ResizeDirection.TopLeft)}
+            className={`${prefixCls}-resizer`}
+            style={{ left: tl[0] + 'px', top: tl[1] + 'px' }}
+          />
+          <div
+            key={ResizeDirection.TopCenter}
+            onTouchStart={onTouchStart(ResizeDirection.TopCenter)}
+            onMouseDown={onMouseDown(ResizeDirection.TopCenter)}
+            className={`${prefixCls}-resizer`}
+            style={{ left: tl[0] + w / 2 + 'px', top: tl[1] + 'px' }}
+          />
+          <div
+            key={ResizeDirection.MiddleRight}
+            onTouchStart={onTouchStart(ResizeDirection.MiddleRight)}
+            onMouseDown={onMouseDown(ResizeDirection.MiddleRight)}
+            className={`${prefixCls}-resizer`}
+            style={{ left: tl[0] + w + 'px', top: tl[1] + h / 2 + 'px' }}
+          />
+          <div
+            key={ResizeDirection.BottomRight}
+            onTouchStart={onTouchStart(ResizeDirection.BottomRight)}
+            onMouseDown={onMouseDown(ResizeDirection.BottomRight)}
+            className={`${prefixCls}-resizer`}
+            style={{ left: br[0] + 'px', top: br[1] + 'px' }}
+          />
+          <div
+            key={ResizeDirection.BottomCenter}
+            onTouchStart={onTouchStart(ResizeDirection.BottomCenter)}
+            onMouseDown={onMouseDown(ResizeDirection.BottomCenter)}
+            className={`${prefixCls}-resizer`}
+            style={{ left: br[0] - w / 2 + 'px', top: br[1] + 'px' }}
+          />
+          <div
+            key={ResizeDirection.BottomLeft}
+            onTouchStart={onTouchStart(ResizeDirection.BottomLeft)}
+            onMouseDown={onMouseDown(ResizeDirection.BottomLeft)}
+            className={`${prefixCls}-resizer`}
+            style={{ left: br[0] - w + 'px', top: br[1] + 'px' }}
+          />
+          <div
+            key={ResizeDirection.MiddleLeft}
+            onTouchStart={onTouchStart(ResizeDirection.MiddleLeft)}
+            onMouseDown={onMouseDown(ResizeDirection.MiddleLeft)}
+            className={`${prefixCls}-resizer`}
+            style={{ left: tl[0] + 'px', top: tl[1] + h / 2 + 'px' }}
+          />
         </>
-      )
-    }
-  } else return {
-    onMouseMove: () => {},
-    onMouseUp: () => {},
-    resizer: null,
-  };
-}
+      ),
+    };
+  } else
+    return {
+      onMouseMove: () => {},
+      onMouseUp: () => {},
+      resizer: null,
+    };
+};
+
+// a  c  e
+// b  d  f
+// 0  0  1
+export type ViewMatrix = [number, number, number, number, number, number];
 
 const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, ref) => {
-  const { currentTool, setCurrentTool, userId, currentToolOption, onScaleChange, scale, operations, onChange } = props;
+  const {
+    currentTool,
+    setCurrentTool,
+    userId,
+    currentToolOption,
+    operations,
+    onChange,
+    viewMatrix,
+    onViewMatrixChange,
+  } = props;
 
   const refCanvas = useRef<HTMLCanvasElement>(null);
   const refContext = useRef<CanvasRenderingContext2D | null>(null);
@@ -385,20 +493,19 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
   const sketchpadPrefixCls = prefixCls + '-sketchpad';
 
-  // a  c  e
-  // b  d  f
-  // 0  0  1
-  const [viewMatrix, setViewMatrix] = useState([1, 0, 0, 1, 0, 0]);
-
   const [hoverOperationId, setHoverOperationId] = useState<string | null>(null);
   const [selectedOperation, setSelectedOperation] = useState<Operation | null>(null);
 
   const isControlled = !!operations;
+  const scale = extract_scale_from_matrix(viewMatrix);
   const reducer = useCallback(operationListReducer(isControlled, onChange), []);
-  const [operationListState, operationListDispatch] = useReducer<Reducer<OperationListState, any>>(reducer, {
-    queue: [],
-    reduced: [],
-  });
+  const [operationListState, operationListDispatch] = useReducer<Reducer<OperationListState, any>>(
+    reducer,
+    {
+      queue: [],
+      reduced: [],
+    },
+  );
   if (isControlled) {
     useEffect(() => {
       operationListDispatch({
@@ -422,14 +529,14 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     context.scale(DPR, DPR);
     const [a, b, c, d, e, f] = viewMatrix;
     context.transform(a, b, c, d, e, f);
-  }
+  };
 
   const restoreGlobalTransform = () => {
     if (!refContext.current) return;
     const context = refContext.current;
 
     context.restore();
-  }
+  };
 
   const renderOperations = (operations: Operation[]) => {
     if (!refContext.current) return;
@@ -441,7 +548,9 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
     saveGlobalTransform();
     operations.forEach((operation) => {
-      const hover = (!selectedOperation || selectedOperation.id !== operation.id) && operation.id === hoverOperationId;
+      const hover =
+        (!selectedOperation || selectedOperation.id !== operation.id) &&
+        operation.id === hoverOperationId;
 
       switch (operation.tool) {
         case Tool.Clear:
@@ -452,19 +561,19 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         case Tool.Eraser:
         case Tool.Stroke:
           drawStroke(operation as Stroke, context, hover);
-          break
+          break;
         case Tool.Shape:
           drawRectangle(operation as Shape, context, hover);
-          break
+          break;
         case Tool.Text:
           drawText(operation as Text, context, operation.pos);
-          break
+          break;
         case Tool.Image:
           drawImage(operation as Image, context, operation.pos, operation.id, () => {
             renderOperations(operations);
           });
         default:
-          break
+          break;
       }
     });
 
@@ -473,13 +582,18 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       context.beginPath();
       context.lineWidth = 1;
       context.strokeStyle = '#d0d0d0';
-      context.rect(selectedOperation.pos.x - SELECT_BOX_PADDING, selectedOperation.pos.y - SELECT_BOX_PADDING, selectedOperation.pos.w + 2 * SELECT_BOX_PADDING, selectedOperation.pos.h + 2 * SELECT_BOX_PADDING);
+      context.rect(
+        selectedOperation.pos.x - SELECT_BOX_PADDING,
+        selectedOperation.pos.y - SELECT_BOX_PADDING,
+        selectedOperation.pos.w + 2 * SELECT_BOX_PADDING,
+        selectedOperation.pos.h + 2 * SELECT_BOX_PADDING,
+      );
       context.stroke();
       context.closePath();
     }
 
     restoreGlobalTransform();
-  }
+  };
 
   useEffect(() => {
     const keydownHandler = (evt: KeyboardEvent) => {
@@ -490,7 +604,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           setSelectedOperation(null);
           handleCompleteOperation(Tool.Remove, { operationId: selectedOperation.id });
         }
-      } else if (keyCode === 27) { // key 'esc'
+      } else if (keyCode === 27) {
+        // key 'esc'
         setSelectedOperation(null);
       }
     };
@@ -518,7 +633,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
   useEffect(() => {
     renderOperations(operationListState.reduced);
-  }, [operationListState.reduced, scale, viewMatrix, hoverOperationId, selectedOperation]);
+  }, [operationListState.reduced, viewMatrix, hoverOperationId, selectedOperation]);
 
   // disable default scrolling on mobile device.
   // refer: https://stackoverflow.com/questions/49500339/cant-prevent-touchmove-from-scrolling-window-on-ios
@@ -537,10 +652,14 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
     return () => {
       document.removeEventListener('touchmove', handler);
-    }
+    };
   }, []);
 
-  const handleCompleteOperation = (tool?: Tool, data?: Stroke | Shape | Text | Image | Update | Remove, pos?: Position) => {
+  const handleCompleteOperation = (
+    tool?: Tool,
+    data?: Stroke | Shape | Text | Image | Update | Remove,
+    pos?: Position,
+  ) => {
     if (!tool) {
       renderOperations(operationListState.reduced);
       return;
@@ -565,18 +684,20 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         isLazy,
       },
     });
-  }
+  };
 
-  const {
-    onMouseMove: onMouseResizeMove,
-    onMouseUp: onMouseResizeUp,
-    resizer,
-  } = useResizeHandler(selectedOperation, viewMatrix, scale, operationListState.queue, operationListDispatch, setSelectedOperation, handleCompleteOperation, refCanvas, sketchpadPrefixCls);
+  const { onMouseMove: onMouseResizeMove, onMouseUp: onMouseResizeUp, resizer } = useResizeHandler(
+    selectedOperation,
+    viewMatrix,
+    operationListState.queue,
+    operationListDispatch,
+    setSelectedOperation,
+    handleCompleteOperation,
+    refCanvas,
+    sketchpadPrefixCls,
+  );
 
-  const onMouseDown = (e: {
-    clientX: number,
-    clientY: number,
-  }) => {
+  const onMouseDown = (e: { clientX: number; clientY: number }) => {
     if (!refCanvas.current) return null;
     if (!enableSketchPadContext.enable) return null;
 
@@ -589,10 +710,10 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       case Tool.Stroke:
         onStrokeMouseDown(x, y, currentToolOption);
         break;
-      case Tool.Eraser: 
+      case Tool.Eraser:
         onStrokeMouseDown(x, y, {
           ...currentToolOption,
-          strokeSize: defaultToolOption.strokeSize * 2 / scale,
+          strokeSize: (defaultToolOption.strokeSize * 2) / scale,
           strokeColor: 'rgba(255, 255, 255, 1)',
         });
         break;
@@ -617,19 +738,26 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     }
 
     lastTapRef.current = e.timeStamp;
-  }
+  };
 
-  const onDoubleClick = (e: {
-    clientX: number,
-    clientY: number,
-  }) => {
+  const onDoubleClick = (e: { clientX: number; clientY: number }) => {
     if (!refCanvas.current) return null;
 
     const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);
 
     switch (currentTool) {
       case Tool.Select:
-        onSelectMouseDoubleClick(x, y, scale, operationListState, handleCompleteOperation, viewMatrix, refInput, refCanvas, intl);
+        onSelectMouseDoubleClick(
+          x,
+          y,
+          scale,
+          operationListState,
+          handleCompleteOperation,
+          viewMatrix,
+          refInput,
+          refCanvas,
+          intl,
+        );
         setSelectedOperation(null);
         break;
       default:
@@ -638,10 +766,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     }
   };
 
-  const onMouseMove = (e: {
-    clientX: number,
-    clientY: number,
-  }) => {
+  const onMouseMove = (e: { clientX: number; clientY: number }) => {
     if (!refCanvas.current) return null;
     if (!enableSketchPadContext.enable) return null;
 
@@ -651,7 +776,19 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
     switch (currentTool) {
       case Tool.Select:
-        onSelectMouseMove(e, x, y, scale, operationListState, selectedOperation, setViewMatrix, setHoverOperationId, handleCompleteOperation, operationListDispatch, setSelectedOperation);
+        onSelectMouseMove(
+          e,
+          x,
+          y,
+          scale,
+          operationListState,
+          selectedOperation,
+          onViewMatrixChange,
+          setHoverOperationId,
+          handleCompleteOperation,
+          operationListDispatch,
+          setSelectedOperation,
+        );
         break;
       case Tool.Eraser:
       case Tool.Stroke: {
@@ -676,16 +813,13 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     if (e.touches.length === 1) {
       onMouseMove(e.touches[0]);
     }
-  }
+  };
   const onTouchMoveRef = useRef(onTouchMove);
   useEffect(() => {
     onTouchMoveRef.current = onTouchMove;
   }, [onTouchMove]);
 
-  const onMouseUp = (e: {
-    clientX: number,
-    clientY: number,
-  }) => {
+  const onMouseUp = (e: { clientX: number; clientY: number }) => {
     if (!refCanvas.current) return null;
     if (!enableSketchPadContext.enable) return null;
 
@@ -719,7 +853,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     }
 
     lastTapRef.current = 0;
-  }
+  };
 
   const onWheel = (evt: {
     stopPropagation?: React.WheelEvent<HTMLCanvasElement>['stopPropagation'];
@@ -741,11 +875,17 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     if (refCanvas.current) {
       const pos = mapClientToCanvas(evt, refCanvas.current, viewMatrix);
       const scaleChange = newScale - a;
-      setViewMatrix([newScale, b, c, newScale, e - (pos[0] * scaleChange), f - (pos[1] * scaleChange)]);
+      onViewMatrixChange([
+        newScale,
+        b,
+        c,
+        newScale,
+        e - pos[0] * scaleChange,
+        f - pos[1] * scaleChange,
+      ]);
     }
 
     setSelectedOperation(null);
-    onScaleChange(newScale);
   };
 
   const onRemoveOperation = (evt: React.TouchEvent | React.MouseEvent) => {
@@ -756,7 +896,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       setSelectedOperation(null);
       handleCompleteOperation(Tool.Remove, { operationId: selectedOperation.id });
     }
-  }
+  };
 
   useEffect(() => {
     const canvas = refCanvas.current as HTMLCanvasElement;
@@ -769,7 +909,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
     canvas.oncontextmenu = (e) => {
       e.preventDefault();
-    }
+    };
   }, []);
 
   const canvasStyle: CSSProperties = {};
@@ -823,8 +963,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           const w = canvas.width;
           const h = canvas.height;
           const context = refContext.current;
-          context.globalCompositeOperation = "destination-over";
-          context.fillStyle = "#fff";
+          context.globalCompositeOperation = 'destination-over';
+          context.fillStyle = '#fff';
           context.fillRect(0, 0, w, h);
 
           const dataUrl = canvas.toDataURL('image/png');
@@ -880,77 +1020,93 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
     switch (selectedOperation.tool) {
       case Tool.Stroke:
-        content = useStrokeDropdown({
-          strokeSize: (selectedOperation as Stroke).size,
-          strokeColor: (selectedOperation as Stroke).color,
-        } as ToolOption, (option: ToolOption) => {
-          const data = {
-            color: option.strokeColor,
-            size: option.strokeSize,
-          };
+        content = useStrokeDropdown(
+          {
+            strokeSize: (selectedOperation as Stroke).size,
+            strokeColor: (selectedOperation as Stroke).color,
+          } as ToolOption,
+          (option: ToolOption) => {
+            const data = {
+              color: option.strokeColor,
+              size: option.strokeSize,
+            };
 
-          handleCompleteOperation(Tool.Update, {
-            operationId: selectedOperation.id,
-            data,
-          });
+            handleCompleteOperation(Tool.Update, {
+              operationId: selectedOperation.id,
+              data,
+            });
 
-          setSelectedOperation({ ...selectedOperation, ...data });
-        }, () => {}, prefixCls);
+            setSelectedOperation({ ...selectedOperation, ...data });
+          },
+          () => {},
+          prefixCls,
+        );
         break;
       case Tool.Shape:
-        content = useShapeDropdown({
-          shapeType: (selectedOperation as Shape).type,
-          shapeBorderColor: (selectedOperation as Shape).color,
-          shapeBorderSize: (selectedOperation as Shape).size,
-        } as ToolOption, (option: ToolOption) => {
-          const data = {
-            type: option.shapeType,
-            color: option.shapeBorderColor,
-            size: option.shapeBorderSize,
-          };
+        content = useShapeDropdown(
+          {
+            shapeType: (selectedOperation as Shape).type,
+            shapeBorderColor: (selectedOperation as Shape).color,
+            shapeBorderSize: (selectedOperation as Shape).size,
+          } as ToolOption,
+          (option: ToolOption) => {
+            const data = {
+              type: option.shapeType,
+              color: option.shapeBorderColor,
+              size: option.shapeBorderSize,
+            };
 
-          handleCompleteOperation(Tool.Update, {
-            operationId: selectedOperation.id,
-            data,
-          });
+            handleCompleteOperation(Tool.Update, {
+              operationId: selectedOperation.id,
+              data,
+            });
 
-          setSelectedOperation({ ...selectedOperation, ...data });
-        }, () => {}, prefixCls);
+            setSelectedOperation({ ...selectedOperation, ...data });
+          },
+          () => {},
+          prefixCls,
+        );
         break;
       case Tool.Text: {
         const textOperation: Text = selectedOperation as Text;
-        content = useTextDropdown({
-          textSize: textOperation.size,
-          textColor: textOperation.color,
-        } as ToolOption, (option: ToolOption) => {
-          const data: Partial<Operation> = {
-            color: option.textColor,
-            size: option.textSize,
-          };
-
-          if (refContext.current && option.textSize !== textOperation.size) {
-            const context = refContext.current;
-
-            // font size has changed, need to update pos
-            context.font = `${option.textSize}px ${font}`;
-            context.textBaseline = 'alphabetic';
-            // measureText does not support multi-line
-            const lines = textOperation.text.split('\n');
-            data.pos = {
-              ...selectedOperation.pos,
-              w: Math.max(...(lines.map(line => context.measureText(line).width))),
-              h: lines.length * option.textSize,
+        content = useTextDropdown(
+          {
+            textSize: textOperation.size,
+            textColor: textOperation.color,
+          } as ToolOption,
+          (option: ToolOption) => {
+            const data: Partial<Operation> = {
+              color: option.textColor,
+              size: option.textSize,
             };
-          }
 
-          handleCompleteOperation(Tool.Update, {
-            operationId: selectedOperation.id,
-            data,
-          });
+            if (refContext.current && option.textSize !== textOperation.size) {
+              const context = refContext.current;
 
-          // @ts-ignore
-          setSelectedOperation({ ...selectedOperation, ...data });
-        }, () => {}, intl, prefixCls);
+              // font size has changed, need to update pos
+              context.font = `${option.textSize}px ${font}`;
+              context.textBaseline = 'alphabetic';
+              // measureText does not support multi-line
+              const lines = textOperation.text.split('\n');
+              data.pos = {
+                ...selectedOperation.pos,
+                w: Math.max(...lines.map((line) => context.measureText(line).width)),
+                h: lines.length * option.textSize,
+              };
+            }
+
+            handleCompleteOperation(Tool.Update, {
+              operationId: selectedOperation.id,
+              data,
+            });
+
+            // @ts-ignore
+            setSelectedOperation({ ...selectedOperation, ...data });
+          },
+          () => {},
+          intl,
+          prefixCls,
+        );
         break;
       }
       default:
@@ -965,14 +1121,14 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     };
 
     const [a, b, c, d, e, f] = viewMatrix;
-    const selectPadding = Math.max(SELECT_PADDING * 1 / scale || 0, SELECT_PADDING);
+    const selectPadding = Math.max((SELECT_PADDING * 1) / scale || 0, SELECT_PADDING);
     const left = resultRect.xMin;
     const top = resultRect.yMax + selectPadding;
 
     const menuStyle: CSSProperties = {
       position: 'absolute',
-      left: (a * left + c * top + e),
-      top: (b * left + d * top + f),
+      left: a * left + c * top + e,
+      top: b * left + d * top + f,
     };
 
     settingMenu = (
@@ -981,13 +1137,18 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       </div>
     );
 
-
-    const removeX = selectedOperation.tool === Tool.Text ? resultRect.xMax - 5 / scale : resultRect.xMax - 7 / scale;
-    const removeY = selectedOperation.tool === Tool.Text ? resultRect.yMin - 11 / scale : resultRect.yMin - 9 / scale;
+    const removeX =
+      selectedOperation.tool === Tool.Text
+        ? resultRect.xMax - 5 / scale
+        : resultRect.xMax - 7 / scale;
+    const removeY =
+      selectedOperation.tool === Tool.Text
+        ? resultRect.yMin - 11 / scale
+        : resultRect.yMin - 9 / scale;
     const removeStyle: CSSProperties = {
       position: 'absolute',
-      left: (a * removeX + c * removeY + e),
-      top: (b * removeX + d * removeY + f),
+      left: a * removeX + c * removeY + e,
+      top: b * removeX + d * removeY + f,
       background: 'white',
       lineHeight: '16px',
       fontSize: '16px',
@@ -1000,7 +1161,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       <div style={removeStyle} onMouseDown={onRemoveOperation} onTouchStart={onRemoveOperation}>
         <Icon type="close-circle" theme="filled" />
       </div>
-    )
+    );
   }
 
   return (
@@ -1013,7 +1174,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       onTouchEnd={onTouchEnd}
       onMouseUp={onMouseUp}
     >
-      <div id='test'></div>
+      <div id="test"></div>
       <canvas
         ref={refCanvas}
         onDoubleClick={onDoubleClick}
@@ -1026,19 +1187,25 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       <div
         ref={refInput}
         contentEditable
-        style={{ fontSize: `${12 * scale}px`, }}
+        style={{ fontSize: `${12 * scale}px` }}
         className={`${sketchpadPrefixCls}-textInput`}
         onBlur={() => {
-          onTextComplete(refInput, refCanvas, viewMatrix, scale, handleCompleteOperation, setCurrentTool);
+          onTextComplete(
+            refInput,
+            refCanvas,
+            viewMatrix,
+            scale,
+            handleCompleteOperation,
+            setCurrentTool,
+          );
         }}
-      >
-      </div>
+      ></div>
 
       {settingMenu}
       {removeButton}
       {resizer}
     </div>
   );
-}
+};
 
 export default forwardRef(SketchPad);

@@ -1,4 +1,4 @@
-import Tool, { ToolOption, ShapeType, strokeSize, strokeColor, } from './enums/Tool';
+import Tool, { ToolOption, ShapeType, strokeSize, strokeColor } from './enums/Tool';
 import React, { useContext } from 'react';
 import { Icon } from 'antd';
 import './ShapeTool.less';
@@ -11,18 +11,18 @@ export interface Position {
 }
 
 export type Shape = {
-  type: ShapeType,
+  type: ShapeType;
   color: string;
   size: number;
   start: {
-    x: number,
-    y: number,
+    x: number;
+    y: number;
   };
   end: {
-    x: number,
-    y: number,
+    x: number;
+    y: number;
   } | null;
-}
+};
 
 let shape: Shape | null = null;
 
@@ -36,9 +36,15 @@ export const onShapeMouseDown = (x: number, y: number, toolOption: ToolOption) =
   };
 
   return [shape];
-}
+};
 
-const draw = (item: Shape, mouseX: number, mouseY: number, context: CanvasRenderingContext2D, hover: boolean) => {
+const draw = (
+  item: Shape,
+  mouseX: number,
+  mouseY: number,
+  context: CanvasRenderingContext2D,
+  hover: boolean,
+) => {
   const startX = mouseX < item.start.x ? mouseX : item.start.x;
   const startY = mouseY < item.start.y ? mouseY : item.start.y;
   const widthX = Math.abs(item.start.x - mouseX);
@@ -56,7 +62,12 @@ const draw = (item: Shape, mouseX: number, mouseY: number, context: CanvasRender
       context.beginPath();
       context.strokeStyle = '#3AB1FE';
       context.lineWidth = item.size / 2;
-      context.rect(startX - item.size / 2, startY - item.size / 2, widthX + item.size, widthY + item.size);
+      context.rect(
+        startX - item.size / 2,
+        startY - item.size / 2,
+        widthX + item.size,
+        widthY + item.size,
+      );
 
       context.stroke();
       context.closePath();
@@ -80,8 +91,8 @@ const draw = (item: Shape, mouseX: number, mouseY: number, context: CanvasRender
       let yPos;
       let i = 0;
       for (i; i < 2 * Math.PI; i += 0.01) {
-        xPos = centerX - (radiusY * Math.sin(i)) * Math.sin(0) + (radiusX * Math.cos(i)) * Math.cos(0);
-        yPos = centerY + (radiusX * Math.cos(i)) * Math.sin(0) + (radiusY * Math.sin(i)) * Math.cos(0);
+        xPos = centerX - radiusY * Math.sin(i) * Math.sin(0) + radiusX * Math.cos(i) * Math.cos(0);
+        yPos = centerY + radiusX * Math.cos(i) * Math.sin(0) + radiusY * Math.sin(i) * Math.cos(0);
         if (i === 0) {
           context.moveTo(xPos, yPos);
         } else {
@@ -99,14 +110,28 @@ const draw = (item: Shape, mouseX: number, mouseY: number, context: CanvasRender
       context.lineWidth = item.size / 2;
 
       if (typeof context.ellipse === 'function') {
-        context.ellipse(centerX, centerY, radiusX + item.size / 2, radiusY + item.size / 2, 0, 0, 2 * Math.PI);
+        context.ellipse(
+          centerX,
+          centerY,
+          radiusX + item.size / 2,
+          radiusY + item.size / 2,
+          0,
+          0,
+          2 * Math.PI,
+        );
       } else {
         let xPos;
         let yPos;
         let i = 0;
         for (i; i < 2 * Math.PI; i += 0.01) {
-          xPos = centerX - ((radiusY + item.size / 2)  * Math.sin(i)) * Math.sin(0) + ((radiusX + item.size / 2) * Math.cos(i)) * Math.cos(0);
-          yPos = centerY + ((radiusX + item.size / 2) * Math.cos(i)) * Math.sin(0) + ((radiusY + item.size / 2) * Math.sin(i)) * Math.cos(0);
+          xPos =
+            centerX -
+            (radiusY + item.size / 2) * Math.sin(i) * Math.sin(0) +
+            (radiusX + item.size / 2) * Math.cos(i) * Math.cos(0);
+          yPos =
+            centerY +
+            (radiusX + item.size / 2) * Math.cos(i) * Math.sin(0) +
+            (radiusY + item.size / 2) * Math.sin(i) * Math.cos(0);
           if (i === 0) {
             context.moveTo(xPos, yPos);
           } else {
@@ -119,9 +144,14 @@ const draw = (item: Shape, mouseX: number, mouseY: number, context: CanvasRender
       context.closePath();
     }
   }
-}
+};
 
-export const onShapeMouseUp = (x: number, y: number, setCurrentTool: (tool: Tool) => void, handleCompleteOperation: (tool?: Tool, data?: Shape, pos?: Position) => void) => {
+export const onShapeMouseUp = (
+  x: number,
+  y: number,
+  setCurrentTool: (tool: Tool) => void,
+  handleCompleteOperation: (tool?: Tool, data?: Shape, pos?: Position) => void,
+) => {
   if (!shape) return;
 
   const item = shape;
@@ -143,21 +173,26 @@ export const onShapeMouseUp = (x: number, y: number, setCurrentTool: (tool: Tool
   setCurrentTool(Tool.Select);
 
   return [item];
-}
+};
 
 export const onShapeMouseMove = (x: number, y: number, context: CanvasRenderingContext2D) => {
   if (!shape) return;
 
   draw(shape, x, y, context, false);
-}
+};
 
 export const drawRectangle = (rect: Shape, context: CanvasRenderingContext2D, hover: boolean) => {
   if (!rect.end) return null;
 
   draw(rect, rect.end.x, rect.end.y, context, hover);
-}
+};
 
-export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool: (tool: Tool) => void, prefixCls: string) => {
+export const useShapeDropdown = (
+  currentToolOption: ToolOption,
+  setCurrentToolOption: (option: ToolOption) => void,
+  setCurrentTool: (tool: Tool) => void,
+  prefixCls: string,
+) => {
   prefixCls = prefixCls += '-shapeTool';
 
   return (
@@ -174,8 +209,21 @@ export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOp
             setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Rectangle });
             setCurrentTool(Tool.Shape);
           }}
-          className={`${prefixCls}-shapeItem`} style={currentToolOption.shapeType === ShapeType.Rectangle ? { background: 'rgba(238, 238, 238, 1)' } : {}}>
-          <div className={`${prefixCls}-rect`} style={ currentToolOption.shapeType === ShapeType.Rectangle ? { borderColor: currentToolOption.shapeBorderColor } : {}} />
+          className={`${prefixCls}-shapeItem`}
+          style={
+            currentToolOption.shapeType === ShapeType.Rectangle
+              ? { background: 'rgba(238, 238, 238, 1)' }
+              : {}
+          }
+        >
+          <div
+            className={`${prefixCls}-rect`}
+            style={
+              currentToolOption.shapeType === ShapeType.Rectangle
+                ? { borderColor: currentToolOption.shapeBorderColor }
+                : {}
+            }
+          />
         </div>
 
         <div
@@ -189,15 +237,27 @@ export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOp
             setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Oval });
             setCurrentTool(Tool.Shape);
           }}
-          className={`${prefixCls}-shapeItem`} style={currentToolOption.shapeType === ShapeType.Oval ? { background: 'rgba(238, 238, 238, 1)' } : {}}
+          className={`${prefixCls}-shapeItem`}
+          style={
+            currentToolOption.shapeType === ShapeType.Oval
+              ? { background: 'rgba(238, 238, 238, 1)' }
+              : {}
+          }
         >
-          <div className={`${prefixCls}-circle`} style={ currentToolOption.shapeType === ShapeType.Oval ? { borderColor: currentToolOption.shapeBorderColor } : {}} />
+          <div
+            className={`${prefixCls}-circle`}
+            style={
+              currentToolOption.shapeType === ShapeType.Oval
+                ? { borderColor: currentToolOption.shapeBorderColor }
+                : {}
+            }
+          />
         </div>
       </div>
 
       <div className={`${prefixCls}-colorAndSize`}>
         <div className={`${prefixCls}-strokeSelector`}>
-          {strokeSize.map(size => {
+          {strokeSize.map((size) => {
             return (
               <div
                 key={size}
@@ -211,34 +271,42 @@ export const useShapeDropdown = (currentToolOption: ToolOption, setCurrentToolOp
                   setCurrentToolOption({ ...currentToolOption, shapeBorderSize: size });
                   setCurrentTool(Tool.Shape);
                 }}
-                style={{ width: size + 4, height: size + 4, background: size === currentToolOption.shapeBorderSize ? '#666666' : '#EEEEEE' }}
+                style={{
+                  width: size + 4,
+                  height: size + 4,
+                  background: size === currentToolOption.shapeBorderSize ? '#666666' : '#EEEEEE',
+                }}
               ></div>
-            )
+            );
           })}
         </div>
         <div className={`${prefixCls}-split`}></div>
         <div className={`${prefixCls}-palette`}>
-          {strokeColor.map(color => {
-            return <div
-              className={`${prefixCls}-color`}
-              key={color}
-              onTouchStart={(evt) => {
-                evt.stopPropagation();
-                setCurrentToolOption({ ...currentToolOption, shapeBorderColor: color });
-                setCurrentTool(Tool.Shape);
-              }}
-              onClick={(evt) => {
-                evt.stopPropagation();
-                setCurrentToolOption({ ...currentToolOption, shapeBorderColor: color });
-                setCurrentTool(Tool.Shape);
-              }}
-            >
-              <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
-              {currentToolOption.shapeBorderColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}
-            </div>
+          {strokeColor.map((color) => {
+            return (
+              <div
+                className={`${prefixCls}-color`}
+                key={color}
+                onTouchStart={(evt) => {
+                  evt.stopPropagation();
+                  setCurrentToolOption({ ...currentToolOption, shapeBorderColor: color });
+                  setCurrentTool(Tool.Shape);
+                }}
+                onClick={(evt) => {
+                  evt.stopPropagation();
+                  setCurrentToolOption({ ...currentToolOption, shapeBorderColor: color });
+                  setCurrentTool(Tool.Shape);
+                }}
+              >
+                <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
+                {currentToolOption.shapeBorderColor === color ? (
+                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} />
+                ) : null}
+              </div>
+            );
           })}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};

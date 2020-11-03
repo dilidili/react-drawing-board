@@ -22,60 +22,80 @@ import { isMobileDevice } from './utils';
 import ConfigContext from './ConfigContext';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 
-const tools = [{
-  label: 'umi.block.sketch.select',
-  icon: SelectIcon,
-  type: Tool.Select,
-}, {
-  label: 'umi.block.sketch.pencil',
-  icon: StrokeIcon,
-  type: Tool.Stroke,
-  useDropdown: useStrokeDropdown,
-}, {
-  label: 'umi.block.sketch.shape',
-  icon: ShapeIcon,
-  type: Tool.Shape,
-  useDropdown: useShapeDropdown,
-}, {
-  label: 'umi.block.sketch.text',
-  icon: TextIcon,
-  type: Tool.Text,
-}, {
-  label: 'umi.block.sketch.image',
-  icon: ImageIcon,
-  type: Tool.Image,
-}, {
-  label: 'umi.block.sketch.undo',
-  icon: UndoIcon,
-  type: Tool.Undo,
-  style: {
-    marginLeft: 'auto',
+const tools = [
+  {
+    label: 'umi.block.sketch.select',
+    icon: SelectIcon,
+    type: Tool.Select,
   },
-}, {
-  label: 'umi.block.sketch.redo',
-  icon: RedoIcon,
-  type: Tool.Redo,
-}, {
-  label: 'umi.block.sketch.eraser',
-  icon: EraserIcon,
-  type: Tool.Eraser,
-}, {
-  label: 'umi.block.sketch.clear',
-  icon: ClearIcon,
-  type: Tool.Clear,
-  style: {
-    marginRight: 'auto',
+  {
+    label: 'umi.block.sketch.pencil',
+    icon: StrokeIcon,
+    type: Tool.Stroke,
+    useDropdown: useStrokeDropdown,
   },
-}, ...(!isMobileDevice ? [{
-  label: '100%',
-  labelThunk: (props: ToolbarProps) => `${~~(props.scale * 100)}%`,
-  icon: ZoomIcon,
-  type: Tool.Zoom,
-}] : []), ...(!isMobileDevice ? [{
-  label: 'umi.block.sketch.save',
-  icon: SaveIcon,
-  type: Tool.Save,
-}]: [])];
+  {
+    label: 'umi.block.sketch.shape',
+    icon: ShapeIcon,
+    type: Tool.Shape,
+    useDropdown: useShapeDropdown,
+  },
+  {
+    label: 'umi.block.sketch.text',
+    icon: TextIcon,
+    type: Tool.Text,
+  },
+  {
+    label: 'umi.block.sketch.image',
+    icon: ImageIcon,
+    type: Tool.Image,
+  },
+  {
+    label: 'umi.block.sketch.undo',
+    icon: UndoIcon,
+    type: Tool.Undo,
+    style: {
+      marginLeft: 'auto',
+    },
+  },
+  {
+    label: 'umi.block.sketch.redo',
+    icon: RedoIcon,
+    type: Tool.Redo,
+  },
+  {
+    label: 'umi.block.sketch.eraser',
+    icon: EraserIcon,
+    type: Tool.Eraser,
+  },
+  {
+    label: 'umi.block.sketch.clear',
+    icon: ClearIcon,
+    type: Tool.Clear,
+    style: {
+      marginRight: 'auto',
+    },
+  },
+  ...(!isMobileDevice
+    ? [
+        {
+          label: '100%',
+          labelThunk: (props: ToolbarProps) => `${~~(props.scale * 100)}%`,
+          icon: ZoomIcon,
+          type: Tool.Zoom,
+        },
+      ]
+    : []),
+  ...(!isMobileDevice
+    ? [
+        {
+          label: 'umi.block.sketch.save',
+          icon: SaveIcon,
+          type: Tool.Save,
+        },
+      ]
+    : []),
+];
 
 export interface ToolbarProps {
   currentTool: Tool;
@@ -92,7 +112,18 @@ export interface ToolbarProps {
 }
 
 const Toolbar: React.FC<ToolbarProps> = (props) => {
-  const { currentTool, setCurrentTool, currentToolOption, setCurrentToolOption, selectImage, undo, redo, clear, save, toolbarPlacement } = props;
+  const {
+    currentTool,
+    setCurrentTool,
+    currentToolOption,
+    setCurrentToolOption,
+    selectImage,
+    undo,
+    redo,
+    clear,
+    save,
+    toolbarPlacement,
+  } = props;
   const refFileInput = useRef<HTMLInputElement>(null);
   const { formatMessage } = useIntl();
   const { prefixCls } = useContext(ConfigContext);
@@ -109,16 +140,18 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       reader.onloadend = () => {
         const base64data = reader.result;
         selectImage(base64data as string);
-      }
+      };
     }
   };
 
   return (
-    <div className={classNames({
-      [`${toolbarPrefixCls}-container`]: true,
-      [`${toolbarPrefixCls}-mobile-container`]: isMobileDevice,
-    })}>
-      {tools.map((tool => {
+    <div
+      className={classNames({
+        [`${toolbarPrefixCls}-container`]: true,
+        [`${toolbarPrefixCls}-mobile-container`]: isMobileDevice,
+      })}
+    >
+      {tools.map((tool) => {
         let borderTopStyle = 'none';
         if (isMobileDevice) {
           if (tool.type === Tool.Stroke && currentToolOption.strokeColor) {
@@ -133,7 +166,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
         const iconAnimateProps = useSpring({
           left: isMobileDevice && currentTool !== tool.type ? -12 : 0,
           borderTop: borderTopStyle,
-          ...(tool.style || {})
+          ...(tool.style || {}),
         });
 
         const menu = (
@@ -163,18 +196,31 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             key={tool.label}
           >
             <tool.icon />
-            {!isMobileDevice ? <label className={`${toolbarPrefixCls}-iconLabel`}>{tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}</label> : null}
+            {!isMobileDevice ? (
+              <label className={`${toolbarPrefixCls}-iconLabel`}>
+                {tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}
+              </label>
+            ) : null}
           </animated.div>
-        )
+        );
 
         if (tool.useDropdown) {
-          const overlay = tool.useDropdown(currentToolOption, setCurrentToolOption, setCurrentTool, prefixCls);
+          const overlay = tool.useDropdown(
+            currentToolOption,
+            setCurrentToolOption,
+            setCurrentTool,
+            prefixCls,
+          );
 
           return (
             <Dropdown
               key={tool.label}
               overlay={overlay}
-              placement={toolbarPlacement === 'top' || toolbarPlacement === 'left' ? 'bottomLeft' : 'bottomRight'}
+              placement={
+                toolbarPlacement === 'top' || toolbarPlacement === 'left'
+                  ? 'bottomLeft'
+                  : 'bottomRight'
+              }
               trigger={[isMobileDevice ? 'click' : 'hover']}
               onVisibleChange={(visible) => {
                 enableSketchPadContext.setEnable(!visible);
@@ -182,11 +228,11 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             >
               {menu}
             </Dropdown>
-          )
+          );
         } else {
           return menu;
         }
-      }))}
+      })}
 
       <input
         type="file"
@@ -196,7 +242,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
         onChange={handleFileChange}
       />
     </div>
-  )
-} 
+  );
+};
 
 export default Toolbar;

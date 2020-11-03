@@ -5,14 +5,14 @@ import { Icon } from 'antd';
 import './StrokeTool.less';
 
 interface Point {
-  x: number,
-  y: number,
+  x: number;
+  y: number;
 }
 
 export interface Stroke {
-  color: string,
-  size: number,
-  points: Point[],
+  color: string;
+  size: number;
+  points: Point[];
 }
 
 export interface Position {
@@ -27,7 +27,12 @@ let stroke: Stroke | null = null;
 
 let points: Point[] = [];
 
-const drawLine = (context: CanvasRenderingContext2D, item: Stroke, start: Point, { x, y } : Point) => {
+const drawLine = (
+  context: CanvasRenderingContext2D,
+  item: Stroke,
+  start: Point,
+  { x, y }: Point,
+) => {
   context.lineJoin = 'round';
   context.lineCap = 'round';
   context.beginPath();
@@ -48,7 +53,7 @@ export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D, ho
   const points = stroke.points.filter((_, index) => index % 2 === 0);
   if (points.length < 3) {
     return;
-  };
+  }
 
   context.lineJoin = 'round';
   context.lineCap = 'round';
@@ -71,7 +76,7 @@ export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D, ho
   context.quadraticCurveTo(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
 
   context.stroke();
-}
+};
 
 export function onStrokeMouseDown(x: number, y: number, toolOption: ToolOption) {
   stroke = {
@@ -94,10 +99,14 @@ export function onStrokeMouseMove(x: number, y: number, context: CanvasRendering
   return [stroke];
 }
 
-export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleCompleteOperation: (tool?: Tool, data?: Stroke, pos?: Position) => void , currentTool = Tool.Stroke) {
+export function onStrokeMouseUp(
+  setCurrentTool: (tool: Tool) => void,
+  handleCompleteOperation: (tool?: Tool, data?: Stroke, pos?: Position) => void,
+  currentTool = Tool.Stroke,
+) {
   if (!stroke) {
     return;
-  };
+  }
 
   // click to back to select mode.
   if (stroke.points.length < 6) {
@@ -121,7 +130,10 @@ export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleComp
     let lineData = item;
     let pos = null;
 
-    let xMax = -Infinity, yMax = -Infinity, xMin = lineData.points[0].x, yMin = lineData.points[0].y;
+    let xMax = -Infinity,
+      yMax = -Infinity,
+      xMin = lineData.points[0].x,
+      yMin = lineData.points[0].y;
 
     lineData.points.forEach((p) => {
       if (p.x > xMax) {
@@ -151,14 +163,19 @@ export function onStrokeMouseUp(setCurrentTool: (tool: Tool) => void, handleComp
   return [item];
 }
 
-export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolOption: (option: ToolOption) => void, setCurrentTool: (tool: Tool) => void, prefixCls: string) => {
+export const useStrokeDropdown = (
+  currentToolOption: ToolOption,
+  setCurrentToolOption: (option: ToolOption) => void,
+  setCurrentTool: (tool: Tool) => void,
+  prefixCls: string,
+) => {
   prefixCls += '-strokeTool';
 
   return (
     <div className={`${prefixCls}-strokeMenu`}>
       <div className={`${prefixCls}-colorAndSize`}>
         <div className={`${prefixCls}-strokeSelector`}>
-          {strokeSize.map(size => {
+          {strokeSize.map((size) => {
             return (
               <div
                 key={size}
@@ -172,14 +189,18 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
                   setCurrentToolOption({ ...currentToolOption, strokeSize: size });
                   setCurrentTool && setCurrentTool(Tool.Stroke);
                 }}
-                style={{ width: size + 4, height: size + 4, background: size === currentToolOption.strokeSize ? '#666666' : '#EEEEEE' }}
+                style={{
+                  width: size + 4,
+                  height: size + 4,
+                  background: size === currentToolOption.strokeSize ? '#666666' : '#EEEEEE',
+                }}
               ></div>
-            )
+            );
           })}
         </div>
         <div className={`${prefixCls}-split`}></div>
         <div className={`${prefixCls}-palette`}>
-          {strokeColor.map(color => {
+          {strokeColor.map((color) => {
             return (
               <div
                 className={`${prefixCls}-color`}
@@ -196,22 +217,24 @@ export const useStrokeDropdown = (currentToolOption: ToolOption, setCurrentToolO
                 }}
               >
                 <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
-                {currentToolOption.strokeColor === color ? <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} /> : null}
+                {currentToolOption.strokeColor === color ? (
+                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} />
+                ) : null}
               </div>
             );
           })}
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
 export const moveStoke = (prev: Stroke, oldPos: Position, newPos: Position) => {
   const diffX = newPos.x - oldPos.x;
   const diffY = newPos.y - oldPos.y;
 
-  return prev.points.map(p => ({
+  return prev.points.map((p) => ({
     x: p.x + diffX,
     y: p.y + diffY,
   }));
-}
+};
