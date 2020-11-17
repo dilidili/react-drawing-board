@@ -36,6 +36,7 @@ interface BlockProps {
   clsssName?: string;
 
   toolbarPlacement?: 'top' | 'left' | 'right';
+  backgroundImage?: string;
 }
 
 const AnimatedSketchPad = animated(SketchPad);
@@ -60,6 +61,7 @@ const Block: React.FC<BlockProps> = (props) => {
     onSave,
     viewMatrix: viewMatrixProp,
     onViewMatrixChange,
+    backgroundImage,
   } = {
     ...defaultProps,
     ...props,
@@ -146,7 +148,7 @@ const Block: React.FC<BlockProps> = (props) => {
     };
   }, [...enableSketchPad]);
 
-  const locale = props.locale && locales.messages[props.locale] ? props.locale : localeType.enUS;
+  const locale = props.locale && locales.messages[props.locale] ? props.locale : localeType.trTR;
 
   return (
     <ConfigContext.Provider value={DefaultConfig}>
@@ -156,7 +158,7 @@ const Block: React.FC<BlockProps> = (props) => {
             {(config) => (
               <div
                 className={`${config.prefixCls}-container ${clsssName || ''}`}
-                style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}
+                style={{ width: '100%', height: '100%', ...(props.style || {}) }}
               >
                 {renderWithLayout(
                   <Toolbar
