@@ -146,7 +146,7 @@ const Block: React.FC<BlockProps> = (props) => {
     };
   }, [...enableSketchPad]);
 
-  const locale = props.locale && locales.messages[props.locale] ? props.locale : localeType.enUS;
+  const locale = props.locale && locales.messages[props.locale] ? props.locale : 'en-US';
 
   return (
     <ConfigContext.Provider value={DefaultConfig}>
