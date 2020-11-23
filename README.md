@@ -54,7 +54,7 @@ const Demo: React.FC = () => {
 | Props    | Description                              | Type       | Default |
 |-----------|------------------------------------------|------------|---------|
 | userId(optional) | identify for operation source | string | uuid.v4() |
-| locale(optional) | 'en-US' or 'zh-CN' | string | navigator.language |
+| locale(optional) | 'en-US', 'zh-CN', 'tr-TR' | string | navigator.language |
 | operations(optional) | operations on drawing board | Operation[] | undefined |
 | onChange(optional) | called when user draw some operations | (newOperaton: Operation, operationsAfter: Operation[]) => void | undefined |
 | onSave(image) | called when user click save button for saving current view | (image: { canvas: HTMLCanvasElement, dataUrl: string }) => void | undefined |
