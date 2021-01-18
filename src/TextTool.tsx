@@ -3,7 +3,7 @@ import Tool, { ToolOption, Position, TextSize, strokeColor } from './enums/Tool'
 import { IntlShape } from 'react-intl';
 import { RefObject, MouseEvent as ReactMouseEvent } from 'react';
 import { mapClientToCanvas, isMobileDevice } from './utils';
-import { Icon } from 'antd';
+import Icon from './icons/Icon';
 import './TextTool.less';
 
 let currentText = '';
@@ -188,7 +188,7 @@ export const useTextDropdown = (
               >
                 <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
                 {currentToolOption.textColor === color ? (
-                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} />
+                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {color: '#fff'}} />
                 ) : null}
               </div>
             );

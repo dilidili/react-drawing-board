@@ -1,7 +1,7 @@
 import React from 'react';
 import Tool, { strokeSize, strokeColor, ToolOption } from './enums/Tool';
 import { isMobileDevice } from './utils';
-import { Icon } from 'antd';
+import Icon from './icons/Icon';
 import './StrokeTool.less';
 
 interface Point {
@@ -218,7 +218,7 @@ export const useStrokeDropdown = (
               >
                 <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
                 {currentToolOption.strokeColor === color ? (
-                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} />
+                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {color: '#fff'}} />
                 ) : null}
               </div>
             );
