@@ -1,6 +1,6 @@
 import Tool, { ToolOption, ShapeType, strokeSize, strokeColor } from './enums/Tool';
 import React, { useContext } from 'react';
-import { Icon } from 'antd';
+import Icon from './icons/Icon';
 import './ShapeTool.less';
 
 export interface Position {
@@ -300,7 +300,7 @@ export const useShapeDropdown = (
               >
                 <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
                 {currentToolOption.shapeBorderColor === color ? (
-                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {}} />
+                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {color: '#fff'}} />
                 ) : null}
               </div>
             );

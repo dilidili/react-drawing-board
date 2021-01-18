@@ -45,7 +45,7 @@ import {
 } from './SelectTool';
 import { defaultToolOption } from './enums/Tool';
 import { debounce } from 'lodash';
-import { Icon, Upload } from 'antd';
+import Icon from './icons/Icon';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor';
 import { useZoomGesture } from './gesture';
@@ -1159,7 +1159,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
     removeButton = (
       <div style={removeStyle} onMouseDown={onRemoveOperation} onTouchStart={onRemoveOperation}>
-        <Icon type="close-circle" theme="filled" />
+        <Icon type="close-circle" />
       </div>
     );
   }
