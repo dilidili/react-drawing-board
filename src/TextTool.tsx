@@ -143,16 +143,16 @@ export const useTextDropdown = (
     <div className={`${prefixCls}-strokeMenu`}>
       <div className={`${prefixCls}-colorAndSize`}>
         <div className={`${prefixCls}-textSizeSelector`}>
-          {textSize.map((size) => {
+          {textSize.map(size => {
             return (
               <div
                 key={size}
-                onTouchStart={(evt) => {
+                onTouchStart={evt => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, textSize: size });
                   setCurrentTool && setCurrentTool(Tool.Stroke);
                 }}
-                onClick={(evt) => {
+                onClick={evt => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, textSize: size });
                   setCurrentTool && setCurrentTool(Tool.Stroke);
@@ -170,17 +170,17 @@ export const useTextDropdown = (
         </div>
         <div className={`${prefixCls}-split`}></div>
         <div className={`${prefixCls}-palette`}>
-          {strokeColor.map((color) => {
+          {strokeColor.map(color => {
             return (
               <div
                 className={`${prefixCls}-color`}
                 key={color}
-                onClick={(evt) => {
+                onClick={evt => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, textColor: color });
                   setCurrentTool && setCurrentTool(Tool.Stroke);
                 }}
-                onTouchStart={(evt) => {
+                onTouchStart={evt => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, textColor: color });
                   setCurrentTool && setCurrentTool(Tool.Stroke);
@@ -188,7 +188,10 @@ export const useTextDropdown = (
               >
                 <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
                 {currentToolOption.textColor === color ? (
-                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {color: '#fff'}} />
+                  <Icon
+                    type="check"
+                    style={color === '#ffffff' ? { color: '#979797' } : { color: '#fff' }}
+                  />
                 ) : null}
               </div>
             );

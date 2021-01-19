@@ -2,17 +2,23 @@ import React, { useMemo } from 'react';
 
 interface IIconProps {
   type: 'check' | 'close-circle';
-  style?: React.CSSProperties
+  style?: React.CSSProperties;
 }
 
 export default function Icon({ type, style }: IIconProps) {
   const iconText = useMemo(() => (type === 'check' ? '✓' : 'x'), [type]);
-  const addtionStyle = useMemo(() => (type === 'close-circle' ? {
-    borderRadius: '50%',
-    backgroundColor: 'red',
-    color: '#fff',
-    alignItems: 'flex-end',
-  } : {}), [type]);
+  const addtionStyle = useMemo(
+    () =>
+      type === 'close-circle'
+        ? {
+            borderRadius: '50%',
+            backgroundColor: 'red',
+            color: '#fff',
+            alignItems: 'flex-end',
+          }
+        : {},
+    [type],
+  );
 
   return (
     <div
@@ -25,7 +31,7 @@ export default function Icon({ type, style }: IIconProps) {
         position: 'absolute',
         fontSize: 12,
         ...addtionStyle,
-        ...style
+        ...style,
       }}
     >
       {iconText}

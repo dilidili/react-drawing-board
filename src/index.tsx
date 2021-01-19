@@ -50,7 +50,7 @@ const enableSketchPadReducer = (state: boolean, action: boolean) => {
   return action;
 };
 
-const Block: React.FC<BlockProps> = (props) => {
+const Block: React.FC<BlockProps> = props => {
   const {
     userId,
     operations,
@@ -153,7 +153,7 @@ const Block: React.FC<BlockProps> = (props) => {
       <IntlProvider locale={locale} messages={locales.messages[locale]}>
         <EnableSketchPadContext.Provider value={enableSketchPadContextValue}>
           <ConfigContext.Consumer>
-            {(config) => (
+            {config => (
               <div
                 className={`${config.prefixCls}-container ${clsssName || ''}`}
                 style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}
