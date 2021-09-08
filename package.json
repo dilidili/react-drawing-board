@@ -14,7 +14,8 @@
   ],
   "scripts": {
     "dev": "umi dev",
-    "build": "father build"
+    "build": "father build",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@types/vfile-message": "^2.0.0",
