@@ -13,6 +13,7 @@ enum Tool {
   Update = 'Update',
   LazyUpdate = 'LazyUpdate',
   Remove = 'Remove',
+  Background = 'Background'
 }
 
 export enum ShapeType {

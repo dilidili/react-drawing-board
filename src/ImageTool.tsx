@@ -6,6 +6,10 @@ export type Image = {
   imageData: string;
 };
 
+export type Background = {
+  imageData: string;
+};
+
 const _cacheImgs: {
   [any: string]: HTMLImageElement;
 } = {};
@@ -79,6 +83,57 @@ export const onImageComplete = (
 
     handleCompleteOperation(
       Tool.Image,
+      {
+        imageData: data,
+      },
+      posInfo,
+    );
+  };
+
+  image.src = data;
+};
+
+export const onBackgroundImageComplete = (
+  data: string,
+  canvas: HTMLCanvasElement,
+  viewMatrix: number[],
+  handleCompleteOperation: (tool?: Tool, data?: Image, pos?: Position) => void,
+) => {
+  const image = new Image();
+
+  image.onload = () => {
+    const { top, left } = canvas.getBoundingClientRect();
+    const imageWidth = image.width;
+    const imageHeight = image.height;
+    const offsetWidth = canvas.offsetWidth;
+    const offsetHeight = canvas.offsetHeight;
+
+    const pos = mapClientToCanvas(
+      {
+        clientX: left + (offsetWidth / 2 - imageWidth / 4),
+        clientY: top + (offsetHeight / 2 - imageHeight / 4),
+      } as MouseEvent<HTMLCanvasElement>,
+      canvas,
+      viewMatrix,
+    );
+    const posEnd = mapClientToCanvas(
+      {
+        clientX: left + (offsetWidth / 2 + imageWidth / 4),
+        clientY: top + (offsetHeight / 2 + imageHeight / 4),
+      } as MouseEvent<HTMLCanvasElement>,
+      canvas,
+      viewMatrix,
+    );
+
+    const posInfo = {
+      x: pos[0],
+      y: pos[1],
+      w: posEnd[0] - pos[0],
+      h: posEnd[1] - pos[1],
+    };
+
+    handleCompleteOperation(
+      Tool.Background,
       {
         imageData: data,
       },

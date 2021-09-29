@@ -4,6 +4,7 @@ export default {
   'umi.block.sketch.shape': 'Şekil R',
   'umi.block.sketch.text': 'Yazı T',
   'umi.block.sketch.image': 'Fotoğraf',
+  'umi.block.sketch.background': 'Arka fon',
   'umi.block.sketch.undo': 'Geri Al',
   'umi.block.sketch.redo': 'İleri Al',
   'umi.block.sketch.clear': 'Temizle',
@@ -14,4 +15,10 @@ export default {
   'umi.block.sketch.text.size.small': 'Ufak',
   'umi.block.sketch.text.size.default': 'Standart',
   'umi.block.sketch.text.size.large': 'Büyük',
+  'umi.block.sketch.bg.select': 'Seçme',
+  'umi.block.sketch.bg.layout': 'Düzen',
+  'umi.block.sketch.bg.fill': 'Doldurmak',
+  'umi.block.sketch.bg.contain': 'içermek',
+  'umi.block.sketch.bg.not-resize': 'orijinal',
+  'umi.block.sketch.bg.remove': 'kaldırmak',
 };

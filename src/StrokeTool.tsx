@@ -163,13 +163,20 @@ export function onStrokeMouseUp(
   return [item];
 }
 
-export const useStrokeDropdown = (
-  currentToolOption: ToolOption,
-  setCurrentToolOption: (option: ToolOption) => void,
-  setCurrentTool: (tool: Tool) => void,
-  prefixCls: string,
-) => {
-  prefixCls += '-strokeTool';
+export const useStrokeDropdown = (config: {
+  currentToolOption: ToolOption;
+  setCurrentToolOption: (option: ToolOption) => void;
+  setCurrentTool: (tool: Tool) => void;
+  prefixCls: string;
+}) => {
+  const {
+    currentToolOption,
+    setCurrentToolOption,
+    setCurrentTool,
+    prefixCls: basePrefixCls,
+  } = config;
+
+  const prefixCls = basePrefixCls + '-strokeTool';
 
   return (
     <div className={`${prefixCls}-strokeMenu`}>
@@ -218,7 +225,10 @@ export const useStrokeDropdown = (
               >
                 <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
                 {currentToolOption.strokeColor === color ? (
-                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {color: '#fff'}} />
+                  <Icon
+                    type="check"
+                    style={color === '#ffffff' ? { color: '#979797' } : { color: '#fff' }}
+                  />
                 ) : null}
               </div>
             );
