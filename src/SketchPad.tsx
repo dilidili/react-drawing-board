@@ -34,7 +34,13 @@ import {
   drawRectangle,
   useShapeDropdown,
 } from './ShapeTool';
-import { onImageComplete, Image, drawImage } from './ImageTool';
+import {
+  onImageComplete,
+  onBackgroundImageComplete,
+  Image,
+  drawImage,
+  Background,
+} from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import {
   onSelectMouseDown,
@@ -73,6 +79,7 @@ export type onSaveCallback = (image: { canvas: HTMLCanvasElement; dataUrl: strin
 
 export type SketchPadRef = {
   selectImage: (image: string) => void;
+  selectBackgroundImage: (image: string) => void;
   undo: () => void;
   redo: () => void;
   clear: () => void;
@@ -83,7 +90,7 @@ export type Remove = {
   operationId: string;
 };
 
-export type Operation = (Stroke | Shape | Text | Image | Update | Remove) & {
+export type Operation = (Stroke | Shape | Text | Image | Background | Update | Remove) & {
   id: string;
   userId: string;
   timestamp: number;
@@ -114,35 +121,47 @@ export type OperationListState = {
 const reduceOperations = (operations: Operation[]): Operation[] => {
   const undoHistory: Operation[] = [];
 
-  operations = operations
-    .sort((a, b) => a.timestamp - b.timestamp)
-    .reduce((r: Operation[], v) => {
-      switch (v.tool) {
-        case Tool.Undo:
-          if (r.length) {
-            undoHistory.push(r.pop() as Operation);
-          }
-          break;
-        case Tool.Redo:
-          if (undoHistory.length) {
-            r.push(undoHistory.pop() as Operation);
-          }
-          break;
-        default:
-          undoHistory.splice(0);
-          r.push(v);
-          break;
-      }
+  operations = operations.sort((a, b) => a.timestamp - b.timestamp);
 
+  // convert background image to draw image
+  let backgroundOperation: Operation & Background;
+  operations = operations.reduce((r: Operation[], v) => {
+    if (v.tool === Tool.Background) {
+      backgroundOperation = v as Operation & Background;
       return r;
-    }, []);
+    } else {
+      r.push(v);
+      return r;
+    }
+  }, []);
+
+  operations = operations.reduce((r: Operation[], v) => {
+    switch (v.tool) {
+      case Tool.Undo:
+        if (r.length) {
+          undoHistory.push(r.pop() as Operation);
+        }
+        break;
+      case Tool.Redo:
+        if (undoHistory.length) {
+          r.push(undoHistory.pop() as Operation);
+        }
+        break;
+      default:
+        undoHistory.splice(0);
+        r.push(v);
+        break;
+    }
+
+    return r;
+  }, []);
 
   let clearIndex: number = -1;
   while ((clearIndex = operations.findIndex((v) => v.tool === Tool.Clear)) > 0) {
     operations = operations.slice(clearIndex);
   }
 
-  operations.forEach((v, k) => {
+  operations.forEach((v) => {
     if (v.tool === Tool.Update) {
       const update = v as Update;
       const targetIndex = operations.findIndex((w) => w && w.id === update.operationId);
@@ -188,6 +207,12 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
     .map((v) => (v as Remove).operationId);
   operations = operations.filter((v) => v.tool !== Tool.Update && removeIds.indexOf(v.id) < 0); // keep Remove operation to keep undoable
 
+  if (backgroundOperation) {
+    operations.unshift({
+      ...backgroundOperation,
+      tool: Tool.Image,
+    });
+  }
   return operations;
 };
 
@@ -686,7 +711,11 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     });
   };
 
-  const { onMouseMove: onMouseResizeMove, onMouseUp: onMouseResizeUp, resizer } = useResizeHandler(
+  const {
+    onMouseMove: onMouseResizeMove,
+    onMouseUp: onMouseResizeUp,
+    resizer,
+  } = useResizeHandler(
     selectedOperation,
     viewMatrix,
     operationListState.queue,
@@ -928,6 +957,11 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           onImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation);
         }
       },
+      selectBackgroundImage: (image: string) => {
+        if (image && refCanvas.current) {
+          onBackgroundImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation);
+        }
+      },
       undo: () => {
         setSelectedOperation(null);
         if (operationListState.reduced.length) {
@@ -1000,11 +1034,11 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     }
   });
   const bindWheel = useWheel((state) => {
-    const { ctrlKey, event, delta } = state;
+    const { ctrlKey, event, delta, last } = state;
 
-    if (event && 'clientX' in event) {
+    if (event && !last && 'clientX' in event) {
       onWheel({
-        deltaY: delta[1],
+        deltaY: delta[1] / 4,
         ctrlKey,
         clientX: event.clientX + 0,
         clientY: event.clientY + 0,

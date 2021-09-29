@@ -31,6 +31,9 @@ interface BlockProps {
   viewMatrix?: ViewMatrix;
   onViewMatrixChange?: (viewMatrix: ViewMatrix) => void;
 
+  // optional tools
+  useBackground?: boolean;
+
   style?: CSSProperties;
 
   clsssName?: string;
@@ -44,13 +47,14 @@ const defaultProps: Partial<BlockProps> = {
   userId: v4(),
   locale: navigator.language as localeType,
   toolbarPlacement: 'top',
+  useBackground: true,
 };
 
-const enableSketchPadReducer = (state: boolean, action: boolean) => {
+const enableSketchPadReducer = (_state: boolean, action: boolean) => {
   return action;
 };
 
-const Block: React.FC<BlockProps> = props => {
+const Block: React.FC<BlockProps> = (props) => {
   const {
     userId,
     operations,
@@ -58,6 +62,7 @@ const Block: React.FC<BlockProps> = props => {
     toolbarPlacement,
     clsssName,
     onSave,
+    useBackground,
     viewMatrix: viewMatrixProp,
     onViewMatrixChange,
   } = {
@@ -146,14 +151,21 @@ const Block: React.FC<BlockProps> = props => {
     };
   }, [...enableSketchPad]);
 
+  const config = useMemo(() => {
+    return {
+      ...DefaultConfig,
+      useBackground,
+    };
+  }, [DefaultConfig, useBackground]);
+
   const locale = props.locale && locales.messages[props.locale] ? props.locale : 'en-US';
 
   return (
-    <ConfigContext.Provider value={DefaultConfig}>
+    <ConfigContext.Provider value={config}>
       <IntlProvider locale={locale} messages={locales.messages[locale]}>
         <EnableSketchPadContext.Provider value={enableSketchPadContextValue}>
           <ConfigContext.Consumer>
-            {config => (
+            {(config) => (
               <div
                 className={`${config.prefixCls}-container ${clsssName || ''}`}
                 style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}
@@ -169,6 +181,11 @@ const Block: React.FC<BlockProps> = props => {
                     selectImage={(image: string) => {
                       if (image && refSketch.current) {
                         refSketch.current.selectImage(image);
+                      }
+                    }}
+                    selectBackgroundImage={(image: string) => {
+                      if (image && refSketch.current) {
+                        refSketch.current.selectBackgroundImage(image);
                       }
                     }}
                     undo={() => {
