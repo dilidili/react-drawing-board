@@ -34,7 +34,7 @@ interface ToolConfig {
     setCurrentToolOption: (option: ToolOption) => void;
     setCurrentTool: (tool: Tool) => void;
     prefixCls: string;
-    selectBackgroundImage: (image: string) => void;
+    selectBackgroundImage: () => void;
   }) => JSX.Element;
   style?: React.CSSProperties;
 }
@@ -226,8 +226,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             onClick={() => {
               if (tool.type === Tool.Image && refFileInput.current) {
                 refFileInput.current.click();
-              } else if (tool.type === Tool.Background && refBgFileInput.current) {
-                refBgFileInput.current.click();
+              } else if (tool.type === Tool.Background) {
               } else if (tool.type === Tool.Undo) {
                 undo();
               } else if (tool.type === Tool.Redo) {
@@ -258,7 +257,9 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             setCurrentToolOption,
             setCurrentTool,
             prefixCls,
-            selectBackgroundImage: () => 1,
+            selectBackgroundImage: () => {
+              refBgFileInput.current.click();
+            },
           });
 
           return (
@@ -271,7 +272,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                   ? 'bottomLeft'
                   : 'bottomRight'
               }
-              trigger={[isMobileDevice ? 'click' : 'click']}
+              trigger={[isMobileDevice ? 'click' : 'hover']}
               onVisibleChange={(visible) => {
                 enableSketchPadContext.setEnable(!visible);
               }}

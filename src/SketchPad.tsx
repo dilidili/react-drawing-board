@@ -40,6 +40,7 @@ import {
   Image,
   drawImage,
   Background,
+  drawBackgroundImage,
 } from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import {
@@ -156,11 +157,6 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
     return r;
   }, []);
 
-  let clearIndex: number = -1;
-  while ((clearIndex = operations.findIndex((v) => v.tool === Tool.Clear)) > 0) {
-    operations = operations.slice(clearIndex);
-  }
-
   operations.forEach((v) => {
     if (v.tool === Tool.Update) {
       const update = v as Update;
@@ -208,10 +204,7 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
   operations = operations.filter((v) => v.tool !== Tool.Update && removeIds.indexOf(v.id) < 0); // keep Remove operation to keep undoable
 
   if (backgroundOperation) {
-    operations.unshift({
-      ...backgroundOperation,
-      tool: Tool.Image,
-    });
+    operations.unshift(backgroundOperation);
   }
   return operations;
 };
@@ -572,6 +565,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
     saveGlobalTransform();
+    let backgroundOperation: Operation;
     operations.forEach((operation) => {
       const hover =
         (!selectedOperation || selectedOperation.id !== operation.id) &&
@@ -582,6 +576,20 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           restoreGlobalTransform();
           context.clearRect(0, 0, context.canvas.width, context.canvas.height);
           saveGlobalTransform();
+
+          // background image should not be removed
+          if (backgroundOperation) {
+            restoreGlobalTransform();
+            drawBackgroundImage(
+              backgroundOperation as Image,
+              context,
+              backgroundOperation.id,
+              () => {
+                renderOperations(operations);
+              },
+            );
+            saveGlobalTransform();
+          }
           break;
         case Tool.Eraser:
         case Tool.Stroke:
@@ -592,6 +600,14 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           break;
         case Tool.Text:
           drawText(operation as Text, context, operation.pos);
+          break;
+        case Tool.Background:
+          backgroundOperation = operation;
+          restoreGlobalTransform();
+          drawBackgroundImage(operation as Image, context, operation.id, () => {
+            renderOperations(operations);
+          });
+          saveGlobalTransform();
           break;
         case Tool.Image:
           drawImage(operation as Image, context, operation.pos, operation.id, () => {
@@ -1054,12 +1070,12 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
     switch (selectedOperation.tool) {
       case Tool.Stroke:
-        content = useStrokeDropdown(
-          {
+        content = useStrokeDropdown({
+          currentToolOption: {
             strokeSize: (selectedOperation as Stroke).size,
             strokeColor: (selectedOperation as Stroke).color,
           } as ToolOption,
-          (option: ToolOption) => {
+          setCurrentToolOption: (option: ToolOption) => {
             const data = {
               color: option.strokeColor,
               size: option.strokeSize,
@@ -1072,18 +1088,18 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
             setSelectedOperation({ ...selectedOperation, ...data });
           },
-          () => {},
+          setCurrentTool: () => {},
           prefixCls,
-        );
+        });
         break;
       case Tool.Shape:
-        content = useShapeDropdown(
-          {
+        content = useShapeDropdown({
+          currentToolOption: {
             shapeType: (selectedOperation as Shape).type,
             shapeBorderColor: (selectedOperation as Shape).color,
             shapeBorderSize: (selectedOperation as Shape).size,
           } as ToolOption,
-          (option: ToolOption) => {
+          setCurrentToolOption: (option: ToolOption) => {
             const data = {
               type: option.shapeType,
               color: option.shapeBorderColor,
@@ -1097,9 +1113,9 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
             setSelectedOperation({ ...selectedOperation, ...data });
           },
-          () => {},
+          setCurrentTool: () => {},
           prefixCls,
-        );
+        });
         break;
       case Tool.Text: {
         const textOperation: Text = selectedOperation as Text;
