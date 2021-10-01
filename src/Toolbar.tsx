@@ -140,7 +140,7 @@ export interface ToolbarProps {
   setCurrentToolOption: (option: ToolOption) => void;
   selectImage: (image: string) => void;
   selectBackgroundImage: (image: string) => void;
-  removeBackgroundImage: (image: string) => void;
+  removeBackgroundImage: () => void;
   undo: () => void;
   redo: () => void;
   clear: () => void;
