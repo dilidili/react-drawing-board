@@ -35,6 +35,7 @@ interface ToolConfig {
     setCurrentTool: (tool: Tool) => void;
     prefixCls: string;
     selectBackgroundImage: () => void;
+    removeBackgroundImage: () => void;
   }) => JSX.Element;
   style?: React.CSSProperties;
 }
@@ -139,6 +140,7 @@ export interface ToolbarProps {
   setCurrentToolOption: (option: ToolOption) => void;
   selectImage: (image: string) => void;
   selectBackgroundImage: (image: string) => void;
+  removeBackgroundImage: (image: string) => void;
   undo: () => void;
   redo: () => void;
   clear: () => void;
@@ -155,6 +157,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
     setCurrentToolOption,
     selectImage,
     selectBackgroundImage,
+    removeBackgroundImage,
     undo,
     redo,
     clear,
@@ -172,6 +175,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
   const handleFileChange: (cb: (image: string) => void) => ChangeEventHandler<HTMLInputElement> =
     (cb) => (e) => {
       const file = e.target.files && e.target.files[0];
+      e.target.value = '';
 
       if (file) {
         let reader = new FileReader();
@@ -259,6 +263,9 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             prefixCls,
             selectBackgroundImage: () => {
               refBgFileInput.current.click();
+            },
+            removeBackgroundImage: () => {
+              removeBackgroundImage();
             },
           });
 

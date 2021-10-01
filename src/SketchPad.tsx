@@ -81,6 +81,7 @@ export type onSaveCallback = (image: { canvas: HTMLCanvasElement; dataUrl: strin
 export type SketchPadRef = {
   selectImage: (image: string) => void;
   selectBackgroundImage: (image: string) => void;
+  removeBackgroundImage: () => void;
   undo: () => void;
   redo: () => void;
   clear: () => void;
@@ -129,6 +130,9 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
   operations = operations.reduce((r: Operation[], v) => {
     if (v.tool === Tool.Background) {
       backgroundOperation = v as Operation & Background;
+      return r;
+    } else if (v.tool === Tool.RemoveBackground) {
+      backgroundOperation = undefined;
       return r;
     } else {
       r.push(v);
@@ -976,6 +980,11 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       selectBackgroundImage: (image: string) => {
         if (image && refCanvas.current) {
           onBackgroundImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation);
+        }
+      },
+      removeBackgroundImage: () => {
+        if (refCanvas.current) {
+          handleCompleteOperation(Tool.RemoveBackground);
         }
       },
       undo: () => {
