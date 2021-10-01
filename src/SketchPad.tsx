@@ -66,6 +66,7 @@ export interface SketchPadProps {
   setCurrentTool: (tool: Tool) => void;
   currentToolOption: ToolOption;
   userId: string;
+  initialBackground?: string;
 
   // controlled mode.
   operations?: Operation[];
@@ -96,7 +97,7 @@ export type Operation = (Stroke | Shape | Text | Image | Background | Update | R
   id: string;
   userId: string;
   timestamp: number;
-  pos: Position;
+  pos?: Position;
   tool: Tool;
 };
 
@@ -112,6 +113,8 @@ export type Update = {
 const DPR = window.devicePixelRatio || 1;
 
 const SELECT_BOX_PADDING = 3;
+
+const BackgroundOperationId = v4();
 
 const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
 
@@ -500,6 +503,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     userId,
     currentToolOption,
     operations,
+    initialBackground,
     onChange,
     viewMatrix,
     onViewMatrixChange,
@@ -569,7 +573,26 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
     saveGlobalTransform();
+
+    const renderBackgroundOperation = (operation: Operation) => {
+      restoreGlobalTransform();
+      drawBackgroundImage(operation as Image, context, operation.id, () => {
+        renderOperations(operations);
+      });
+      saveGlobalTransform();
+    };
+
     let backgroundOperation: Operation;
+    if (initialBackground) {
+      backgroundOperation = {
+        id: BackgroundOperationId,
+        userId,
+        timestamp: Date.now(),
+        tool: Tool.Background,
+        imageData: initialBackground,
+      };
+      renderBackgroundOperation(backgroundOperation);
+    }
     operations.forEach((operation) => {
       const hover =
         (!selectedOperation || selectedOperation.id !== operation.id) &&
@@ -583,16 +606,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
           // background image should not be removed
           if (backgroundOperation) {
-            restoreGlobalTransform();
-            drawBackgroundImage(
-              backgroundOperation as Image,
-              context,
-              backgroundOperation.id,
-              () => {
-                renderOperations(operations);
-              },
-            );
-            saveGlobalTransform();
+            renderBackgroundOperation(backgroundOperation);
           }
           break;
         case Tool.Eraser:
@@ -607,10 +621,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           break;
         case Tool.Background:
           backgroundOperation = operation;
-          restoreGlobalTransform();
-          drawBackgroundImage(operation as Image, context, operation.id, () => {
-            renderOperations(operations);
-          });
+          renderBackgroundOperation(backgroundOperation);
           saveGlobalTransform();
           break;
         case Tool.Image:
@@ -675,10 +686,6 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
     return () => removeEventListener('resize', resizeHandler);
   }, []);
-
-  useEffect(() => {
-    renderOperations(operationListState.reduced);
-  }, [operationListState.reduced, viewMatrix, hoverOperationId, selectedOperation]);
 
   // disable default scrolling on mobile device.
   // refer: https://stackoverflow.com/questions/49500339/cant-prevent-touchmove-from-scrolling-window-on-ios
@@ -960,6 +967,17 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       e.preventDefault();
     };
   }, []);
+
+  useEffect(() => {
+    renderOperations(operationListState.reduced);
+  }, [
+    operationListState.reduced,
+    viewMatrix,
+    hoverOperationId,
+    selectedOperation,
+    initialBackground,
+    refContext.current,
+  ]);
 
   const canvasStyle: CSSProperties = {};
   if (currentTool === Tool.Stroke) {

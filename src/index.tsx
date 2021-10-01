@@ -33,6 +33,7 @@ interface BlockProps {
 
   // optional tools
   useBackground?: boolean;
+  initialBackground?: string;
 
   style?: CSSProperties;
 
@@ -47,7 +48,6 @@ const defaultProps: Partial<BlockProps> = {
   userId: v4(),
   locale: navigator.language as localeType,
   toolbarPlacement: 'top',
-  useBackground: true,
 };
 
 const enableSketchPadReducer = (_state: boolean, action: boolean) => {
@@ -63,6 +63,7 @@ const Block: React.FC<BlockProps> = (props) => {
     clsssName,
     onSave,
     useBackground,
+    initialBackground,
     viewMatrix: viewMatrixProp,
     onViewMatrixChange,
   } = {
@@ -223,6 +224,7 @@ const Block: React.FC<BlockProps> = (props) => {
                     viewMatrix={viewMatrix}
                     onViewMatrixChange={setViewMatrix}
                     operations={operations}
+                    initialBackground={initialBackground}
                     onChange={onChange}
                   />,
                 )}
