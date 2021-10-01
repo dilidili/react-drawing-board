@@ -188,6 +188,11 @@ const Block: React.FC<BlockProps> = (props) => {
                         refSketch.current.selectBackgroundImage(image);
                       }
                     }}
+                    removeBackgroundImage={() => {
+                      if (refSketch.current) {
+                        refSketch.current.removeBackgroundImage();
+                      }
+                    }}
                     undo={() => {
                       if (refSketch.current) {
                         refSketch.current.undo();
