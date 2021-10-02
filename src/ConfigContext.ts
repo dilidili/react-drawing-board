@@ -2,7 +2,7 @@ import React from 'react';
 
 export const DefaultConfig = {
   prefixCls: 'drawing-board',
-  useBackground: false,
+  showBackgroundTool: false,
 };
 
 const ConfigContext = React.createContext(DefaultConfig);

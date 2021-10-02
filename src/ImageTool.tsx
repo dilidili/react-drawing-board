@@ -15,6 +15,10 @@ const _cacheImgs: {
   [any: string]: HTMLImageElement;
 } = {};
 
+const _cacheBackgroundPosition: {
+  [any: string]: Position;
+} = {};
+
 export const drawImage = (
   item: Image,
   context: CanvasRenderingContext2D,
@@ -45,12 +49,22 @@ export const drawImage = (
 
 export const drawBackgroundImage = (
   item: Image,
+  canvas: HTMLCanvasElement,
   context: CanvasRenderingContext2D,
+  viewMatrix: number[],
   id: string,
   rerender: () => void,
 ) => {
-  const position = getBackgroundPosition(context);
-  drawImage(item, context, position, id, rerender);
+  let position: Position | undefined = _cacheBackgroundPosition[item.imageData];
+  if (position) {
+    drawImage(item, context, position, id, rerender);
+  } else {
+    onImageComplete(item.imageData, canvas, viewMatrix, (_tool, _data, pos) => {
+      position = pos;
+      _cacheBackgroundPosition[item.imageData] = pos;
+      drawImage(item, context, position, id, rerender);
+    });
+  }
 };
 
 export const onImageComplete = (

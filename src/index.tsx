@@ -32,7 +32,7 @@ interface BlockProps {
   onViewMatrixChange?: (viewMatrix: ViewMatrix) => void;
 
   // optional tools
-  useBackground?: boolean;
+  showBackgroundTool?: boolean;
   initialBackground?: string;
 
   style?: CSSProperties;
@@ -62,7 +62,7 @@ const Block: React.FC<BlockProps> = (props) => {
     toolbarPlacement,
     clsssName,
     onSave,
-    useBackground,
+    showBackgroundTool,
     initialBackground,
     viewMatrix: viewMatrixProp,
     onViewMatrixChange,
@@ -155,9 +155,9 @@ const Block: React.FC<BlockProps> = (props) => {
   const config = useMemo(() => {
     return {
       ...DefaultConfig,
-      useBackground,
+      showBackgroundTool,
     };
-  }, [DefaultConfig, useBackground]);
+  }, [DefaultConfig, showBackgroundTool]);
 
   const locale = props.locale && locales.messages[props.locale] ? props.locale : 'en-US';
 
