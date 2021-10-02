@@ -114,7 +114,7 @@ const DPR = window.devicePixelRatio || 1;
 
 const SELECT_BOX_PADDING = 3;
 
-const BackgroundOperationId = v4();
+const BackgroundOperationId = 'Background/' + v4();
 
 const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
 
@@ -565,7 +565,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   };
 
   const renderOperations = (operations: Operation[]) => {
-    if (!refContext.current) return;
+    if (!refContext.current || !refCanvas.current) return;
     const context = refContext.current;
 
     // clear canvas
@@ -575,17 +575,24 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     saveGlobalTransform();
 
     const renderBackgroundOperation = (operation: Operation) => {
-      restoreGlobalTransform();
-      drawBackgroundImage(operation as Image, context, operation.id, () => {
-        renderOperations(operations);
-      });
-      saveGlobalTransform();
+      // restoreGlobalTransform();
+      drawBackgroundImage(
+        operation as Image,
+        refCanvas.current,
+        context,
+        viewMatrix,
+        operation.id,
+        () => {
+          renderOperations(operations);
+        },
+      );
+      // saveGlobalTransform();
     };
 
     let backgroundOperation: Operation;
     if (initialBackground) {
       backgroundOperation = {
-        id: BackgroundOperationId,
+        id: `${BackgroundOperationId}/${initialBackground}`,
         userId,
         timestamp: Date.now(),
         tool: Tool.Background,
@@ -622,7 +629,6 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         case Tool.Background:
           backgroundOperation = operation;
           renderBackgroundOperation(backgroundOperation);
-          saveGlobalTransform();
           break;
         case Tool.Image:
           drawImage(operation as Image, context, operation.pos, operation.id, () => {

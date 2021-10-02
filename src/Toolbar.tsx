@@ -41,7 +41,7 @@ interface ToolConfig {
 }
 
 const useTools = () => {
-  const { useBackground } = useContext(ConfigContext);
+  const { showBackgroundTool } = useContext(ConfigContext);
 
   const tools: ToolConfig[] = useMemo(() => {
     return [
@@ -72,7 +72,7 @@ const useTools = () => {
         icon: ImageIcon,
         type: Tool.Image,
       },
-      ...(useBackground
+      ...(showBackgroundTool
         ? [
             {
               label: 'umi.block.sketch.background',
@@ -128,7 +128,7 @@ const useTools = () => {
           ]
         : []),
     ];
-  }, [useBackground]);
+  }, [showBackgroundTool]);
 
   return tools;
 };
