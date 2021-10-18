@@ -27,15 +27,15 @@
     "uuid": "^3.3.3"
   },
   "peerDependencies": {
-    "react": ">=16.0.0",
-    "react-dom": ">=16.0.0"
+    "react": ">=16.5.2",
+    "react-dom": ">=16.5.2"
   },
   "devDependencies": {
     "@types/classnames": "^2.2.9",
     "@types/uuid": "^3.4.6",
     "father": "^2.29.1",
-    "react": "^16.5.2",
-    "react-dom": "^16.5.2",
+    "react": ">=16.5.2",
+    "react-dom": ">=16.5.2",
     "umi": "^2.9.0",
     "umi-plugin-block-dev": "^2.0.0",
     "umi-plugin-react": "^1.14.8",
