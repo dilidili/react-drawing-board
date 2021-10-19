@@ -187,13 +187,20 @@ export const drawRectangle = (rect: Shape, context: CanvasRenderingContext2D, ho
   draw(rect, rect.end.x, rect.end.y, context, hover);
 };
 
-export const useShapeDropdown = (
-  currentToolOption: ToolOption,
-  setCurrentToolOption: (option: ToolOption) => void,
-  setCurrentTool: (tool: Tool) => void,
-  prefixCls: string,
-) => {
-  prefixCls = prefixCls += '-shapeTool';
+export const useShapeDropdown = (config: {
+  currentToolOption: ToolOption;
+  setCurrentToolOption: (option: ToolOption) => void;
+  setCurrentTool: (tool: Tool) => void;
+  prefixCls: string;
+}) => {
+  const {
+    currentToolOption,
+    setCurrentToolOption,
+    setCurrentTool,
+    prefixCls: basePrefixCls,
+  } = config;
+
+  const prefixCls = basePrefixCls + '-strokeTool';
 
   return (
     <div className={`${prefixCls}-strokeMenu`}>
@@ -300,7 +307,10 @@ export const useShapeDropdown = (
               >
                 <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
                 {currentToolOption.shapeBorderColor === color ? (
-                  <Icon type="check" style={color === '#ffffff' ? { color: '#979797' } : {color: '#fff'}} />
+                  <Icon
+                    type="check"
+                    style={color === '#ffffff' ? { color: '#979797' } : { color: '#fff' }}
+                  />
                 ) : null}
               </div>
             );

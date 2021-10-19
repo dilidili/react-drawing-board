@@ -1,6 +1,6 @@
 {
   "name": "react-drawing-board",
-  "version": "0.3.6",
+  "version": "0.5.0-beta.2",
   "description": "",
   "main": "lib/index.js",
   "authors": {
@@ -15,7 +15,8 @@
   "scripts": {
     "dev": "umi dev",
     "build": "father build",
-    "prepare": "npm run build"
+    "prepare": "npm run build",
+    "postinstall": "node scripts/postinstall.js"
   },
   "dependencies": {
     "@types/vfile-message": "^2.0.0",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@types/classnames": "^2.2.9",
+    "replace-in-file": "^5.0.2",
     "@types/uuid": "^3.4.6",
     "father": "^2.29.1",
     "react": ">=16.5.2",

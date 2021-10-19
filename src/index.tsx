@@ -31,6 +31,10 @@ interface BlockProps {
   viewMatrix?: ViewMatrix;
   onViewMatrixChange?: (viewMatrix: ViewMatrix) => void;
 
+  // optional tools
+  showBackgroundTool?: boolean;
+  initialBackground?: string;
+
   style?: CSSProperties;
 
   clsssName?: string;
@@ -46,11 +50,11 @@ const defaultProps: Partial<BlockProps> = {
   toolbarPlacement: 'top',
 };
 
-const enableSketchPadReducer = (state: boolean, action: boolean) => {
+const enableSketchPadReducer = (_state: boolean, action: boolean) => {
   return action;
 };
 
-const Block: React.FC<BlockProps> = props => {
+const Block: React.FC<BlockProps> = (props) => {
   const {
     userId,
     operations,
@@ -58,6 +62,8 @@ const Block: React.FC<BlockProps> = props => {
     toolbarPlacement,
     clsssName,
     onSave,
+    showBackgroundTool,
+    initialBackground,
     viewMatrix: viewMatrixProp,
     onViewMatrixChange,
   } = {
@@ -146,14 +152,21 @@ const Block: React.FC<BlockProps> = props => {
     };
   }, [...enableSketchPad]);
 
+  const config = useMemo(() => {
+    return {
+      ...DefaultConfig,
+      showBackgroundTool,
+    };
+  }, [DefaultConfig, showBackgroundTool]);
+
   const locale = props.locale && locales.messages[props.locale] ? props.locale : 'en-US';
 
   return (
-    <ConfigContext.Provider value={DefaultConfig}>
+    <ConfigContext.Provider value={config}>
       <IntlProvider locale={locale} messages={locales.messages[locale]}>
         <EnableSketchPadContext.Provider value={enableSketchPadContextValue}>
           <ConfigContext.Consumer>
-            {config => (
+            {(config) => (
               <div
                 className={`${config.prefixCls}-container ${clsssName || ''}`}
                 style={{ width: '100vw', height: '100vh', ...(props.style || {}) }}
@@ -169,6 +182,16 @@ const Block: React.FC<BlockProps> = props => {
                     selectImage={(image: string) => {
                       if (image && refSketch.current) {
                         refSketch.current.selectImage(image);
+                      }
+                    }}
+                    selectBackgroundImage={(image: string) => {
+                      if (image && refSketch.current) {
+                        refSketch.current.selectBackgroundImage(image);
+                      }
+                    }}
+                    removeBackgroundImage={() => {
+                      if (refSketch.current) {
+                        refSketch.current.removeBackgroundImage();
                       }
                     }}
                     undo={() => {
@@ -201,6 +224,7 @@ const Block: React.FC<BlockProps> = props => {
                     viewMatrix={viewMatrix}
                     onViewMatrixChange={setViewMatrix}
                     operations={operations}
+                    initialBackground={initialBackground}
                     onChange={onChange}
                   />,
                 )}

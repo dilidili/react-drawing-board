@@ -34,7 +34,14 @@ import {
   drawRectangle,
   useShapeDropdown,
 } from './ShapeTool';
-import { onImageComplete, Image, drawImage } from './ImageTool';
+import {
+  onImageComplete,
+  onBackgroundImageComplete,
+  Image,
+  drawImage,
+  Background,
+  drawBackgroundImage,
+} from './ImageTool';
 import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import {
   onSelectMouseDown,
@@ -59,6 +66,7 @@ export interface SketchPadProps {
   setCurrentTool: (tool: Tool) => void;
   currentToolOption: ToolOption;
   userId: string;
+  initialBackground?: string;
 
   // controlled mode.
   operations?: Operation[];
@@ -73,6 +81,8 @@ export type onSaveCallback = (image: { canvas: HTMLCanvasElement; dataUrl: strin
 
 export type SketchPadRef = {
   selectImage: (image: string) => void;
+  selectBackgroundImage: (image: string) => void;
+  removeBackgroundImage: () => void;
   undo: () => void;
   redo: () => void;
   clear: () => void;
@@ -83,11 +93,11 @@ export type Remove = {
   operationId: string;
 };
 
-export type Operation = (Stroke | Shape | Text | Image | Update | Remove) & {
+export type Operation = (Stroke | Shape | Text | Image | Background | Update | Remove) & {
   id: string;
   userId: string;
   timestamp: number;
-  pos: Position;
+  pos?: Position;
   tool: Tool;
 };
 
@@ -104,6 +114,8 @@ const DPR = window.devicePixelRatio || 1;
 
 const SELECT_BOX_PADDING = 3;
 
+const BackgroundOperationId = 'Background/' + v4();
+
 const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
 
 export type OperationListState = {
@@ -114,35 +126,45 @@ export type OperationListState = {
 const reduceOperations = (operations: Operation[]): Operation[] => {
   const undoHistory: Operation[] = [];
 
-  operations = operations
-    .sort((a, b) => a.timestamp - b.timestamp)
-    .reduce((r: Operation[], v) => {
-      switch (v.tool) {
-        case Tool.Undo:
-          if (r.length) {
-            undoHistory.push(r.pop() as Operation);
-          }
-          break;
-        case Tool.Redo:
-          if (undoHistory.length) {
-            r.push(undoHistory.pop() as Operation);
-          }
-          break;
-        default:
-          undoHistory.splice(0);
-          r.push(v);
-          break;
-      }
+  operations = operations.sort((a, b) => a.timestamp - b.timestamp);
 
+  // convert background image to draw image
+  let backgroundOperation: Operation & Background;
+  operations = operations.reduce((r: Operation[], v) => {
+    if (v.tool === Tool.Background) {
+      backgroundOperation = v as Operation & Background;
       return r;
-    }, []);
+    } else if (v.tool === Tool.RemoveBackground) {
+      backgroundOperation = undefined;
+      return r;
+    } else {
+      r.push(v);
+      return r;
+    }
+  }, []);
 
-  let clearIndex: number = -1;
-  while ((clearIndex = operations.findIndex((v) => v.tool === Tool.Clear)) > 0) {
-    operations = operations.slice(clearIndex);
-  }
+  operations = operations.reduce((r: Operation[], v) => {
+    switch (v.tool) {
+      case Tool.Undo:
+        if (r.length) {
+          undoHistory.push(r.pop() as Operation);
+        }
+        break;
+      case Tool.Redo:
+        if (undoHistory.length) {
+          r.push(undoHistory.pop() as Operation);
+        }
+        break;
+      default:
+        undoHistory.splice(0);
+        r.push(v);
+        break;
+    }
 
-  operations.forEach((v, k) => {
+    return r;
+  }, []);
+
+  operations.forEach((v) => {
     if (v.tool === Tool.Update) {
       const update = v as Update;
       const targetIndex = operations.findIndex((w) => w && w.id === update.operationId);
@@ -188,6 +210,9 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
     .map((v) => (v as Remove).operationId);
   operations = operations.filter((v) => v.tool !== Tool.Update && removeIds.indexOf(v.id) < 0); // keep Remove operation to keep undoable
 
+  if (backgroundOperation) {
+    operations.unshift(backgroundOperation);
+  }
   return operations;
 };
 
@@ -478,6 +503,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     userId,
     currentToolOption,
     operations,
+    initialBackground,
     onChange,
     viewMatrix,
     onViewMatrixChange,
@@ -539,7 +565,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
   };
 
   const renderOperations = (operations: Operation[]) => {
-    if (!refContext.current) return;
+    if (!refContext.current || !refCanvas.current) return;
     const context = refContext.current;
 
     // clear canvas
@@ -547,6 +573,33 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     context.clearRect(0, 0, context.canvas.width, context.canvas.height);
 
     saveGlobalTransform();
+
+    const renderBackgroundOperation = (operation: Operation) => {
+      // restoreGlobalTransform();
+      drawBackgroundImage(
+        operation as Image,
+        refCanvas.current,
+        context,
+        viewMatrix,
+        operation.id,
+        () => {
+          renderOperations(operations);
+        },
+      );
+      // saveGlobalTransform();
+    };
+
+    let backgroundOperation: Operation;
+    if (initialBackground) {
+      backgroundOperation = {
+        id: `${BackgroundOperationId}/${initialBackground}`,
+        userId,
+        timestamp: Date.now(),
+        tool: Tool.Background,
+        imageData: initialBackground,
+      };
+      renderBackgroundOperation(backgroundOperation);
+    }
     operations.forEach((operation) => {
       const hover =
         (!selectedOperation || selectedOperation.id !== operation.id) &&
@@ -557,6 +610,11 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           restoreGlobalTransform();
           context.clearRect(0, 0, context.canvas.width, context.canvas.height);
           saveGlobalTransform();
+
+          // background image should not be removed
+          if (backgroundOperation) {
+            renderBackgroundOperation(backgroundOperation);
+          }
           break;
         case Tool.Eraser:
         case Tool.Stroke:
@@ -567,6 +625,10 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           break;
         case Tool.Text:
           drawText(operation as Text, context, operation.pos);
+          break;
+        case Tool.Background:
+          backgroundOperation = operation;
+          renderBackgroundOperation(backgroundOperation);
           break;
         case Tool.Image:
           drawImage(operation as Image, context, operation.pos, operation.id, () => {
@@ -631,10 +693,6 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     return () => removeEventListener('resize', resizeHandler);
   }, []);
 
-  useEffect(() => {
-    renderOperations(operationListState.reduced);
-  }, [operationListState.reduced, viewMatrix, hoverOperationId, selectedOperation]);
-
   // disable default scrolling on mobile device.
   // refer: https://stackoverflow.com/questions/49500339/cant-prevent-touchmove-from-scrolling-window-on-ios
   useEffect(() => {
@@ -686,7 +744,11 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     });
   };
 
-  const { onMouseMove: onMouseResizeMove, onMouseUp: onMouseResizeUp, resizer } = useResizeHandler(
+  const {
+    onMouseMove: onMouseResizeMove,
+    onMouseUp: onMouseResizeUp,
+    resizer,
+  } = useResizeHandler(
     selectedOperation,
     viewMatrix,
     operationListState.queue,
@@ -912,6 +974,17 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     };
   }, []);
 
+  useEffect(() => {
+    renderOperations(operationListState.reduced);
+  }, [
+    operationListState.reduced,
+    viewMatrix,
+    hoverOperationId,
+    selectedOperation,
+    initialBackground,
+    refContext.current,
+  ]);
+
   const canvasStyle: CSSProperties = {};
   if (currentTool === Tool.Stroke) {
     canvasStyle.cursor = `url(${sketchStrokeCursor}) 0 14, crosshair`;
@@ -926,6 +999,16 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       selectImage: (image: string) => {
         if (image && refCanvas.current) {
           onImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation);
+        }
+      },
+      selectBackgroundImage: (image: string) => {
+        if (image && refCanvas.current) {
+          onBackgroundImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation);
+        }
+      },
+      removeBackgroundImage: () => {
+        if (refCanvas.current) {
+          handleCompleteOperation(Tool.RemoveBackground);
         }
       },
       undo: () => {
@@ -1000,11 +1083,11 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     }
   });
   const bindWheel = useWheel((state) => {
-    const { ctrlKey, event, delta } = state;
+    const { ctrlKey, event, delta, last } = state;
 
-    if (event && 'clientX' in event) {
+    if (event && !last && 'clientX' in event) {
       onWheel({
-        deltaY: delta[1],
+        deltaY: delta[1] / 4,
         ctrlKey,
         clientX: event.clientX + 0,
         clientY: event.clientY + 0,
@@ -1020,12 +1103,12 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
     switch (selectedOperation.tool) {
       case Tool.Stroke:
-        content = useStrokeDropdown(
-          {
+        content = useStrokeDropdown({
+          currentToolOption: {
             strokeSize: (selectedOperation as Stroke).size,
             strokeColor: (selectedOperation as Stroke).color,
           } as ToolOption,
-          (option: ToolOption) => {
+          setCurrentToolOption: (option: ToolOption) => {
             const data = {
               color: option.strokeColor,
               size: option.strokeSize,
@@ -1038,18 +1121,18 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
             setSelectedOperation({ ...selectedOperation, ...data });
           },
-          () => {},
+          setCurrentTool: () => {},
           prefixCls,
-        );
+        });
         break;
       case Tool.Shape:
-        content = useShapeDropdown(
-          {
+        content = useShapeDropdown({
+          currentToolOption: {
             shapeType: (selectedOperation as Shape).type,
             shapeBorderColor: (selectedOperation as Shape).color,
             shapeBorderSize: (selectedOperation as Shape).size,
           } as ToolOption,
-          (option: ToolOption) => {
+          setCurrentToolOption: (option: ToolOption) => {
             const data = {
               type: option.shapeType,
               color: option.shapeBorderColor,
@@ -1063,9 +1146,9 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
             setSelectedOperation({ ...selectedOperation, ...data });
           },
-          () => {},
+          setCurrentTool: () => {},
           prefixCls,
-        );
+        });
         break;
       case Tool.Text: {
         const textOperation: Text = selectedOperation as Text;

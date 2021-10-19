@@ -1,4 +1,5 @@
 import { MouseEvent } from 'react';
+import { getBackgroundPosition } from './BackgroundTool';
 import Tool, { Position } from './enums/Tool';
 import { mapClientToCanvas } from './utils';
 
@@ -6,8 +7,16 @@ export type Image = {
   imageData: string;
 };
 
+export type Background = {
+  imageData: string;
+};
+
 const _cacheImgs: {
   [any: string]: HTMLImageElement;
+} = {};
+
+const _cacheBackgroundPosition: {
+  [any: string]: Position;
 } = {};
 
 export const drawImage = (
@@ -35,6 +44,26 @@ export const drawImage = (
       });
   } else {
     context.drawImage(_cacheImgs[id], pos.x, pos.y, pos.w, pos.h);
+  }
+};
+
+export const drawBackgroundImage = (
+  item: Image,
+  canvas: HTMLCanvasElement,
+  context: CanvasRenderingContext2D,
+  viewMatrix: number[],
+  id: string,
+  rerender: () => void,
+) => {
+  let position: Position | undefined = _cacheBackgroundPosition[item.imageData];
+  if (position) {
+    drawImage(item, context, position, id, rerender);
+  } else {
+    onImageComplete(item.imageData, canvas, viewMatrix, (_tool, _data, pos) => {
+      position = pos;
+      _cacheBackgroundPosition[item.imageData] = pos;
+      drawImage(item, context, position, id, rerender);
+    });
   }
 };
 
@@ -87,4 +116,15 @@ export const onImageComplete = (
   };
 
   image.src = data;
+};
+
+export const onBackgroundImageComplete = (
+  data: string,
+  canvas: HTMLCanvasElement,
+  viewMatrix: number[],
+  handleCompleteOperation: (tool?: Tool, data?: Image, pos?: Position) => void,
+) => {
+  handleCompleteOperation(Tool.Background, {
+    imageData: data,
+  });
 };
