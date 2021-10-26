@@ -43,6 +43,7 @@ function Dropdown(props: any) {
     return fixedModeOverlay as React.ReactElement;
   };
 
+  const child = React.Children.only(props.children) as React.ReactElement<any>;
   return (
     <RcDropdown
       arrow={props.arrow}
@@ -51,12 +52,12 @@ function Dropdown(props: any) {
       overlayClassName={props.overlayClassNameCustomized}
       prefixCls={props.prefixCls}
       getPopupContainer={props.getPopupContainer || props.getContextPopupContainer}
-      transitionName={props.getTransitionName()}
-      trigger={props.triggerActions}
+      transitionName={'ease-in'}
+      trigger={'click'}
       overlay={() => renderOverlay('geekie')}
-      placement={props.getPlacement()}
+      placement={'bottomRight'}
     >
-      {props.trigger}
+      {child}
     </RcDropdown>
   );;
 }
