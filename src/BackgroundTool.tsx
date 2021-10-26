@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu } from 'antd';
+import { Menu } from './Layout';
 import { useIntl } from 'react-intl';
 import { Position } from './enums/Tool';
 

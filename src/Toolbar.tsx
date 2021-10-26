@@ -17,7 +17,7 @@ import BackgroundIcon from './svgs/BackgroundIcon';
 import { useStrokeDropdown } from './StrokeTool';
 import { useShapeDropdown } from './ShapeTool';
 import { useBackgroundDropdown } from './BackgroundTool';
-import { Dropdown } from 'antd';
+import { Dropdown } from './Layout';
 import classNames from 'classnames';
 import './Toolbar.less';
 import { isMobileDevice } from './utils';
