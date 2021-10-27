@@ -271,18 +271,19 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
           return (
             <Dropdown
-              getPopupContainer={(dom) => dom.parentElement}
+              // getPopupContainer={(dom) => dom.parentElement}
               key={tool.label}
               overlay={overlay}
-              placement={
-                toolbarPlacement === 'top' || toolbarPlacement === 'left'
-                  ? 'bottomLeft'
-                  : 'bottomRight'
-              }
-              trigger={[isMobileDevice ? 'click' : 'hover']}
+              // placement={
+              //   toolbarPlacement === 'top' || toolbarPlacement === 'left'
+              //     ? 'bottomLeft'
+              //     : 'bottomRight'
+              // }
+              // trigger={[isMobileDevice ? 'click' : 'hover']}
               onVisibleChange={(visible) => {
                 enableSketchPadContext.setEnable(!visible);
               }}
+              visible={enableSketchPadContext.enable}
             >
               {menu}
             </Dropdown>

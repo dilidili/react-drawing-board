@@ -2,7 +2,7 @@ import React from "react";
 import RcDropdown from 'rc-dropdown';
 
 function Dropdown(props: any) {
-  const renderOverlay = (prefixCls: string) => {
+  /*const renderOverlay = (prefixCls: string) => {
     // rc-dropdown already can process the function of overlay, but we have check logic here.
     // So we need render the element to check and pass back to rc-dropdown.
     const { overlay } = props;
@@ -59,7 +59,13 @@ function Dropdown(props: any) {
     >
       {child}
     </RcDropdown>
-  );;
+  );*/
+
+  return (
+    <div style={{display: props.visible?'block':'none'}}>
+      {props.children}
+    </div>
+  );
 }
 
 export { Dropdown };
