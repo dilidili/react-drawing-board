@@ -255,45 +255,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           </animated.div>
         );
 
-        if (tool.useDropdown) {
-          return menu;
-
-          // temporary dead code until we fix the dropdown
-          const overlay = tool.useDropdown({
-            currentToolOption,
-            setCurrentToolOption,
-            setCurrentTool,
-            prefixCls,
-            selectBackgroundImage: () => {
-              refBgFileInput.current.click();
-            },
-            removeBackgroundImage: () => {
-              removeBackgroundImage();
-            },
-          });
-
-          return (
-            <Dropdown
-              // getPopupContainer={(dom) => dom.parentElement}
-              key={tool.label}
-              overlay={overlay}
-              // placement={
-              //   toolbarPlacement === 'top' || toolbarPlacement === 'left'
-              //     ? 'bottomLeft'
-              //     : 'bottomRight'
-              // }
-              // trigger={[isMobileDevice ? 'click' : 'hover']}
-              onVisibleChange={(visible) => {
-                enableSketchPadContext.setEnable(!visible);
-              }}
-              visible={enableSketchPadContext.enable}
-            >
-              {menu}
-            </Dropdown>
-          );
-        } else {
-          return menu;
-        }
+        return menu;
       })}
 
       <input
