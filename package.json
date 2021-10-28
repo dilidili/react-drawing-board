@@ -19,7 +19,6 @@
   },
   "dependencies": {
     "@types/vfile-message": "^2.0.0",
-    "antd": "^3.26.0",
     "classnames": "^2.2.6",
     "react-intl": "^3.9.2",
     "react-spring": "^8.0.27",
