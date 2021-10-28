@@ -256,6 +256,9 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
         );
 
         if (tool.useDropdown) {
+          return menu;
+
+          // temporary dead code until we fix the dropdown
           const overlay = tool.useDropdown({
             currentToolOption,
             setCurrentToolOption,
