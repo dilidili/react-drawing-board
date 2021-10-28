@@ -17,7 +17,7 @@ import BackgroundIcon from './svgs/BackgroundIcon';
 import { useStrokeDropdown } from './StrokeTool';
 import { useShapeDropdown } from './ShapeTool';
 import { useBackgroundDropdown } from './BackgroundTool';
-import { Dropdown } from 'antd';
+import { Dropdown } from './Layout';
 import classNames from 'classnames';
 import './Toolbar.less';
 import { isMobileDevice } from './utils';
@@ -255,41 +255,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           </animated.div>
         );
 
-        if (tool.useDropdown) {
-          const overlay = tool.useDropdown({
-            currentToolOption,
-            setCurrentToolOption,
-            setCurrentTool,
-            prefixCls,
-            selectBackgroundImage: () => {
-              refBgFileInput.current.click();
-            },
-            removeBackgroundImage: () => {
-              removeBackgroundImage();
-            },
-          });
-
-          return (
-            <Dropdown
-              getPopupContainer={(dom) => dom.parentElement}
-              key={tool.label}
-              overlay={overlay}
-              placement={
-                toolbarPlacement === 'top' || toolbarPlacement === 'left'
-                  ? 'bottomLeft'
-                  : 'bottomRight'
-              }
-              trigger={[isMobileDevice ? 'click' : 'hover']}
-              onVisibleChange={(visible) => {
-                enableSketchPadContext.setEnable(!visible);
-              }}
-            >
-              {menu}
-            </Dropdown>
-          );
-        } else {
-          return menu;
-        }
+        return menu;
       })}
 
       <input

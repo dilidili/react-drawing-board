@@ -2,7 +2,7 @@ import React, { useState, useRef, CSSProperties, useEffect, useReducer, useMemo 
 import { v4 } from 'uuid';
 import { animated } from 'react-spring';
 import { IntlProvider } from 'react-intl';
-import { Layout } from 'antd';
+import { Layout } from './Layout';
 import Toolbar from './Toolbar';
 import SketchPad, {
   SketchPadRef,
