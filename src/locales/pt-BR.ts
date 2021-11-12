@@ -1,8 +1,8 @@
 export default {
   'umi.block.sketch.select': 'Selecionar',
-  'umi.block.sketch.pencil': 'Lápis (P)',
-  'umi.block.sketch.shape': 'Formas (R)',
-  'umi.block.sketch.text': 'Texto (T)',
+  'umi.block.sketch.pencil': 'Lápis',
+  'umi.block.sketch.shape': 'Formas',
+  'umi.block.sketch.text': 'Texto',
   'umi.block.sketch.image': 'Imagem',
   'umi.block.sketch.background': 'Fundo',
   'umi.block.sketch.undo': 'Desfazer',
