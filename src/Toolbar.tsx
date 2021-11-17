@@ -13,10 +13,8 @@ import ClearIcon from './svgs/ClearIcon';
 import ZoomIcon from './svgs/ZoomIcon';
 import SaveIcon from './svgs/SaveIcon';
 import EraserIcon from './svgs/EraserIcon';
-import BackgroundIcon from './svgs/BackgroundIcon';
 import { useStrokeDropdown } from './StrokeTool';
 import { useShapeDropdown } from './ShapeTool';
-import { useBackgroundDropdown } from './BackgroundTool';
 import { Dropdown } from './Layout';
 import classNames from 'classnames';
 import './Toolbar.less';
@@ -34,8 +32,8 @@ interface ToolConfig {
     setCurrentToolOption: (option: ToolOption) => void;
     setCurrentTool: (tool: Tool) => void;
     prefixCls: string;
-    selectBackgroundImage: () => void;
-    removeBackgroundImage: () => void;
+    selectBackgroundImage?: () => void;
+    removeBackgroundImage?: () => void;
   }) => JSX.Element;
   style?: React.CSSProperties;
 }
@@ -177,16 +175,16 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       const file = e.target.files && e.target.files[0];
       e.target.value = '';
 
-      if (file) {
-        let reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onloadend = () => {
-          const base64data = reader.result;
+    if (file) {
+      let reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onloadend = () => {
+        const base64data = reader.result;
 
-          cb(base64data as string);
-        };
-      }
-    };
+        cb(base64data as string);
+      };
+    }
+  };
 
   const handleSelectImage = handleFileChange(selectImage);
 
@@ -255,7 +253,34 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           </animated.div>
         );
 
-        return menu;
+        if (tool.useDropdown) {
+          const overlay = tool.useDropdown({
+            currentToolOption,
+            setCurrentToolOption,
+            setCurrentTool,
+            prefixCls,
+          });
+
+          return (
+            <Dropdown
+              key={tool.label}
+              overlay={overlay}
+              placement={
+                toolbarPlacement === 'top' || toolbarPlacement === 'left'
+                  ? 'bottomLeft'
+                  : 'bottomRight'
+              }
+              trigger={[isMobileDevice ? 'click' : 'hover']}
+              onVisibleChange={(visible) => {
+                enableSketchPadContext.setEnable(!visible);
+              }}
+            >
+              {menu}
+            </Dropdown>
+          );
+        } else {
+          return menu;
+        }
       })}
 
       <input
