@@ -33,7 +33,7 @@ export interface Position {
   h: number;
 }
 
-export const strokeSize = [2, 4, 6];
+export const strokeSize = [2, 4, 6, 9];
 
 export const strokeColor = [
   '#4a4a4a',

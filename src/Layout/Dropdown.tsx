@@ -1,34 +1,38 @@
-import React from "react";
+import React, { CSSProperties, MouseEventHandler } from "react";
+// import Tool, { ToolOption, defaultToolOption } from '../enums/Tool';
+// import { useStrokeDropdown } from "../StrokeTool";
 
 function Dropdown(props: any) {
   console.log('DROPDOWN', props);
-  // let settingMenu = null;
-  // let content = null;
-  // const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
+  const { children, overlay, isVisible, setVisible } = props;
+  function toggleVisibility() {
+    setVisible(!isVisible);
+  }
+
+  let settingMenu = null;
+  let content = null;
+  const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
 
   //   switch (selectedOperation.tool) {
   //     case Tool.Stroke:
-  //       content = useStrokeDropdown({
-  //         currentToolOption: {
-  //           strokeSize: (selectedOperation as Stroke).size,
-  //           strokeColor: (selectedOperation as Stroke).color,
-  //         } as ToolOption,
-  //         setCurrentToolOption: (option: ToolOption) => {
-  //           const data = {
-  //             color: option.strokeColor,
-  //             size: option.strokeSize,
-  //           };
+        // content = useStrokeDropdown({
+        //   currentToolOption: defaultToolOption,
+        //   setCurrentToolOption: (option: ToolOption) => {
+        //     const data = {
+        //       color: option.strokeColor,
+        //       size: option.strokeSize,
+        //     };
 
-  //           handleCompleteOperation(Tool.Update, {
-  //             operationId: selectedOperation.id,
-  //             data,
-  //           });
+        //     handleCompleteOperation(Tool.Update, {
+        //       operationId: selectedOperation.id,
+        //       data,
+        //     });
 
-  //           setSelectedOperation({ ...selectedOperation, ...data });
-  //         },
-  //         setCurrentTool: () => {},
-  //         prefixCls,
-  //       });
+        //     setSelectedOperation({ ...selectedOperation, ...data });
+        //   },
+        //   setCurrentTool: () => {},
+        //   prefixCls,
+        // });
   //       break;
   //     case Tool.Shape:
   //       content = useShapeDropdown({
@@ -101,31 +105,45 @@ function Dropdown(props: any) {
   //       break;
   //   }
 
-  //   // const resultRect = {
-  //   //   xMin: selectedOperation.pos.x,
-  //   //   xMax: selectedOperation.pos.x + selectedOperation.pos.w,
-  //   //   yMin: selectedOperation.pos.y,
-  //   //   yMax: selectedOperation.pos.y + selectedOperation.pos.h,
-  //   // };
+  // const resultRect = {
+  //   xMin: 10,
+  //   xMax: 10 + 600,
+  //   yMin: 200,
+  //   yMax: 200 + 600,
+  // };
 
-  //   // const [a, b, c, d, e, f] = viewMatrix;
-  //   // const selectPadding = Math.max((SELECT_PADDING * 1) / scale || 0, SELECT_PADDING);
-  //   // const left = resultRect.xMin;
-  //   // const top = resultRect.yMax + selectPadding;
+  // const [a, b, c, d, e, f] = viewMatrix;
+  // const selectPadding = Math.max((SELECT_PADDING * 1) / scale || 0, SELECT_PADDING);
+  // const left = resultRect.xMin;
+  // const top = resultRect.yMax + selectPadding;
 
-  //   const menuStyle: CSSProperties = {
-  //     position: 'absolute',
-  //     left: a * left + c * top + e,
-  //     top: b * left + d * top + f,
-  //   };
+  const menuStyle: CSSProperties = {
+    position: 'absolute',
+    top: 150,
+    left: 0,
+    // left: a * left + c * top + e,
+    // top: b * left + d * top + f,
+  };
 
-  //   settingMenu = (
-  //     <div style={menuStyle} onMouseDown={stopPropagation}>
-  //       {content}
-  //     </div>
-  //   );
+  settingMenu = (
+    <div style={menuStyle} onMouseDown={stopPropagation}>
+      {/* {content} */}
+      {overlay}
+    </div>
+  );
 
-  return <div>{props.children}</div>;
+  return (
+    <div
+      style={{backgroundColor: 'rgba(255,0,0,0.3)', position: 'relative'}}
+      onClick={toggleVisibility}
+    >
+      {children}
+      {isVisible ? settingMenu : null}
+    </div>
+
+  );
+  // if (!visible) return null;
+  // return <div onClick={onVisibleChange}>{overlay}</div>;
 }
 
 export { Dropdown };
