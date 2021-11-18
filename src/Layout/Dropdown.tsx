@@ -4,10 +4,10 @@ import React, { CSSProperties, MouseEventHandler } from "react";
 
 function Dropdown(props: any) {
   console.log('DROPDOWN', props);
-  const { children, overlay, isVisible, setVisible } = props;
-  function toggleVisibility() {
-    setVisible(!isVisible);
-  }
+  const { children, overlay, isVisible } = props;
+  // function toggleVisibility() {
+  //   setVisible(!isVisible);
+  // }
 
   let settingMenu = null;
   let content = null;
@@ -135,7 +135,7 @@ function Dropdown(props: any) {
   return (
     <div
       style={{backgroundColor: 'rgba(255,0,0,0.3)', position: 'relative'}}
-      onClick={toggleVisibility}
+      // onClick={toggleVisibility}
     >
       {children}
       {isVisible ? settingMenu : null}

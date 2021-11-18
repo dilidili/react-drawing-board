@@ -268,8 +268,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               key={tool.label}
               overlay={overlay}
               trigger={['hover']}
-              setVisible={enableSketchPadContext.setEnable}
-              isVisible={enableSketchPadContext.enable}
+              isVisible={currentTool === tool.type}
             >
               {menu}
             </Dropdown>
