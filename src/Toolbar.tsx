@@ -1,7 +1,7 @@
 import React, { useRef, ChangeEventHandler, useContext, useMemo } from 'react';
 import { useSpring, animated } from 'react-spring';
 import { useIntl } from 'react-intl';
-import Tool, { ToolOption } from './enums/Tool';
+import Tool, { ToolOption, ToolConfig, ToolbarProps } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
 import ShapeIcon from './svgs/ShapeIcon';
@@ -23,22 +23,6 @@ import './Toolbar.less';
 import { isMobileDevice } from './utils';
 import ConfigContext from './ConfigContext';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
-
-interface ToolConfig {
-  label: string;
-  icon: React.FC;
-  type: Tool;
-  labelThunk?: (props: ToolbarProps) => string;
-  useDropdown?: (config: {
-    currentToolOption: ToolOption;
-    setCurrentToolOption: (option: ToolOption) => void;
-    setCurrentTool: (tool: Tool) => void;
-    prefixCls: string;
-    selectBackgroundImage?: () => void;
-    removeBackgroundImage?: () => void;
-  }) => JSX.Element;
-  style?: React.CSSProperties;
-}
 
 const useTools = () => {
   const { showBackgroundTool } = useContext(ConfigContext);
@@ -133,22 +117,6 @@ const useTools = () => {
   return tools;
 };
 
-export interface ToolbarProps {
-  currentTool: Tool;
-  setCurrentTool: (tool: Tool) => void;
-  currentToolOption: ToolOption;
-  setCurrentToolOption: (option: ToolOption) => void;
-  selectImage: (image: string) => void;
-  selectBackgroundImage: (image: string) => void;
-  removeBackgroundImage: () => void;
-  undo: () => void;
-  redo: () => void;
-  clear: () => void;
-  save: () => void;
-  scale: number;
-  toolbarPlacement: string;
-}
-
 const Toolbar: React.FC<ToolbarProps> = (props) => {
   const {
     currentTool,
@@ -239,6 +207,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 clear();
               } else if (tool.type === Tool.Zoom) {
               } else if (tool.type === Tool.Save) {
+                enableSketchPadContext.setEnable(false);
                 save();
               } else {
                 setCurrentTool(tool.type);
@@ -265,10 +234,11 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
           return (
             <Dropdown
+              tool={tool}
               key={tool.label}
               overlay={overlay}
-              trigger={['hover']}
-              isVisible={currentTool === tool.type}
+              trigger={[isMobileDevice ? 'click' : 'hover']}
+              isCurrent={currentTool === tool.type}
             >
               {menu}
             </Dropdown>
