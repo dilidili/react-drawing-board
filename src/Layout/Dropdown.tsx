@@ -1,23 +1,23 @@
-import React, { useState } from "react";
+import React, { CSSProperties, MouseEventHandler, useState } from "react";
 import { ToolConfig } from "../enums/Tool";
 
 type Props = {
-  tool: any;
-  key: any;
-  overlay: any;
-  trigger: any;
-  isCurrent: any;
-  children: any;
+  tool: ToolConfig;
+  key: string;
+  overlay: JSX.Element;
+  trigger: Array<'click' | 'hover'>;
+  isCurrent: boolean;
+  children: React.Component | Array<React.Component>;
 };
 
-function Dropdown(props: any) {
+function Dropdown(props: Props) {
   console.log('DROPDOWN', props);
   const { children, overlay, isCurrent } = props;
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
-  const stopPropagation: any = (e: any) => e.stopPropagation();
+  const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
 
-  const menuStyle: any = {
+  const menuStyle: CSSProperties = {
     position: 'absolute',
     top: 56,
   };
@@ -28,7 +28,7 @@ function Dropdown(props: any) {
     </div>
   );
 
-  const wrapperStyle: any = {position: 'relative'};
+  const wrapperStyle: CSSProperties = { position: 'relative' };
 
   return (
     <div
