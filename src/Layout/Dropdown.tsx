@@ -1,13 +1,13 @@
 import React, { CSSProperties, MouseEventHandler, useState } from "react";
-import { ToolConfig } from "../enums/Tool";
+// import { ToolConfig } from "../enums/Tool";
 
 type Props = {
-  tool: ToolConfig;
-  key: string;
-  overlay: JSX.Element;
-  trigger: Array<'click' | 'hover'>;
-  isCurrent: boolean;
-  children: React.Component | Array<React.Component>;
+  tool: any;
+  key: any;
+  overlay: any;
+  trigger: any;
+  isCurrent: any;
+  children: any;
 };
 
 function Dropdown(props: Props) {
