@@ -1,7 +1,7 @@
 import React, { useRef, ChangeEventHandler, useContext, useMemo } from 'react';
 import { useSpring, animated } from 'react-spring';
 import { useIntl } from 'react-intl';
-import Tool, { ToolOption, ToolConfig, ToolbarProps } from './enums/Tool';
+import Tool, { ToolConfig, ToolOption } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
 import ShapeIcon from './svgs/ShapeIcon';
@@ -23,6 +23,22 @@ import './Toolbar.less';
 import { isMobileDevice } from './utils';
 import ConfigContext from './ConfigContext';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
+
+export type ToolbarProps = {
+  currentTool: Tool;
+  setCurrentTool: (tool: Tool) => void;
+  currentToolOption: ToolOption;
+  setCurrentToolOption: (option: ToolOption) => void;
+  selectImage: (image: string) => void;
+  selectBackgroundImage: (image: string) => void;
+  removeBackgroundImage: () => void;
+  undo: () => void;
+  redo: () => void;
+  clear: () => void;
+  save: () => void;
+  scale: number;
+  toolbarPlacement: string;
+};
 
 const useTools = () => {
   const { showBackgroundTool } = useContext(ConfigContext);

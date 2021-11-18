@@ -81,27 +81,11 @@ export type ToolOption = {
       };
 };
 
-export type ToolbarProps = {
-  currentTool: Tool;
-  setCurrentTool: (tool: Tool) => void;
-  currentToolOption: ToolOption;
-  setCurrentToolOption: (option: ToolOption) => void;
-  selectImage: (image: string) => void;
-  selectBackgroundImage: (image: string) => void;
-  removeBackgroundImage: () => void;
-  undo: () => void;
-  redo: () => void;
-  clear: () => void;
-  save: () => void;
-  scale: number;
-  toolbarPlacement: string;
-};
-
 export type ToolConfig = {
   label: string;
   icon: React.FC;
   type: Tool;
-  labelThunk?: (props: ToolbarProps) => string;
+  labelThunk?: (props: { scale: number }) => string;
   useDropdown?: (config: {
     currentToolOption: ToolOption;
     setCurrentToolOption: (option: ToolOption) => void;

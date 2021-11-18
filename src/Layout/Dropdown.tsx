@@ -1,5 +1,5 @@
-import React, { CSSProperties, MouseEventHandler, useState } from "react";
-import Tool, { ToolConfig } from "../enums/Tool";
+import React, { useState } from "react";
+import { ToolConfig } from "../enums/Tool";
 
 type Props = {
   tool: ToolConfig;
@@ -15,9 +15,9 @@ function Dropdown(props: Props) {
   const { children, overlay, isCurrent } = props;
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
-  const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
+  const stopPropagation: any = (e) => e.stopPropagation();
 
-  const menuStyle: CSSProperties = {
+  const menuStyle: any = {
     position: 'absolute',
     top: 56,
   };
@@ -39,8 +39,6 @@ function Dropdown(props: Props) {
     </div>
 
   );
-  // if (!visible) return null;
-  // return <div onClick={onVisibleChange}>{overlay}</div>;
 }
 
 export { Dropdown };
