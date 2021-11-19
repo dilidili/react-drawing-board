@@ -249,15 +249,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           });
 
           return (
-            <Dropdown
-              tool={tool}
-              key={tool.label}
-              overlay={overlay}
-              trigger={[isMobileDevice ? 'click' : 'hover']}
-              isCurrent={currentTool === tool.type}
-            >
-              {menu}
-            </Dropdown>
+            <Dropdown key={tool.label} overlay={overlay}>{menu}</Dropdown>
           );
         } else {
           return menu;
