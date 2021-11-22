@@ -49,29 +49,29 @@ const useTools = () => {
         label: 'umi.block.sketch.select',
         icon: SelectIcon,
         type: Tool.Select,
-      } as ToolConfig,
+      },
       {
         label: 'umi.block.sketch.pencil',
         icon: StrokeIcon,
         type: Tool.Stroke,
         useDropdown: useStrokeDropdown,
-      } as ToolConfig,
+      },
       {
         label: 'umi.block.sketch.shape',
         icon: ShapeIcon,
         type: Tool.Shape,
         useDropdown: useShapeDropdown,
-      } as ToolConfig,
+      },
       {
         label: 'umi.block.sketch.text',
         icon: TextIcon,
         type: Tool.Text,
-      } as ToolConfig,
+      },
       {
         label: 'umi.block.sketch.image',
         icon: ImageIcon,
         type: Tool.Image,
-      } as ToolConfig,
+      },
       ...(showBackgroundTool
         ? [
             {
@@ -79,7 +79,7 @@ const useTools = () => {
               icon: BackgroundIcon,
               type: Tool.Background,
               useDropdown: useBackgroundDropdown,
-            } as ToolConfig,
+            },
           ]
         : []),
       {
@@ -89,17 +89,17 @@ const useTools = () => {
         style: {
           marginLeft: 'auto',
         },
-      } as ToolConfig,
+      },
       {
         label: 'umi.block.sketch.redo',
         icon: RedoIcon,
         type: Tool.Redo,
-      } as ToolConfig,
+      },
       {
         label: 'umi.block.sketch.eraser',
         icon: EraserIcon,
         type: Tool.Eraser,
-      } as ToolConfig,
+      },
       {
         label: 'umi.block.sketch.clear',
         icon: ClearIcon,
@@ -107,7 +107,7 @@ const useTools = () => {
         style: {
           marginRight: 'auto',
         },
-      } as ToolConfig,
+      },
       ...(!isMobileDevice
         ? [
             {
@@ -115,7 +115,7 @@ const useTools = () => {
               labelThunk: (props: ToolbarProps) => `${~~(props.scale * 100)}%`,
               icon: ZoomIcon,
               type: Tool.Zoom,
-            } as ToolConfig,
+            },
           ]
         : []),
       ...(!isMobileDevice
@@ -124,7 +124,7 @@ const useTools = () => {
               label: 'umi.block.sketch.save',
               icon: SaveIcon,
               type: Tool.Save,
-            } as ToolConfig,
+            },
           ]
         : []),
     ];
