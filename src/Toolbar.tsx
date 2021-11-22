@@ -177,16 +177,16 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
       const file = e.target.files && e.target.files[0];
       e.target.value = '';
 
-    if (file) {
-      let reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onloadend = () => {
-        const base64data = reader.result;
+      if (file) {
+        let reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onloadend = () => {
+          const base64data = reader.result;
 
-        cb(base64data as string);
-      };
-    }
-  };
+          cb(base64data as string);
+        };
+      }
+    };
 
   const handleSelectImage = handleFileChange(selectImage);
 
