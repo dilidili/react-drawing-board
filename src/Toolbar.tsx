@@ -262,6 +262,12 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             setCurrentToolOption,
             setCurrentTool,
             prefixCls,
+            selectBackgroundImage: () => {
+              refBgFileInput.current.click();
+            },
+            removeBackgroundImage: () => {
+              removeBackgroundImage();
+            },
           });
 
           return (
