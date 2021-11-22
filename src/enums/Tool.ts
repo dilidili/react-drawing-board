@@ -81,20 +81,4 @@ export type ToolOption = {
       };
 };
 
-export type ToolConfig = {
-  label: string;
-  icon: React.FC;
-  type: Tool;
-  labelThunk?: (props: { scale: number }) => string;
-  useDropdown?: (config: {
-    currentToolOption: ToolOption;
-    setCurrentToolOption: (option: ToolOption) => void;
-    setCurrentTool: (tool: Tool) => void;
-    prefixCls: string;
-    selectBackgroundImage?: () => void;
-    removeBackgroundImage?: () => void;
-  }) => JSX.Element;
-  style?: React.CSSProperties;
-}
-
 export default Tool;
