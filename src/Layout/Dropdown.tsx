@@ -10,6 +10,8 @@ function Dropdown(props: Props) {
   const { children, overlay, key } = props;
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
+  // This code will prevent accidentally drawing under the dropdown when you are
+  // selecting an item from the tool options
   const stopPropagation: MouseEventHandler = (e) => e.stopPropagation();
 
   const menuStyle: CSSProperties = {
