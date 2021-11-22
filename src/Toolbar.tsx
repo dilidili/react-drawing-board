@@ -239,7 +239,6 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
                 clear();
               } else if (tool.type === Tool.Zoom) {
               } else if (tool.type === Tool.Save) {
-                enableSketchPadContext.setEnable(false);
                 save();
               } else {
                 setCurrentTool(tool.type);
