@@ -1,0 +1,33 @@
+.drawing-board-sketchpad-container {
+  position: relative;
+  height: 100%;
+  background-color: white;
+  width: 100%;
+}
+.drawing-board-sketchpad-canvas {
+  width: 100%;
+  height: 100%;
+}
+.drawing-board-sketchpad-textInput {
+  position: absolute;
+  outline: none;
+  display: none;
+  background: none;
+  vertical-align: middle;
+  border: 0px;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.42em;
+  padding: 0;
+  white-space: nowrap;
+  user-select: auto;
+}
+.drawing-board-sketchpad-resizer {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: #ffffff;
+  border: 1px solid #d0d0d0;
+  transform: translate(-50%, -50%);
+  cursor: pointer;
+}

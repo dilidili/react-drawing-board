@@ -1,0 +1,96 @@
+.drawing-board-strokeTool-strokeMenu {
+  background: #ffffff;
+  box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-colorAndSize {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-strokeSelector {
+  display: flex;
+  align-items: center;
+}
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-strokeSelector > div {
+  background: #eeeeee;
+  border-radius: 50%;
+  margin-right: 8px;
+  cursor: pointer;
+}
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-strokeSelector > div:last-child {
+  margin-right: 0;
+}
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-shape {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px dashed #eee;
+  padding: 0 5px;
+}
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-shape .drawing-board-strokeTool-shapeItem {
+  width: 25px;
+  height: 35px;
+  margin-right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-shape .drawing-board-strokeTool-shapeItem .drawing-board-strokeTool-rect {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+}
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-shape .drawing-board-strokeTool-shapeItem .drawing-board-strokeTool-circle {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+}
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-split {
+  width: 1px;
+  height: 20px;
+  background: #E9E9E9;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.drawing-board-strokeTool-palette {
+  display: flex;
+  align-items: center;
+}
+.drawing-board-strokeTool-palette .drawing-board-strokeTool-color {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #E9E9E9;
+  padding: 1px;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.drawing-board-strokeTool-palette .drawing-board-strokeTool-color .anticon {
+  font-size: 10px;
+  position: absolute;
+  color: white;
+  line-height: 14px;
+  left: 3px;
+  top: 2px;
+}
+.drawing-board-strokeTool-palette .drawing-board-strokeTool-color .drawing-board-strokeTool-fill {
+  width: 14px;
+  height: 14px;
+}
+.drawing-board-strokeTool-palette .drawing-board-strokeTool-color .drawing-board-strokeTool-opacityColor {
+  position: absolute;
+  top: -4px;
+  left: 7px;
+  width: 1px;
+  height: 22px;
+  transform: rotate(45deg);
+  background: #F45B6C;
+}
+.drawing-board-strokeTool-palette .drawing-board-strokeTool-color:last-child {
+  margin-right: 0;
+}

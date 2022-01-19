@@ -1,0 +1,99 @@
+.drawing-board-textTool-strokeMenu {
+  background: #ffffff;
+  box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-colorAndSize {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-textSizeSelector {
+  display: flex;
+  align-items: center;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-textSizeSelector > div {
+  font-size: 12px;
+  margin-right: 8px;
+  cursor: pointer;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-textSizeSelector > div:first-child {
+  font-size: 10px;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-textSizeSelector > div:last-child {
+  margin-right: 0;
+  font-size: 14px;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-shape {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px dashed #eee;
+  padding: 0 5px;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-shape .drawing-board-textTool-shapeItem {
+  width: 25px;
+  height: 35px;
+  margin-right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-shape .drawing-board-textTool-shapeItem .drawing-board-textTool-rect {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-shape .drawing-board-textTool-shapeItem .drawing-board-textTool-circle {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+}
+.drawing-board-textTool-strokeMenu .drawing-board-textTool-split {
+  width: 1px;
+  height: 20px;
+  background: #E9E9E9;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.drawing-board-textTool-palette {
+  display: flex;
+  align-items: center;
+}
+.drawing-board-textTool-palette .drawing-board-textTool-color {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #E9E9E9;
+  padding: 1px;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.drawing-board-textTool-palette .drawing-board-textTool-color .anticon {
+  font-size: 10px;
+  position: absolute;
+  color: white;
+  line-height: 14px;
+  left: 3px;
+  top: 2px;
+}
+.drawing-board-textTool-palette .drawing-board-textTool-color .drawing-board-textTool-fill {
+  width: 14px;
+  height: 14px;
+}
+.drawing-board-textTool-palette .drawing-board-textTool-color .drawing-board-textTool-opacityColor {
+  position: absolute;
+  top: -4px;
+  left: 7px;
+  width: 1px;
+  height: 22px;
+  transform: rotate(45deg);
+  background: #F45B6C;
+}
+.drawing-board-textTool-palette .drawing-board-textTool-color:last-child {
+  margin-right: 0;
+}

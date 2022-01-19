@@ -1,0 +1,122 @@
+.drawing-board-shapeTool-strokeMenu {
+  background: #ffffff;
+  box-shadow: 0px 1px 4px 0px rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+.drawing-board-shapeTool-strokeMenu .drawing-board-shapeTool-colorAndSize {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+}
+.drawing-board-shapeTool-strokeMenu .drawing-board-shapeTool-strokeSelector {
+  display: flex;
+  align-items: center;
+}
+.drawing-board-shapeTool-strokeMenu .drawing-board-shapeTool-strokeSelector > div {
+  background: #eeeeee;
+  border-radius: 50%;
+  margin-right: 8px;
+  cursor: pointer;
+}
+.drawing-board-shapeTool-strokeMenu .drawing-board-shapeTool-strokeSelector > div:last-child {
+  margin-right: 0;
+}
+.drawing-board-shapeTool-strokeMenu .drawing-board-shapeTool-shape {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px dashed #eee;
+  padding: 0 5px;
+}
+.drawing-board-shapeTool-strokeMenu .drawing-board-shapeTool-shape .drawing-board-shapeTool-shapeItem {
+  width: 25px;
+  height: 35px;
+  margin-right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.drawing-board-shapeTool-strokeMenu .drawing-board-shapeTool-shape .drawing-board-shapeTool-shapeItem .drawing-board-shapeTool-rect {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+}
+.drawing-board-shapeTool-strokeMenu .drawing-board-shapeTool-shape .drawing-board-shapeTool-shapeItem .drawing-board-shapeTool-circle {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+}
+.drawing-board-shapeTool-strokeMenu .drawing-board-shapeTool-split {
+  width: 1px;
+  height: 20px;
+  background: #E9E9E9;
+  margin-left: 10px;
+  margin-right: 10px;
+}
+.drawing-board-shapeTool-palette {
+  display: flex;
+  align-items: center;
+}
+.drawing-board-shapeTool-palette .drawing-board-shapeTool-color {
+  width: 18px;
+  height: 18px;
+  border: 1px solid #E9E9E9;
+  padding: 1px;
+  margin-right: 10px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.drawing-board-shapeTool-palette .drawing-board-shapeTool-color .anticon {
+  font-size: 10px;
+  position: absolute;
+  color: white;
+  line-height: 14px;
+  left: 3px;
+  top: 2px;
+}
+.drawing-board-shapeTool-palette .drawing-board-shapeTool-color .drawing-board-shapeTool-fill {
+  width: 14px;
+  height: 14px;
+}
+.drawing-board-shapeTool-palette .drawing-board-shapeTool-color .drawing-board-shapeTool-opacityColor {
+  position: absolute;
+  top: -4px;
+  left: 7px;
+  width: 1px;
+  height: 22px;
+  transform: rotate(45deg);
+  background: #F45B6C;
+}
+.drawing-board-shapeTool-palette .drawing-board-shapeTool-color:last-child {
+  margin-right: 0;
+}
+.drawing-board-shapeTool-shape {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px dashed #eee;
+  padding: 0 5px;
+}
+.drawing-board-shapeTool-shape .drawing-board-shapeTool-shapeItem {
+  width: 25px;
+  height: 35px;
+  margin-right: 5px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.drawing-board-shapeTool-shape .drawing-board-shapeTool-shapeItem .drawing-board-shapeTool-rect {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+}
+.drawing-board-shapeTool-shape .drawing-board-shapeTool-shapeItem .drawing-board-shapeTool-circle {
+  width: 15px;
+  height: 15px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+}
