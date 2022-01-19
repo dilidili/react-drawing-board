@@ -6,9 +6,9 @@
     "importHelpers": true,
     "declaration": true,
     "jsx": "react",
-    "isolatedModules": true,
+    "skipLibCheck": true,
     "esModuleInterop": true,
-    "sourceMap": true,
+    "sourceMap": false,
     "baseUrl": ".",
     "strict": false,
     "paths": {
