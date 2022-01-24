@@ -2,6 +2,10 @@
 
 Browser drawing board created with canvas and React.
 
+## Fork-specific instructions
+
+The built files are commited in the repository. So if you change a file in the `src` folder, be sure to run `npm run build` so that that the corresponding file in the `lib` folder is changed as well.
+
 ## Preview
 
 ![preview](https://raw.githubusercontent.com/dilidili/react-drawing-board/master/preview.png)
