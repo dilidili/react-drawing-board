@@ -1257,7 +1257,6 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       onTouchEnd={onTouchEnd}
       onMouseUp={onMouseUp}
     >
-      <div id="test"></div>
       <canvas
         ref={refCanvas}
         onDoubleClick={onDoubleClick}
