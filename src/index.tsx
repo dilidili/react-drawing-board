@@ -92,6 +92,12 @@ const Block: React.FC<BlockProps> = (props) => {
   useEffect(() => {
     const keydownHandler = (evt: KeyboardEvent) => {
       const { keyCode } = evt;
+
+      // prevent shorcut when user input text 
+      if (currentTool === Tool.Text) {
+        return;
+      }
+
       // key 'p'
       if (keyCode === 80) {
         setCurrentTool(Tool.Stroke);
@@ -112,7 +118,7 @@ const Block: React.FC<BlockProps> = (props) => {
     addEventListener('keydown', keydownHandler);
 
     return () => removeEventListener('keydown', keydownHandler);
-  }, []);
+  }, [currentTool]);
 
   const renderWithLayout = (toolbar: React.ReactElement, sketchPad: React.ReactElement) => {
     if (toolbarPlacement === 'left' || isMobileDevice) {
