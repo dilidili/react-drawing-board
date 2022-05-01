@@ -36,7 +36,7 @@ export const onTextMouseDown = (
     const { top, left } = canvas.getBoundingClientRect();
 
     let x = e.clientX - left;
-    let y = e.clientY - top;
+    let y = e.clientY - top - toolOption.textSize / 2;
 
     textarea.style.display = 'block';
     textarea.style.left = x + canvas.offsetLeft + 'px';
