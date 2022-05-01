@@ -108,20 +108,6 @@ export function onStrokeMouseUp(
     return;
   }
 
-  // click to back to select mode.
-  if (stroke.points.length < 6) {
-    if (!isMobileDevice) {
-      setCurrentTool(Tool.Select);
-    }
-
-    handleCompleteOperation();
-
-    points = [];
-    stroke = null;
-
-    return;
-  }
-
   const item = stroke;
   points = [];
   stroke = null;
