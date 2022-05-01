@@ -36,7 +36,7 @@ export const onTextMouseDown = (
     const { top, left } = canvas.getBoundingClientRect();
 
     let x = e.clientX - left;
-    let y = e.clientY - top - toolOption.textSize / 2;
+    let y = e.clientY - top;
 
     textarea.style.display = 'block';
     textarea.style.left = x + canvas.offsetLeft + 'px';
@@ -111,7 +111,6 @@ export const onTextComplete = (
     };
 
     handleCompleteOperation(Tool.Text, { text, color: currentColor, size: currentSize }, pos);
-    setCurrentTool(Tool.Select);
     currentText = '';
   }
 };

@@ -170,8 +170,6 @@ export const onShapeMouseUp = (
     h: Math.abs(item.end.y - item.start.y),
   });
 
-  setCurrentTool(Tool.Select);
-
   return [item];
 };
 

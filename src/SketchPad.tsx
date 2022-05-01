@@ -485,8 +485,8 @@ const useResizeHandler = (
     };
   } else
     return {
-      onMouseMove: () => {},
-      onMouseUp: () => {},
+      onMouseMove: () => { },
+      onMouseUp: () => { },
       resizer: null,
     };
 };
@@ -783,7 +783,10 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         onShapeMouseDown(x, y, currentToolOption);
         break;
       case Tool.Text:
-        onTextMouseDown(e, currentToolOption, scale, refInput, refCanvas, intl);
+        onTextMouseDown({
+          clientX: e.clientX + 2,
+          clientY: e.clientY - currentToolOption.textSize / 2
+        }, currentToolOption, scale, refInput, refCanvas, intl);
         break;
       default:
         break;
@@ -1121,7 +1124,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
             setSelectedOperation({ ...selectedOperation, ...data });
           },
-          setCurrentTool: () => {},
+          setCurrentTool: () => { },
           prefixCls,
         });
         break;
@@ -1146,7 +1149,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
 
             setSelectedOperation({ ...selectedOperation, ...data });
           },
-          setCurrentTool: () => {},
+          setCurrentTool: () => { },
           prefixCls,
         });
         break;
@@ -1186,7 +1189,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
             // @ts-ignore
             setSelectedOperation({ ...selectedOperation, ...data });
           },
-          () => {},
+          () => { },
           intl,
           prefixCls,
         );
