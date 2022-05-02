@@ -64,11 +64,12 @@
   border: 1px solid #E9E9E9;
   padding: 1px;
   margin-right: 10px;
-  display: flex;
-  align-items: center;
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .drawing-board-strokeTool-palette .drawing-board-strokeTool-color .anticon {
   font-size: 10px;

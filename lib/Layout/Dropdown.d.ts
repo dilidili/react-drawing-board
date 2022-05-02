@@ -1,6 +1,5 @@
 /// <reference types="react" />
 declare type Props = {
-    key: string;
     overlay: JSX.Element;
     children: JSX.Element | Array<JSX.Element>;
 };
