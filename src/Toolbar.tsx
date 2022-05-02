@@ -23,6 +23,7 @@ import './Toolbar.less';
 import { isMobileDevice } from './utils';
 import ConfigContext from './ConfigContext';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
+import { useTextDropdown } from './TextTool';
 
 interface ToolConfig {
   label: string;
@@ -66,6 +67,7 @@ const useTools = () => {
         label: 'umi.block.sketch.text',
         icon: TextIcon,
         type: Tool.Text,
+        useDropdown: useTextDropdown,
       },
       {
         label: 'umi.block.sketch.image',

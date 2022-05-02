@@ -1155,12 +1155,12 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         break;
       case Tool.Text: {
         const textOperation: Text = selectedOperation as Text;
-        content = useTextDropdown(
-          {
+        content = useTextDropdown({
+          currentToolOption: {
             textSize: textOperation.size,
             textColor: textOperation.color,
           } as ToolOption,
-          (option: ToolOption) => {
+          setCurrentToolOption: (option: ToolOption) => {
             const data: Partial<Operation> = {
               color: option.textColor,
               size: option.textSize,
@@ -1189,10 +1189,9 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
             // @ts-ignore
             setSelectedOperation({ ...selectedOperation, ...data });
           },
-          () => { },
-          intl,
+          setCurrentTool: () => { },
           prefixCls,
-        );
+        });
         break;
       }
       default:
