@@ -1,13 +1,12 @@
 import React, { CSSProperties, MouseEventHandler, useState } from "react";
 
 type Props = {
-  key: string;
   overlay: JSX.Element;
   children: JSX.Element | Array<JSX.Element>;
 };
 
 function Dropdown(props: Props) {
-  const { children, overlay, key } = props;
+  const { children, overlay } = props;
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   // This code will prevent accidentally drawing under the dropdown when you are
@@ -29,7 +28,6 @@ function Dropdown(props: Props) {
 
   return (
     <div
-      key={key}
       style={wrapperStyle}
       onMouseEnter={() => setDropdownVisible(true)}
       onMouseLeave={() => setDropdownVisible(false)}
@@ -37,7 +35,6 @@ function Dropdown(props: Props) {
       {children}
       {isDropdownVisible ? settingMenu : null}
     </div>
-
   );
 }
 

@@ -4,6 +4,7 @@ import { IntlShape } from 'react-intl';
 import { RefObject, MouseEvent as ReactMouseEvent } from 'react';
 import { mapClientToCanvas, isMobileDevice } from './utils';
 import Icon from './icons/Icon';
+import { useIntl } from 'react-intl';
 import './TextTool.less';
 
 let currentText = '';
@@ -129,14 +130,22 @@ export const drawText = (item: Text, context: CanvasRenderingContext2D, pos: Pos
   }
 };
 
-export const useTextDropdown = (
+export const useTextDropdown = (config: {
   currentToolOption: ToolOption,
   setCurrentToolOption: (option: ToolOption) => void,
   setCurrentTool: (tool: Tool) => void,
-  intl: IntlShape,
   prefixCls: string,
-) => {
-  prefixCls += '-textTool';
+}) => {
+  const {
+    currentToolOption,
+    setCurrentToolOption,
+    setCurrentTool,
+    prefixCls: basePrefixCls,
+  } = config;
+
+  const intl = useIntl();
+
+  const prefixCls = basePrefixCls + '-textTool';
 
   return (
     <div className={`${prefixCls}-strokeMenu`}>
@@ -149,20 +158,20 @@ export const useTextDropdown = (
                 onTouchStart={evt => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, textSize: size });
-                  setCurrentTool && setCurrentTool(Tool.Stroke);
+                  setCurrentTool && setCurrentTool(Tool.Text);
                 }}
                 onClick={evt => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, textSize: size });
-                  setCurrentTool && setCurrentTool(Tool.Stroke);
+                  setCurrentTool && setCurrentTool(Tool.Text);
                 }}
                 style={{ color: size === currentToolOption.textSize ? '#666' : '#ccc' }}
               >
                 {size === TextSize.Small
                   ? intl.formatMessage({ id: 'umi.block.sketch.text.size.small' })
                   : size === TextSize.Default
-                  ? intl.formatMessage({ id: 'umi.block.sketch.text.size.default' })
-                  : intl.formatMessage({ id: 'umi.block.sketch.text.size.large' })}
+                    ? intl.formatMessage({ id: 'umi.block.sketch.text.size.default' })
+                    : intl.formatMessage({ id: 'umi.block.sketch.text.size.large' })}
               </div>
             );
           })}
@@ -177,12 +186,12 @@ export const useTextDropdown = (
                 onClick={evt => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, textColor: color });
-                  setCurrentTool && setCurrentTool(Tool.Stroke);
+                  setCurrentTool && setCurrentTool(Tool.Text);
                 }}
                 onTouchStart={evt => {
                   evt.stopPropagation();
                   setCurrentToolOption({ ...currentToolOption, textColor: color });
-                  setCurrentTool && setCurrentTool(Tool.Stroke);
+                  setCurrentTool && setCurrentTool(Tool.Text);
                 }}
               >
                 <div className={`${prefixCls}-fill`} style={{ background: color }}></div>
