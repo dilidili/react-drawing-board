@@ -42,7 +42,7 @@ import {
   Background,
   drawBackgroundImage,
 } from './ImageTool';
-import { onTextMouseDown, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
+import { onTextMouseUp, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import {
   onSelectMouseDown,
   onSelectMouseMove,
@@ -782,12 +782,6 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       case Tool.Shape:
         onShapeMouseDown(x, y, currentToolOption);
         break;
-      case Tool.Text:
-        onTextMouseDown({
-          clientX: e.clientX + 2,
-          clientY: e.clientY - currentToolOption.textSize / 2
-        }, currentToolOption, scale, refInput, refCanvas, intl);
-        break;
       default:
         break;
     }
@@ -905,6 +899,13 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       case Tool.Shape: {
         const [x, y] = mapClientToCanvas(e, refCanvas.current, viewMatrix);
         refContext.current && onShapeMouseUp(x, y, setCurrentTool, handleCompleteOperation);
+        break;
+      }
+      case Tool.Text: {
+        onTextMouseUp({
+          clientX: e.clientX + 2,
+          clientY: e.clientY - currentToolOption.textSize / 2
+        }, currentToolOption, scale, refInput, refCanvas, intl);
         break;
       }
       default:

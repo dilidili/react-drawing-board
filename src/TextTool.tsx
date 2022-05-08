@@ -19,7 +19,7 @@ export interface Text {
   text: string;
 }
 
-export const onTextMouseDown = (
+export const onTextMouseUp = (
   e: {
     clientX: number;
     clientY: number;

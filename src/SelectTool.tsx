@@ -1,6 +1,6 @@
 import { MouseEvent as ReactMouseEvent, RefObject } from 'react';
 import Tool, { Position, ToolOption } from './enums/Tool';
-import { Text, onTextMouseDown } from './TextTool';
+import { Text, onTextMouseUp } from './TextTool';
 import { Stroke } from './StrokeTool';
 import { Operation, Update, OperationListState, Remove } from './SketchPad';
 import { matrix_multiply, isMobileDevice } from './utils';
@@ -193,7 +193,7 @@ export const onSelectMouseDoubleClick = (
       const canvas = refCanvas.current;
       const { top, left } = canvas.getBoundingClientRect();
       handleCompleteOperation(Tool.Remove, { operationId: selectedItem.id });
-      onTextMouseDown(
+      onTextMouseUp(
         {
           clientX: a * selectedItem.pos.x + c * selectedItem.pos.y + e + left,
           clientY: b * selectedItem.pos.x + d * selectedItem.pos.y + f + top,
