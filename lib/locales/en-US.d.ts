@@ -20,5 +20,7 @@ declare const _default: {
     'umi.block.sketch.bg.contain': string;
     'umi.block.sketch.bg.not-resize': string;
     'umi.block.sketch.bg.remove': string;
+    'umi.block.sketch.zoom-in': string;
+    'umi.block.sketch.zoom-out': string;
 };
 export default _default;

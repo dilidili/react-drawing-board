@@ -7,7 +7,7 @@ export interface Text {
     color: string;
     text: string;
 }
-export declare const onTextMouseDown: (e: {
+export declare const onTextMouseUp: (e: {
     clientX: number;
     clientY: number;
 }, toolOption: ToolOption, scale: number, refInput: RefObject<HTMLDivElement>, refCanvas: RefObject<HTMLCanvasElement>, intl: IntlShape) => void;

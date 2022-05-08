@@ -9,6 +9,8 @@ declare enum Tool {
     Clear = "Clear",
     Eraser = "Eraser",
     Zoom = "Zoom",
+    ZoomIn = "ZoomIn",
+    ZoomOut = "ZoomOut",
     Save = "Save",
     Update = "Update",
     LazyUpdate = "LazyUpdate",
@@ -21,7 +23,7 @@ export declare enum ShapeType {
     Oval = "Oval"
 }
 export declare const MAX_SCALE = 2;
-export declare const MIN_SCALE = 0.1;
+export declare const MIN_SCALE = 0.5;
 export interface Position {
     x: number;
     y: number;

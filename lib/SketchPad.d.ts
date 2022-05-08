@@ -29,6 +29,7 @@ export declare type SketchPadRef = {
     redo: () => void;
     clear: () => void;
     save: (handleSave?: onSaveCallback) => void;
+    getCanvas: () => HTMLCanvasElement;
 };
 export declare type Remove = {
     operationId: string;
