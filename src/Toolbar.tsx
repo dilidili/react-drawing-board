@@ -293,7 +293,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           });
 
           return (
-            <Dropdown key={tool.label} overlay={overlay}>{menu}</Dropdown>
+            <Dropdown key={tool.label} overlay={overlay} forceVisible={currentTool === tool.type}>{menu}</Dropdown>
           );
         } else {
           return menu;
