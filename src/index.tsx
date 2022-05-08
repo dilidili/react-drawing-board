@@ -184,7 +184,10 @@ const Block: React.FC<BlockProps> = (props) => {
                     setCurrentTool={setCurrentTool}
                     currentToolOption={currentToolOption}
                     setCurrentToolOption={setCurrentToolOption}
+                    viewMatrix={viewMatrix}
+                    setViewMatrix={setViewMatrix}
                     scale={scale}
+                    getCanvas={refSketch.current?.getCanvas}
                     selectImage={(image: string) => {
                       if (image && refSketch.current) {
                         refSketch.current.selectImage(image);

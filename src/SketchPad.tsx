@@ -87,6 +87,7 @@ export type SketchPadRef = {
   redo: () => void;
   clear: () => void;
   save: (handleSave?: onSaveCallback) => void;
+  getCanvas: () => HTMLCanvasElement;
 };
 
 export type Remove = {
@@ -1069,6 +1070,9 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           }
         }
       },
+      getCanvas: () => {
+        return refCanvas.current;
+      }
     };
   });
 

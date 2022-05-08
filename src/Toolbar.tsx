@@ -1,7 +1,7 @@
 import React, { useRef, ChangeEventHandler, useContext, useMemo } from 'react';
 import { useSpring, animated } from 'react-spring';
 import { useIntl } from 'react-intl';
-import Tool, { ToolOption } from './enums/Tool';
+import Tool, { ToolOption, MAX_SCALE, MIN_SCALE } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
 import ShapeIcon from './svgs/ShapeIcon';
@@ -10,7 +10,6 @@ import ImageIcon from './svgs/ImageIcon';
 import UndoIcon from './svgs/UndoIcon';
 import RedoIcon from './svgs/RedoIcon';
 import ClearIcon from './svgs/ClearIcon';
-import ZoomIcon from './svgs/ZoomIcon';
 import SaveIcon from './svgs/SaveIcon';
 import EraserIcon from './svgs/EraserIcon';
 import BackgroundIcon from './svgs/BackgroundIcon';
@@ -20,10 +19,13 @@ import { useBackgroundDropdown } from './BackgroundTool';
 import { Dropdown } from './Layout';
 import classNames from 'classnames';
 import './Toolbar.less';
-import { isMobileDevice } from './utils';
+import { isMobileDevice, zoom_matrix } from './utils';
 import ConfigContext from './ConfigContext';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 import { useTextDropdown } from './TextTool';
+import ZoomOutIcon from './svgs/ZoomOutIcon';
+import ZoomInIcon from './svgs/ZoomInIcon';
+import { ViewMatrix } from './SketchPad';
 
 interface ToolConfig {
   label: string;
@@ -76,13 +78,13 @@ const useTools = () => {
       },
       ...(showBackgroundTool
         ? [
-            {
-              label: 'umi.block.sketch.background',
-              icon: BackgroundIcon,
-              type: Tool.Background,
-              useDropdown: useBackgroundDropdown,
-            },
-          ]
+          {
+            label: 'umi.block.sketch.background',
+            icon: BackgroundIcon,
+            type: Tool.Background,
+            useDropdown: useBackgroundDropdown,
+          },
+        ]
         : []),
       {
         label: 'umi.block.sketch.undo',
@@ -112,22 +114,30 @@ const useTools = () => {
       },
       ...(!isMobileDevice
         ? [
-            {
-              label: '100%',
-              labelThunk: (props: ToolbarProps) => `${~~(props.scale * 100)}%`,
-              icon: ZoomIcon,
-              type: Tool.Zoom,
-            },
-          ]
+          {
+            label: 'umi.block.sketch.zoom-in',
+            icon: ZoomInIcon,
+            type: Tool.ZoomIn,
+          },
+        ]
         : []),
       ...(!isMobileDevice
         ? [
-            {
-              label: 'umi.block.sketch.save',
-              icon: SaveIcon,
-              type: Tool.Save,
-            },
-          ]
+          {
+            label: 'umi.block.sketch.zoom-out',
+            icon: ZoomOutIcon,
+            type: Tool.ZoomOut,
+          },
+        ]
+        : []),
+      ...(!isMobileDevice
+        ? [
+          {
+            label: 'umi.block.sketch.save',
+            icon: SaveIcon,
+            type: Tool.Save,
+          },
+        ]
         : []),
     ];
   }, [showBackgroundTool]);
@@ -143,12 +153,15 @@ interface ToolbarProps {
   selectImage: (image: string) => void;
   selectBackgroundImage: (image: string) => void;
   removeBackgroundImage: () => void;
+  setViewMatrix: (matrix: ViewMatrix) => void;
+  viewMatrix: ViewMatrix;
   undo: () => void;
   redo: () => void;
   clear: () => void;
   save: () => void;
   scale: number;
   toolbarPlacement: string;
+  getCanvas?: () => HTMLCanvasElement;
 }
 
 const Toolbar: React.FC<ToolbarProps> = (props) => {
@@ -160,12 +173,16 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
     selectImage,
     selectBackgroundImage,
     removeBackgroundImage,
+    viewMatrix,
+    setViewMatrix,
+    scale,
     undo,
     redo,
     clear,
     save,
-    toolbarPlacement,
+    getCanvas,
   } = props;
+
   const refFileInput = useRef<HTMLInputElement>(null);
   const refBgFileInput = useRef<HTMLInputElement>(null);
   const { formatMessage } = useIntl();
@@ -240,6 +257,10 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               } else if (tool.type === Tool.Clear) {
                 clear();
               } else if (tool.type === Tool.Zoom) {
+              } else if (tool.type === Tool.ZoomIn && getCanvas) {
+                setViewMatrix(zoom_matrix(viewMatrix, scale + 0.1, getCanvas()));
+              } else if (tool.type === Tool.ZoomOut && getCanvas) {
+                setViewMatrix(zoom_matrix(viewMatrix, scale - 0.1, getCanvas()));
               } else if (tool.type === Tool.Save) {
                 save();
               } else {

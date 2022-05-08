@@ -22,4 +22,6 @@ export default {
   'umi.block.sketch.bg.contain': 'Aumentar proporcionalmente',
   'umi.block.sketch.bg.not-resize': 'Preservar dimensões',
   'umi.block.sketch.bg.remove': 'Remover',
+  'umi.block.sketch.zoom-in': 'Ampliar',
+  'umi.block.sketch.zoom-out': 'Reduzir'
 };

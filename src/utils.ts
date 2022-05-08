@@ -1,5 +1,6 @@
 import { MouseEvent as ReactMouseEvent } from 'react';
 import { ViewMatrix } from './SketchPad';
+import { MIN_SCALE, MAX_SCALE } from './enums/Tool';
 
 export function matrix_invert(M: any) {
   // I use Guassian Elimination to calculate the inverse:
@@ -149,6 +150,28 @@ export const matrix_multiply = (
 
 export const extract_scale_from_matrix = (viewMatrix: ViewMatrix) => {
   return viewMatrix[0];
+};
+
+export const zoom_matrix = (viewMatrix: ViewMatrix, scale: number, canvas: HTMLCanvasElement) => {
+  if (!canvas) return viewMatrix;
+
+  const boundingClient = canvas.getBoundingClientRect();
+
+  const pos = mapClientToCanvas({
+    clientX: boundingClient.left + boundingClient.width / 2,
+    clientY: boundingClient.top + boundingClient.height / 2,
+  }, canvas, viewMatrix);
+
+  const newViewMatrix: ViewMatrix = [...viewMatrix] as ViewMatrix;
+  const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale));
+  const scaleChange = newScale - viewMatrix[0];
+
+  newViewMatrix[0] = newScale;
+  newViewMatrix[3] = newScale;
+  newViewMatrix[4] = newViewMatrix[4] - pos[0] * scaleChange;
+  newViewMatrix[5] = newViewMatrix[5] - pos[1] * scaleChange;
+
+  return newViewMatrix;
 };
 
 export const detectMobileDevice = () => {

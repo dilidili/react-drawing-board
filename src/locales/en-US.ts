@@ -20,4 +20,6 @@ export default {
   'umi.block.sketch.bg.contain': 'Contain',
   'umi.block.sketch.bg.not-resize': 'Not resize',
   'umi.block.sketch.bg.remove': 'Remove',
+  'umi.block.sketch.zoom-in': 'Zoom in',
+  'umi.block.sketch.zoom-out': 'Zoom out'
 };
