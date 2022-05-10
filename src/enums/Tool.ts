@@ -55,13 +55,13 @@ export enum TextSize {
 }
 
 export const defaultToolOption = {
-  strokeSize: strokeSize[0],
+  strokeSize: strokeSize[1],
   strokeColor: strokeColor[0],
   shapeType: ShapeType.Rectangle,
   shapeBorderColor: strokeColor[0],
-  shapeBorderSize: strokeSize[0],
+  shapeBorderSize: strokeSize[1],
   textColor: strokeColor[0],
-  textSize: TextSize.Small,
+  textSize: TextSize.Default,
   defaultText: {
     id: 'umi.block.sketch.text.placeholder',
   },
