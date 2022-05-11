@@ -49,7 +49,38 @@ const drawLine = (
   context.stroke();
 };
 
-export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D, hover: boolean) => {
+export const drawEraser = (stroke: Stroke, context: CanvasRenderingContext2D, hover: boolean) => {
+  const points = stroke.points.filter((_, index) => index % 2 === 0);
+  if (points.length < 3) {
+    return;
+  }
+
+  context.lineJoin = 'round';
+  context.lineCap = 'round';
+  context.beginPath();
+  context.lineWidth = stroke.size;
+  const originalCompositeOperation = context.globalCompositeOperation;
+  context.globalCompositeOperation = 'destination-out';
+  context.strokeStyle = hover ? '#3AB1FE' : stroke.color;
+
+  // move to the first point
+  context.moveTo(points[0].x, points[0].y);
+
+  let i = 0;
+  for (i = 1; i < points.length - 2; i++) {
+    var xc = (points[i].x + points[i + 1].x) / 2;
+    var yc = (points[i].y + points[i + 1].y) / 2;
+    context.quadraticCurveTo(points[i].x, points[i].y, xc, yc);
+  }
+
+  // curve through the last two points
+  context.quadraticCurveTo(points[i].x, points[i].y, points[i + 1].x, points[i + 1].y);
+
+  context.stroke();
+  context.globalCompositeOperation = originalCompositeOperation;
+};
+
+export const drawStroke = (stroke: Stroke, context: CanvasRenderingContext2D, hover: boolean, ) => {
   const points = stroke.points.filter((_, index) => index % 2 === 0);
   if (points.length < 3) {
     return;

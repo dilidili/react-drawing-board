@@ -55,14 +55,19 @@ export const drawBackgroundImage = (
   id: string,
   rerender: () => void,
 ) => {
+  const originalCompositeOperation = context.globalCompositeOperation;
   let position: Position | undefined = _cacheBackgroundPosition[item.imageData];
   if (position) {
+    context.globalCompositeOperation = "destination-over";
     drawImage(item, context, position, id, rerender);
+    context.globalCompositeOperation = originalCompositeOperation;
   } else {
     onImageComplete(item.imageData, canvas, viewMatrix, (_tool, _data, pos) => {
       position = pos;
       _cacheBackgroundPosition[item.imageData] = pos;
+      context.globalCompositeOperation = "destination-over";
       drawImage(item, context, position, id, rerender);
+      context.globalCompositeOperation = originalCompositeOperation;
     }, {
       imageSize: "contain"
     });

@@ -22,6 +22,7 @@ import {
   onStrokeMouseMove,
   onStrokeMouseUp,
   drawStroke,
+  drawEraser,
   Stroke,
   useStrokeDropdown,
   moveStoke,
@@ -590,17 +591,6 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       // saveGlobalTransform();
     };
 
-    let backgroundOperation: Operation;
-    if (initialBackground) {
-      backgroundOperation = {
-        id: `${BackgroundOperationId}/${initialBackground}`,
-        userId,
-        timestamp: Date.now(),
-        tool: Tool.Background,
-        imageData: initialBackground,
-      };
-      renderBackgroundOperation(backgroundOperation);
-    }
     operations.forEach((operation) => {
       const hover =
         (!selectedOperation || selectedOperation.id !== operation.id) &&
@@ -618,6 +608,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           }
           break;
         case Tool.Eraser:
+          drawEraser(operation as Stroke, context, hover);
+          break;
         case Tool.Stroke:
           drawStroke(operation as Stroke, context, hover);
           break;
@@ -653,6 +645,18 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
       );
       context.stroke();
       context.closePath();
+    }
+
+    let backgroundOperation: Operation;
+    if (initialBackground) {
+      backgroundOperation = {
+        id: `${BackgroundOperationId}/${initialBackground}`,
+        userId,
+        timestamp: Date.now(),
+        tool: Tool.Background,
+        imageData: initialBackground,
+      };
+      renderBackgroundOperation(backgroundOperation);
     }
 
     restoreGlobalTransform();
