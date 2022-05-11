@@ -15,6 +15,7 @@ export interface Position {
     w: number;
     h: number;
 }
+export declare const drawEraser: (stroke: Stroke, context: CanvasRenderingContext2D, hover: boolean) => void;
 export declare const drawStroke: (stroke: Stroke, context: CanvasRenderingContext2D, hover: boolean) => void;
 export declare function onStrokeMouseDown(x: number, y: number, toolOption: ToolOption): Stroke[];
 export declare function onStrokeMouseMove(x: number, y: number, context: CanvasRenderingContext2D): Stroke[];
