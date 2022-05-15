@@ -56,6 +56,7 @@ import { debounce } from 'lodash';
 import Icon from './icons/Icon';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor';
+import sketchEraserCursor from './images/sketch_eraser_cursor';
 import { useZoomGesture } from './gesture';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 import './SketchPad.less';
@@ -1020,6 +1021,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     canvasStyle.cursor = `url(${sketchStrokeCursor}) 0 14, crosshair`;
   } else if (currentTool === Tool.Shape) {
     canvasStyle.cursor = `crosshair`;
+  } else if (currentTool === Tool.Eraser) {
+    canvasStyle.cursor = `url(${sketchEraserCursor}) 10 10, grab`;
   } else if (currentTool === Tool.Text) {
     canvasStyle.cursor = `text`;
   }
