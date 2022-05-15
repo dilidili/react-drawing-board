@@ -357,9 +357,17 @@ const useResizeHandler = (
           diff.x = Math.min(diff.x, updatePos.w);
           diff.y = Math.min(diff.y, updatePos.h);
           updatePos.x += diff.x;
-          updatePos.y += diff.y;
           updatePos.w -= diff.x;
-          updatePos.h -= diff.y;
+
+          // Keep the diff as same radio of selected item
+          if (selectedOperation?.pos?.w && selectedOperation.pos?.h) {
+            const ratio = selectedOperation?.pos.w / selectedOperation?.pos?.h;
+            updatePos.h = updatePos.w / ratio;
+            updatePos.y += diff.x / ratio;
+          } else {
+            updatePos.y += diff.y;
+            updatePos.h -= diff.y;
+          }
         } else if (isResizing === ResizeDirection.TopCenter) {
           diff.y = Math.min(diff.y, updatePos.h);
           updatePos.y += diff.y;
@@ -369,18 +377,31 @@ const useResizeHandler = (
           updatePos.w += diff.x;
         } else if (isResizing === ResizeDirection.BottomRight) {
           diff.x = Math.max(diff.x, -updatePos.w);
-          diff.y = Math.max(diff.y, -updatePos.h);
           updatePos.w += diff.x;
-          updatePos.h += diff.y;
+          // Keep the diff as same radio of selected item
+          if (selectedOperation?.pos?.w && selectedOperation.pos?.h) {
+            const ratio = selectedOperation?.pos.w / selectedOperation?.pos?.h;
+            updatePos.h = updatePos.w / ratio;
+          } else {
+            diff.y = Math.max(diff.y, -updatePos.h);
+            updatePos.h += diff.y;
+          }
         } else if (isResizing === ResizeDirection.BottomCenter) {
           diff.y = Math.max(diff.y, -updatePos.h);
           updatePos.h += diff.y;
         } else if (isResizing === ResizeDirection.BottomLeft) {
-          diff.y = Math.max(diff.y, -updatePos.h);
           diff.x = Math.min(diff.x, updatePos.w);
           updatePos.x += diff.x;
           updatePos.w -= diff.x;
-          updatePos.h += diff.y;
+
+          // Keep the diff as same radio of selected item
+          if (selectedOperation?.pos?.w && selectedOperation.pos?.h) {
+            const ratio = selectedOperation?.pos.w / selectedOperation?.pos?.h;
+            updatePos.h = updatePos.w / ratio;
+          } else {
+            diff.y = Math.max(diff.y, -updatePos.h);
+            updatePos.h += diff.y;
+          }
         } else if (isResizing === ResizeDirection.MiddleLeft) {
           diff.x = Math.min(diff.x, updatePos.w);
           updatePos.x += diff.x;
