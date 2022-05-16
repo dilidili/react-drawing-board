@@ -74,7 +74,6 @@
     width: 20px;
     height: 20px;
     margin-bottom: 2px;
-    fill: #1890ff;
   }
 
   &:hover {
@@ -88,6 +87,10 @@
   line-height: 17px;
   cursor: pointer;
   user-select: none;
+
+  @media screen and (max-width: 880px) {
+    display: none;
+  }
 }
 
 .@{toolbar-prefix}-activeIcon {
