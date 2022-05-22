@@ -22,6 +22,7 @@ enum Tool {
 export enum ShapeType {
   Rectangle = 'Rectangle',
   Oval = 'Oval',
+  Line = 'Line',
 }
 
 export const MAX_SCALE = 2;

@@ -14,7 +14,7 @@ import React, {
   useContext,
   useCallback,
 } from 'react';
-import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE } from './enums/Tool';
+import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, ShapeType } from './enums/Tool';
 import { useIntl } from 'react-intl';
 import { mapClientToCanvas, isMobileDevice, extract_scale_from_matrix } from './utils';
 import {
@@ -189,14 +189,39 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
               break;
             case Tool.Shape: {
               const newOperation: any = { ...operations[targetIndex] };
-              newOperation.start = {
-                x: newOperation.pos.x,
-                y: newOperation.pos.y,
-              };
-              newOperation.end = {
-                x: newOperation.pos.x + newOperation.pos.w,
-                y: newOperation.pos.y + newOperation.pos.h,
-              };
+              const shapeTarget = target as Shape;
+              if (shapeTarget.type !== ShapeType.Line) {
+                newOperation.start = {
+                  x: newOperation.pos.x,
+                  y: newOperation.pos.y,
+                };
+                newOperation.end = {
+                  x: newOperation.pos.x + newOperation.pos.w,
+                  y: newOperation.pos.y + newOperation.pos.h,
+                };
+              } else {
+                // line tool need decide direction
+                if ((shapeTarget.end.x - shapeTarget.start.x) * (shapeTarget.end.y - shapeTarget.start.y) > 0) {
+                  newOperation.start = {
+                    x: newOperation.pos.x,
+                    y: newOperation.pos.y,
+                  };
+                  newOperation.end = {
+                    x: newOperation.pos.x + newOperation.pos.w,
+                    y: newOperation.pos.y + newOperation.pos.h,
+                  };
+                } else {
+                  newOperation.start = {
+                    x: newOperation.pos.x,
+                    y: newOperation.pos.y + newOperation.pos.h,
+                  };
+                  newOperation.end = {
+                    x: newOperation.pos.x + newOperation.pos.w,
+                    y: newOperation.pos.y,
+                  };
+                }
+              }
+
               operations[targetIndex] = { ...newOperation };
               break;
             }
