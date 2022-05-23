@@ -41,6 +41,7 @@ interface ToolConfig {
     removeBackgroundImage: () => void;
   }) => JSX.Element;
   style?: React.CSSProperties;
+  labelStyle?: React.CSSProperties;
 }
 
 const useTools = () => {
@@ -136,6 +137,17 @@ const useTools = () => {
             label: 'umi.block.sketch.save',
             icon: SaveIcon,
             type: Tool.Save,
+            style: {
+              backgroundColor: "#0A38A1",
+              width: 50,
+              height: 50,
+              borderRadius: 8,
+              marginTop: 'auto',
+              marginBottom: 'auto',
+            },
+            labelStyle: {
+              color: "white",
+            }
           },
         ]
         : []),
@@ -271,7 +283,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           >
             <tool.icon />
             {!isMobileDevice ? (
-              <label className={`${toolbarPrefixCls}-iconLabel`}>
+              <label className={`${toolbarPrefixCls}-iconLabel`} style={tool.labelStyle || {}}>
                 {tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}
               </label>
             ) : null}

@@ -71,6 +71,7 @@
   line-height: 17px;
   cursor: pointer;
   user-select: none;
+  color: #0A38A1;
 }
 @media screen and (max-width: 880px) {
   .drawing-board-toolbar-iconLabel {

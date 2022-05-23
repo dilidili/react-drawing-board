@@ -20,7 +20,8 @@ declare enum Tool {
 }
 export declare enum ShapeType {
     Rectangle = "Rectangle",
-    Oval = "Oval"
+    Oval = "Oval",
+    Line = "Line"
 }
 export declare const MAX_SCALE = 2;
 export declare const MIN_SCALE = 0.5;
