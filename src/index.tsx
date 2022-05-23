@@ -48,7 +48,6 @@ const defaultProps: Partial<BlockProps> = {
   userId: v4(),
   locale: navigator.language as localeType,
   toolbarPlacement: 'top',
-  // initialBackground: "https://img0.baidu.com/it/u=2940471682,97251620&fm=253&fmt=auto&app=138&f=JPEG?w=889&h=500"
 };
 
 const enableSketchPadReducer = (_state: boolean, action: boolean) => {
