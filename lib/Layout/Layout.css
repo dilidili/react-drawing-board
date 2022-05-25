@@ -1,0 +1,19 @@
+.drawing-board-layout {
+  display: flex;
+  flex: auto;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+.drawing-board-layout-header {
+  flex: 0 0 auto;
+}
+.drawing-board-layout-sider {
+  height: 100%;
+  margin-top: -0.1px;
+  padding-top: 0.1px;
+}
+.drawing-board-layout-content {
+  flex: auto;
+  min-height: 0;
+}

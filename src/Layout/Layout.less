@@ -1,0 +1,26 @@
+@import '../theme';
+
+@layout-prefix: ~'@{prefix}-layout';
+
+.@{layout-prefix} {
+  display: flex;
+  flex: auto;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+}
+
+.@{layout-prefix}-header {
+  flex: 0 0 auto;
+}
+
+.@{layout-prefix}-sider {
+  height: 100%;
+  margin-top: -0.1px;
+  padding-top: 0.1px;
+}
+
+.@{layout-prefix}-content {
+  flex: auto;
+  min-height: 0;
+}

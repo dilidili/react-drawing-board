@@ -61,7 +61,6 @@
   width: 20px;
   height: 20px;
   margin-bottom: 2px;
-  fill: #1890ff;
 }
 .drawing-board-toolbar-icon:hover {
   background: #eeeeee;
@@ -72,6 +71,12 @@
   line-height: 17px;
   cursor: pointer;
   user-select: none;
+  color: #0A38A1;
+}
+@media screen and (max-width: 880px) {
+  .drawing-board-toolbar-iconLabel {
+    display: none;
+  }
 }
 .drawing-board-toolbar-activeIcon {
   background: #eeeeee;

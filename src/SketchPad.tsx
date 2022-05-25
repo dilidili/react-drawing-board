@@ -14,7 +14,7 @@ import React, {
   useContext,
   useCallback,
 } from 'react';
-import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE } from './enums/Tool';
+import Tool, { ToolOption, Position, MAX_SCALE, MIN_SCALE, ShapeType } from './enums/Tool';
 import { useIntl } from 'react-intl';
 import { mapClientToCanvas, isMobileDevice, extract_scale_from_matrix } from './utils';
 import {
@@ -56,6 +56,7 @@ import { debounce } from 'lodash';
 import Icon from './icons/Icon';
 import { v4 } from 'uuid';
 import sketchStrokeCursor from './images/sketch_stroke_cursor';
+import sketchEraserCursor from './images/sketch_eraser_cursor';
 import { useZoomGesture } from './gesture';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
 import './SketchPad.less';
@@ -188,14 +189,39 @@ const reduceOperations = (operations: Operation[]): Operation[] => {
               break;
             case Tool.Shape: {
               const newOperation: any = { ...operations[targetIndex] };
-              newOperation.start = {
-                x: newOperation.pos.x,
-                y: newOperation.pos.y,
-              };
-              newOperation.end = {
-                x: newOperation.pos.x + newOperation.pos.w,
-                y: newOperation.pos.y + newOperation.pos.h,
-              };
+              const shapeTarget = target as Shape;
+              if (shapeTarget.type !== ShapeType.Line) {
+                newOperation.start = {
+                  x: newOperation.pos.x,
+                  y: newOperation.pos.y,
+                };
+                newOperation.end = {
+                  x: newOperation.pos.x + newOperation.pos.w,
+                  y: newOperation.pos.y + newOperation.pos.h,
+                };
+              } else {
+                // line tool need decide direction
+                if ((shapeTarget.end.x - shapeTarget.start.x) * (shapeTarget.end.y - shapeTarget.start.y) > 0) {
+                  newOperation.start = {
+                    x: newOperation.pos.x,
+                    y: newOperation.pos.y,
+                  };
+                  newOperation.end = {
+                    x: newOperation.pos.x + newOperation.pos.w,
+                    y: newOperation.pos.y + newOperation.pos.h,
+                  };
+                } else {
+                  newOperation.start = {
+                    x: newOperation.pos.x,
+                    y: newOperation.pos.y + newOperation.pos.h,
+                  };
+                  newOperation.end = {
+                    x: newOperation.pos.x + newOperation.pos.w,
+                    y: newOperation.pos.y,
+                  };
+                }
+              }
+
               operations[targetIndex] = { ...newOperation };
               break;
             }
@@ -357,9 +383,17 @@ const useResizeHandler = (
           diff.x = Math.min(diff.x, updatePos.w);
           diff.y = Math.min(diff.y, updatePos.h);
           updatePos.x += diff.x;
-          updatePos.y += diff.y;
           updatePos.w -= diff.x;
-          updatePos.h -= diff.y;
+
+          // Keep the diff as same radio of selected item
+          if (selectedOperation?.pos?.w && selectedOperation.pos?.h) {
+            const ratio = selectedOperation?.pos.w / selectedOperation?.pos?.h;
+            updatePos.h = updatePos.w / ratio;
+            updatePos.y += diff.x / ratio;
+          } else {
+            updatePos.y += diff.y;
+            updatePos.h -= diff.y;
+          }
         } else if (isResizing === ResizeDirection.TopCenter) {
           diff.y = Math.min(diff.y, updatePos.h);
           updatePos.y += diff.y;
@@ -369,18 +403,31 @@ const useResizeHandler = (
           updatePos.w += diff.x;
         } else if (isResizing === ResizeDirection.BottomRight) {
           diff.x = Math.max(diff.x, -updatePos.w);
-          diff.y = Math.max(diff.y, -updatePos.h);
           updatePos.w += diff.x;
-          updatePos.h += diff.y;
+          // Keep the diff as same radio of selected item
+          if (selectedOperation?.pos?.w && selectedOperation.pos?.h) {
+            const ratio = selectedOperation?.pos.w / selectedOperation?.pos?.h;
+            updatePos.h = updatePos.w / ratio;
+          } else {
+            diff.y = Math.max(diff.y, -updatePos.h);
+            updatePos.h += diff.y;
+          }
         } else if (isResizing === ResizeDirection.BottomCenter) {
           diff.y = Math.max(diff.y, -updatePos.h);
           updatePos.h += diff.y;
         } else if (isResizing === ResizeDirection.BottomLeft) {
-          diff.y = Math.max(diff.y, -updatePos.h);
           diff.x = Math.min(diff.x, updatePos.w);
           updatePos.x += diff.x;
           updatePos.w -= diff.x;
-          updatePos.h += diff.y;
+
+          // Keep the diff as same radio of selected item
+          if (selectedOperation?.pos?.w && selectedOperation.pos?.h) {
+            const ratio = selectedOperation?.pos.w / selectedOperation?.pos?.h;
+            updatePos.h = updatePos.w / ratio;
+          } else {
+            diff.y = Math.max(diff.y, -updatePos.h);
+            updatePos.h += diff.y;
+          }
         } else if (isResizing === ResizeDirection.MiddleLeft) {
           diff.x = Math.min(diff.x, updatePos.w);
           updatePos.x += diff.x;
@@ -999,6 +1046,8 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     canvasStyle.cursor = `url(${sketchStrokeCursor}) 0 14, crosshair`;
   } else if (currentTool === Tool.Shape) {
     canvasStyle.cursor = `crosshair`;
+  } else if (currentTool === Tool.Eraser) {
+    canvasStyle.cursor = `url(${sketchEraserCursor}) 10 10, grab`;
   } else if (currentTool === Tool.Text) {
     canvasStyle.cursor = `text`;
   }

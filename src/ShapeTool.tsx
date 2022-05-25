@@ -72,6 +72,25 @@ const draw = (
       context.stroke();
       context.closePath();
     }
+  } else if (item.type === ShapeType.Line) {
+    context.beginPath();
+    context.lineWidth = item.size;
+    context.strokeStyle = item.color;
+    context.lineCap = 'round';
+    context.moveTo(item.start.x, item.start.y);
+    context.lineTo(mouseX, mouseY);
+    context.stroke();
+    context.closePath();
+
+    if (hover) {
+      context.beginPath();
+      context.strokeStyle = '#3AB1FE';
+      context.lineWidth = item.size;
+      context.moveTo(item.start.x, item.start.y);
+      context.lineTo(mouseX, mouseY);
+      context.stroke();
+      context.closePath();
+    }
   } else if (item.type === ShapeType.Oval) {
     const endX = mouseX >= item.start.x ? mouseX : item.start.x;
     const endY = mouseY >= item.start.y ? mouseY : item.start.y;
@@ -257,6 +276,36 @@ export const useShapeDropdown = (config: {
                 : {}
             }
           />
+        </div>
+
+        <div
+          onTouchStart={(evt) => {
+            evt.stopPropagation();
+            setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Line });
+            setCurrentTool(Tool.Shape);
+          }}
+          onClick={(evt) => {
+            evt.stopPropagation();
+            setCurrentToolOption({ ...currentToolOption, shapeType: ShapeType.Line });
+            setCurrentTool(Tool.Shape);
+          }}
+          className={`${prefixCls}-shapeItem`}
+          style={
+            currentToolOption.shapeType === ShapeType.Line
+              ? { background: 'rgba(238, 238, 238, 1)' }
+              : {}
+          }
+        >
+          <div
+            className={`${prefixCls}-line`}
+            style={
+              currentToolOption.shapeType === ShapeType.Line
+                ? { borderColor: currentToolOption.shapeBorderColor }
+                : {}
+            }
+          >
+            <svg xmlns='http://www.w3.org/2000/svg' version='1.1' viewBox='0 0 100 100'><path d='M0 99 L99 0 L100 1 L1 100' strokeWidth='5' stroke='black' /></svg>
+          </div>
         </div>
       </div>
 

@@ -1,4 +1,5 @@
 /// <reference types="react" />
+import "./Layout.less";
 declare function Layout(props: any): JSX.Element;
 declare namespace Layout {
     var Header: (props: any) => JSX.Element;

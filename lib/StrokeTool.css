@@ -47,6 +47,10 @@
   border: 1px solid #ccc;
   border-radius: 50%;
 }
+.drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-shape .drawing-board-strokeTool-shapeItem .drawing-board-strokeTool-line {
+  width: 15px;
+  height: 15px;
+}
 .drawing-board-strokeTool-strokeMenu .drawing-board-strokeTool-split {
   width: 1px;
   height: 20px;
