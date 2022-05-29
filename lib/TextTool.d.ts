@@ -19,4 +19,5 @@ export declare const useTextDropdown: (config: {
     setCurrentToolOption: (option: ToolOption) => void;
     setCurrentTool: (tool: Tool) => void;
     prefixCls: string;
+    intl: IntlShape;
 }) => JSX.Element;
