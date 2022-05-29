@@ -1056,7 +1056,9 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     return {
       selectImage: (image: string) => {
         if (image && refCanvas.current) {
-          onImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation);
+          onImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation, {
+            imageSize: "contain"
+          });
         }
       },
       selectBackgroundImage: (image: string) => {
