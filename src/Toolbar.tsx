@@ -1,4 +1,4 @@
-import React, { useRef, ChangeEventHandler, useContext, useMemo } from 'react';
+import React, { useRef, ChangeEventHandler, useContext, useMemo, useState } from 'react';
 import { useSpring, animated } from 'react-spring';
 import { useIntl } from 'react-intl';
 import Tool, { ToolOption, MAX_SCALE, MIN_SCALE } from './enums/Tool';
@@ -197,9 +197,10 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
   const refFileInput = useRef<HTMLInputElement>(null);
   const refBgFileInput = useRef<HTMLInputElement>(null);
-  const { formatMessage } = useIntl();
+  const intl = useIntl();
   const { prefixCls } = useContext(ConfigContext);
   const enableSketchPadContext = useContext(EnableSketchPadContext);
+  const [hideDropdown, setHideDropdown] = useState(false);
 
   const toolbarPrefixCls = prefixCls + '-toolbar';
 
@@ -259,6 +260,13 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             })}
             style={iconAnimateProps}
             onClick={() => {
+              // Close the current open dropdown
+              if (tool.type === currentTool) {
+                setHideDropdown(hide => !hide);
+              } else {
+                setHideDropdown(false);
+              }
+
               if (tool.type === Tool.Image && refFileInput.current) {
                 refFileInput.current.click();
               } else if (tool.type === Tool.Background) {
@@ -284,7 +292,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             <tool.icon />
             {!isMobileDevice ? (
               <label className={`${toolbarPrefixCls}-iconLabel`} style={tool.labelStyle || {}}>
-                {tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}
+                {tool.labelThunk ? tool.labelThunk(props) : intl.formatMessage({ id: tool.label })}
               </label>
             ) : null}
           </animated.div>
@@ -302,10 +310,11 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             removeBackgroundImage: () => {
               removeBackgroundImage();
             },
+            intl,
           });
 
           return (
-            <Dropdown key={tool.label} overlay={overlay} forceVisible={currentTool === tool.type}>{menu}</Dropdown>
+            <Dropdown key={tool.label} overlay={overlay} forceHide={hideDropdown} forceVisible={currentTool === tool.type}>{menu}</Dropdown>
           );
         } else {
           return menu;

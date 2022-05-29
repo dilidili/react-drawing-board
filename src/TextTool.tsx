@@ -4,7 +4,6 @@ import { IntlShape } from 'react-intl';
 import { RefObject, MouseEvent as ReactMouseEvent } from 'react';
 import { mapClientToCanvas, isMobileDevice } from './utils';
 import Icon from './icons/Icon';
-import { useIntl } from 'react-intl';
 import './TextTool.less';
 
 let currentText = '';
@@ -135,15 +134,15 @@ export const useTextDropdown = (config: {
   setCurrentToolOption: (option: ToolOption) => void,
   setCurrentTool: (tool: Tool) => void,
   prefixCls: string,
+  intl: IntlShape,
 }) => {
   const {
     currentToolOption,
     setCurrentToolOption,
     setCurrentTool,
     prefixCls: basePrefixCls,
+    intl,
   } = config;
-
-  const intl = useIntl();
 
   const prefixCls = basePrefixCls + '-textTool';
 

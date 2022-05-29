@@ -1249,6 +1249,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           },
           setCurrentTool: () => { },
           prefixCls,
+          intl
         });
         break;
       }
