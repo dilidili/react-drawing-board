@@ -1,6 +1,6 @@
 import React, { useRef, ChangeEventHandler, useContext, useMemo, useState } from 'react';
 import { useSpring, animated } from 'react-spring';
-import { useIntl } from 'react-intl';
+import { useIntl, IntlShape } from 'react-intl';
 import Tool, { ToolOption, MAX_SCALE, MIN_SCALE } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
@@ -39,6 +39,7 @@ interface ToolConfig {
     prefixCls: string;
     selectBackgroundImage: () => void;
     removeBackgroundImage: () => void;
+    intl: IntlShape;
   }) => JSX.Element;
   style?: React.CSSProperties;
   labelStyle?: React.CSSProperties;
@@ -61,10 +62,9 @@ const useTools = () => {
         useDropdown: useStrokeDropdown,
       },
       {
-        label: 'umi.block.sketch.shape',
-        icon: ShapeIcon,
-        type: Tool.Shape,
-        useDropdown: useShapeDropdown,
+        label: 'umi.block.sketch.eraser',
+        icon: EraserIcon,
+        type: Tool.Eraser,
       },
       {
         label: 'umi.block.sketch.text',
@@ -76,6 +76,12 @@ const useTools = () => {
         label: 'umi.block.sketch.image',
         icon: ImageIcon,
         type: Tool.Image,
+      },
+      {
+        label: 'umi.block.sketch.shape',
+        icon: ShapeIcon,
+        type: Tool.Shape,
+        useDropdown: useShapeDropdown,
       },
       ...(showBackgroundTool
         ? [
@@ -101,11 +107,6 @@ const useTools = () => {
         type: Tool.Redo,
       },
       {
-        label: 'umi.block.sketch.eraser',
-        icon: EraserIcon,
-        type: Tool.Eraser,
-      },
-      {
         label: 'umi.block.sketch.clear',
         icon: ClearIcon,
         type: Tool.Clear,
@@ -116,18 +117,18 @@ const useTools = () => {
       ...(!isMobileDevice
         ? [
           {
-            label: 'umi.block.sketch.zoom-in',
-            icon: ZoomInIcon,
-            type: Tool.ZoomIn,
+            label: 'umi.block.sketch.zoom-out',
+            icon: ZoomOutIcon,
+            type: Tool.ZoomOut,
           },
         ]
         : []),
       ...(!isMobileDevice
         ? [
           {
-            label: 'umi.block.sketch.zoom-out',
-            icon: ZoomOutIcon,
-            type: Tool.ZoomOut,
+            label: 'umi.block.sketch.zoom-in',
+            icon: ZoomInIcon,
+            type: Tool.ZoomIn,
           },
         ]
         : []),
