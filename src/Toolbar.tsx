@@ -1,6 +1,6 @@
-import React, { useRef, ChangeEventHandler, useContext, useMemo } from 'react';
+import React, { useRef, ChangeEventHandler, useContext, useMemo, useState } from 'react';
 import { useSpring, animated } from 'react-spring';
-import { useIntl } from 'react-intl';
+import { useIntl, IntlShape } from 'react-intl';
 import Tool, { ToolOption, MAX_SCALE, MIN_SCALE } from './enums/Tool';
 import SelectIcon from './svgs/SelectIcon';
 import StrokeIcon from './svgs/StrokeIcon';
@@ -39,6 +39,7 @@ interface ToolConfig {
     prefixCls: string;
     selectBackgroundImage: () => void;
     removeBackgroundImage: () => void;
+    intl: IntlShape;
   }) => JSX.Element;
   style?: React.CSSProperties;
   labelStyle?: React.CSSProperties;
@@ -61,10 +62,9 @@ const useTools = () => {
         useDropdown: useStrokeDropdown,
       },
       {
-        label: 'umi.block.sketch.shape',
-        icon: ShapeIcon,
-        type: Tool.Shape,
-        useDropdown: useShapeDropdown,
+        label: 'umi.block.sketch.eraser',
+        icon: EraserIcon,
+        type: Tool.Eraser,
       },
       {
         label: 'umi.block.sketch.text',
@@ -77,15 +77,21 @@ const useTools = () => {
         icon: ImageIcon,
         type: Tool.Image,
       },
+      {
+        label: 'umi.block.sketch.shape',
+        icon: ShapeIcon,
+        type: Tool.Shape,
+        useDropdown: useShapeDropdown,
+      },
       ...(showBackgroundTool
         ? [
-          {
-            label: 'umi.block.sketch.background',
-            icon: BackgroundIcon,
-            type: Tool.Background,
-            useDropdown: useBackgroundDropdown,
-          },
-        ]
+            {
+              label: 'umi.block.sketch.background',
+              icon: BackgroundIcon,
+              type: Tool.Background,
+              useDropdown: useBackgroundDropdown,
+            },
+          ]
         : []),
       {
         label: 'umi.block.sketch.undo',
@@ -101,11 +107,6 @@ const useTools = () => {
         type: Tool.Redo,
       },
       {
-        label: 'umi.block.sketch.eraser',
-        icon: EraserIcon,
-        type: Tool.Eraser,
-      },
-      {
         label: 'umi.block.sketch.clear',
         icon: ClearIcon,
         type: Tool.Clear,
@@ -115,41 +116,41 @@ const useTools = () => {
       },
       ...(!isMobileDevice
         ? [
-          {
-            label: 'umi.block.sketch.zoom-in',
-            icon: ZoomInIcon,
-            type: Tool.ZoomIn,
-          },
-        ]
-        : []),
-      ...(!isMobileDevice
-        ? [
-          {
-            label: 'umi.block.sketch.zoom-out',
-            icon: ZoomOutIcon,
-            type: Tool.ZoomOut,
-          },
-        ]
-        : []),
-      ...(!isMobileDevice
-        ? [
-          {
-            label: 'umi.block.sketch.save',
-            icon: SaveIcon,
-            type: Tool.Save,
-            style: {
-              backgroundColor: "#0A38A1",
-              width: 50,
-              height: 50,
-              borderRadius: 8,
-              marginTop: 'auto',
-              marginBottom: 'auto',
+            {
+              label: 'umi.block.sketch.zoom-out',
+              icon: ZoomOutIcon,
+              type: Tool.ZoomOut,
             },
-            labelStyle: {
-              color: "white",
-            }
-          },
-        ]
+          ]
+        : []),
+      ...(!isMobileDevice
+        ? [
+            {
+              label: 'umi.block.sketch.zoom-in',
+              icon: ZoomInIcon,
+              type: Tool.ZoomIn,
+            },
+          ]
+        : []),
+      ...(!isMobileDevice
+        ? [
+            {
+              label: 'umi.block.sketch.save',
+              icon: SaveIcon,
+              type: Tool.Save,
+              style: {
+                backgroundColor: '#0A38A1',
+                width: 50,
+                height: 50,
+                borderRadius: 8,
+                marginTop: 'auto',
+                marginBottom: 'auto',
+              },
+              labelStyle: {
+                color: 'white',
+              },
+            },
+          ]
         : []),
     ];
   }, [showBackgroundTool]);
@@ -197,9 +198,10 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
   const refFileInput = useRef<HTMLInputElement>(null);
   const refBgFileInput = useRef<HTMLInputElement>(null);
-  const { formatMessage } = useIntl();
+  const intl = useIntl();
   const { prefixCls } = useContext(ConfigContext);
   const enableSketchPadContext = useContext(EnableSketchPadContext);
+  const [hideDropdown, setHideDropdown] = useState(false);
 
   const toolbarPrefixCls = prefixCls + '-toolbar';
 
@@ -276,6 +278,13 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               } else if (tool.type === Tool.Save) {
                 save();
               } else {
+                // Close the current open dropdown
+                if (tool.type === currentTool) {
+                  setHideDropdown((hide) => !hide);
+                } else {
+                  setHideDropdown(false);
+                }
+
                 setCurrentTool(tool.type);
               }
             }}
@@ -284,7 +293,7 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             <tool.icon />
             {!isMobileDevice ? (
               <label className={`${toolbarPrefixCls}-iconLabel`} style={tool.labelStyle || {}}>
-                {tool.labelThunk ? tool.labelThunk(props) : formatMessage({ id: tool.label })}
+                {tool.labelThunk ? tool.labelThunk(props) : intl.formatMessage({ id: tool.label })}
               </label>
             ) : null}
           </animated.div>
@@ -302,10 +311,18 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             removeBackgroundImage: () => {
               removeBackgroundImage();
             },
+            intl,
           });
 
           return (
-            <Dropdown key={tool.label} overlay={overlay} forceVisible={currentTool === tool.type}>{menu}</Dropdown>
+            <Dropdown
+              key={tool.label}
+              overlay={overlay}
+              forceHide={hideDropdown}
+              forceVisible={currentTool === tool.type}
+            >
+              {menu}
+            </Dropdown>
           );
         } else {
           return menu;

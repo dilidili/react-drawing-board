@@ -4,10 +4,11 @@ type Props = {
   overlay: JSX.Element;
   children: JSX.Element | Array<JSX.Element>;
   forceVisible?: boolean;
+  forceHide?: boolean;
 };
 
 function Dropdown(props: Props) {
-  const { children, overlay, forceVisible } = props;
+  const { children, overlay, forceVisible, forceHide } = props;
   const [isDropdownVisible, setDropdownVisible] = useState(false);
 
   // This code will prevent accidentally drawing under the dropdown when you are
@@ -34,7 +35,7 @@ function Dropdown(props: Props) {
       onMouseLeave={() => setDropdownVisible(false)}
     >
       {children}
-      {isDropdownVisible || forceVisible ? settingMenu : null}
+      {(isDropdownVisible || forceVisible) && !forceHide ? settingMenu : null}
     </div>
   );
 }

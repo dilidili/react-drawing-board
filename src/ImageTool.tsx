@@ -15,9 +15,13 @@ const _cacheImgs: {
   [any: string]: HTMLImageElement;
 } = {};
 
-const _cacheBackgroundPosition: {
+let _cacheBackgroundPosition: {
   [any: string]: Position;
 } = {};
+
+export const clearBackgroundPostionCache = () => {
+  _cacheBackgroundPosition = {};
+}
 
 export const drawImage = (
   item: Image,
@@ -66,7 +70,7 @@ export const drawBackgroundImage = (
       position = pos;
       _cacheBackgroundPosition[item.imageData] = pos;
       context.globalCompositeOperation = "destination-over";
-      drawImage(item, context, position, id, rerender);
+      rerender();
       context.globalCompositeOperation = originalCompositeOperation;
     }, {
       imageSize: "contain"

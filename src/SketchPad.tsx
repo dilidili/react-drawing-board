@@ -42,6 +42,7 @@ import {
   drawImage,
   Background,
   drawBackgroundImage,
+  clearBackgroundPostionCache,
 } from './ImageTool';
 import { onTextMouseUp, onTextComplete, drawText, Text, useTextDropdown, font } from './TextTool';
 import {
@@ -737,9 +738,12 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
         canvas.width = rect.width * DPR;
         canvas.height = rect.height * DPR;
 
+        clearBackgroundPostionCache();
+
         renderOperations(refOperationListState.current.reduced);
       }
     }, 200);
+
     addEventListener('resize', resizeHandler);
 
     return () => removeEventListener('resize', resizeHandler);
@@ -1056,7 +1060,9 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
     return {
       selectImage: (image: string) => {
         if (image && refCanvas.current) {
-          onImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation);
+          onImageComplete(image, refCanvas.current, viewMatrix, handleCompleteOperation, {
+            imageSize: "contain"
+          });
         }
       },
       selectBackgroundImage: (image: string) => {
@@ -1249,6 +1255,7 @@ const SketchPad: React.ForwardRefRenderFunction<any, SketchPadProps> = (props, r
           },
           setCurrentTool: () => { },
           prefixCls,
+          intl
         });
         break;
       }
