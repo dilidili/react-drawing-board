@@ -85,13 +85,13 @@ const useTools = () => {
       },
       ...(showBackgroundTool
         ? [
-          {
-            label: 'umi.block.sketch.background',
-            icon: BackgroundIcon,
-            type: Tool.Background,
-            useDropdown: useBackgroundDropdown,
-          },
-        ]
+            {
+              label: 'umi.block.sketch.background',
+              icon: BackgroundIcon,
+              type: Tool.Background,
+              useDropdown: useBackgroundDropdown,
+            },
+          ]
         : []),
       {
         label: 'umi.block.sketch.undo',
@@ -116,41 +116,41 @@ const useTools = () => {
       },
       ...(!isMobileDevice
         ? [
-          {
-            label: 'umi.block.sketch.zoom-out',
-            icon: ZoomOutIcon,
-            type: Tool.ZoomOut,
-          },
-        ]
-        : []),
-      ...(!isMobileDevice
-        ? [
-          {
-            label: 'umi.block.sketch.zoom-in',
-            icon: ZoomInIcon,
-            type: Tool.ZoomIn,
-          },
-        ]
-        : []),
-      ...(!isMobileDevice
-        ? [
-          {
-            label: 'umi.block.sketch.save',
-            icon: SaveIcon,
-            type: Tool.Save,
-            style: {
-              backgroundColor: "#0A38A1",
-              width: 50,
-              height: 50,
-              borderRadius: 8,
-              marginTop: 'auto',
-              marginBottom: 'auto',
+            {
+              label: 'umi.block.sketch.zoom-out',
+              icon: ZoomOutIcon,
+              type: Tool.ZoomOut,
             },
-            labelStyle: {
-              color: "white",
-            }
-          },
-        ]
+          ]
+        : []),
+      ...(!isMobileDevice
+        ? [
+            {
+              label: 'umi.block.sketch.zoom-in',
+              icon: ZoomInIcon,
+              type: Tool.ZoomIn,
+            },
+          ]
+        : []),
+      ...(!isMobileDevice
+        ? [
+            {
+              label: 'umi.block.sketch.save',
+              icon: SaveIcon,
+              type: Tool.Save,
+              style: {
+                backgroundColor: '#0A38A1',
+                width: 50,
+                height: 50,
+                borderRadius: 8,
+                marginTop: 'auto',
+                marginBottom: 'auto',
+              },
+              labelStyle: {
+                color: 'white',
+              },
+            },
+          ]
         : []),
     ];
   }, [showBackgroundTool]);
@@ -265,13 +265,6 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
             })}
             style={iconAnimateProps}
             onClick={() => {
-              // Close the current open dropdown
-              if (tool.type === currentTool) {
-                setHideDropdown(hide => !hide);
-              } else {
-                setHideDropdown(false);
-              }
-
               if (tool.type === Tool.Image && refFileInput.current) {
                 refFileInput.current.click();
               } else if (tool.type === Tool.Background) {
@@ -289,6 +282,13 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
               } else if (tool.type === Tool.Save) {
                 save();
               } else {
+                // Close the current open dropdown
+                if (tool.type === currentTool) {
+                  setHideDropdown((hide) => !hide);
+                } else {
+                  setHideDropdown(false);
+                }
+
                 setCurrentTool(tool.type);
               }
             }}
@@ -319,7 +319,14 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
           });
 
           return (
-            <Dropdown key={tool.label} overlay={overlay} forceHide={hideDropdown} forceVisible={currentTool === tool.type}>{menu}</Dropdown>
+            <Dropdown
+              key={tool.label}
+              overlay={overlay}
+              forceHide={hideDropdown}
+              forceVisible={currentTool === tool.type}
+            >
+              {menu}
+            </Dropdown>
           );
         } else {
           return menu;
