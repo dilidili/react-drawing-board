@@ -1,4 +1,4 @@
-import React, { useRef, ChangeEventHandler, useContext, useMemo, useState } from 'react';
+import React, { useRef, ChangeEventHandler, useContext, useMemo, useState, useEffect } from 'react';
 import { useSpring, animated } from 'react-spring';
 import { useIntl, IntlShape } from 'react-intl';
 import Tool, { ToolOption, MAX_SCALE, MIN_SCALE } from './enums/Tool';
@@ -22,7 +22,7 @@ import './Toolbar.less';
 import { isMobileDevice, zoom_matrix } from './utils';
 import ConfigContext from './ConfigContext';
 import EnableSketchPadContext from './contexts/EnableSketchPadContext';
-import { useTextDropdown } from './TextTool';
+import { useTextDropdown, initTextTool } from './TextTool';
 import ZoomOutIcon from './svgs/ZoomOutIcon';
 import ZoomInIcon from './svgs/ZoomInIcon';
 import { ViewMatrix } from './SketchPad';
@@ -155,6 +155,10 @@ const useTools = () => {
     ];
   }, [showBackgroundTool]);
 
+  useEffect(() => {
+    initTextTool();
+  }, []);
+  
   return tools;
 };
 

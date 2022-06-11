@@ -2,6 +2,7 @@ import Tool, { ToolOption, Position, TextSize } from './enums/Tool';
 import { IntlShape } from 'react-intl';
 import { RefObject } from 'react';
 import './TextTool.less';
+export declare const initTextTool: () => void;
 export interface Text {
     size: TextSize;
     color: string;

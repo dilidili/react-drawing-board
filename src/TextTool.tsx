@@ -10,6 +10,10 @@ let currentText = '';
 let currentColor = '';
 let currentSize = TextSize.Default;
 
+export const initTextTool = () => {
+  currentText = '';
+}
+
 const textSize = [TextSize.Small, TextSize.Default, TextSize.Large];
 
 export interface Text {
