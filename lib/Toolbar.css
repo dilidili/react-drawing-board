@@ -65,17 +65,40 @@
 .drawing-board-toolbar-icon:hover {
   background: #eeeeee;
 }
+@media screen and (max-width: 880px) {
+  .drawing-board-toolbar-icon {
+    width: 40px !important;
+    min-width: 40px !important;
+  }
+}
+@media screen and (max-width: 680px) {
+  .drawing-board-toolbar-icon {
+    margin-right: 4px;
+    margin-left: 4px;
+  }
+}
+@media screen and (max-width: 610px) {
+  .drawing-board-toolbar-icon {
+    margin-right: 0px;
+    margin-left: 0px;
+  }
+}
 .drawing-board-toolbar-iconLabel {
+  color: #0a38a1;
   font-weight: 400;
   font-size: 12px;
   line-height: 17px;
   cursor: pointer;
   user-select: none;
-  color: #0A38A1;
 }
 @media screen and (max-width: 880px) {
   .drawing-board-toolbar-iconLabel {
     display: none;
+  }
+}
+@media screen and (max-width: 880px) {
+  .drawing-board-toolbar-save {
+    height: 40px !important;
   }
 }
 .drawing-board-toolbar-activeIcon {

@@ -79,22 +79,42 @@
   &:hover {
     background: rgba(238, 238, 238, 1);
   }
+
+  @media screen and (max-width: 880px) {
+    width: 40px !important;
+    min-width: 40px !important;
+  }
+
+  @media screen and (max-width: 680px) {
+    margin-right: 4px;
+    margin-left: 4px;
+  }
+
+  @media screen and (max-width: 610px) {
+    margin-right: 0px;
+    margin-left: 0px;
+  }
 }
 
 .@{toolbar-prefix}-iconLabel {
+  color: #0a38a1;
   font-weight: 400;
   font-size: 12px;
   line-height: 17px;
   cursor: pointer;
   user-select: none;
-  color: #0A38A1;
 
   @media screen and (max-width: 880px) {
     display: none;
   }
 }
 
+.@{toolbar-prefix}-save {
+  @media screen and (max-width: 880px) {
+    height: 40px !important;
+  }
+}
+
 .@{toolbar-prefix}-activeIcon {
   background: rgba(238, 238, 238, 1);
 }
-

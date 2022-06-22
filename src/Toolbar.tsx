@@ -42,11 +42,12 @@ interface ToolConfig {
     intl: IntlShape;
   }) => JSX.Element;
   style?: React.CSSProperties;
+  className?: string;
   labelStyle?: React.CSSProperties;
 }
 
 const useTools = () => {
-  const { showBackgroundTool } = useContext(ConfigContext);
+  const { showBackgroundTool, prefixCls } = useContext(ConfigContext);
 
   const tools: ToolConfig[] = useMemo(() => {
     return [
@@ -146,6 +147,7 @@ const useTools = () => {
                 marginTop: 'auto',
                 marginBottom: 'auto',
               },
+              className: `${prefixCls}-toolbar-save`,
               labelStyle: {
                 color: 'white',
               },
@@ -158,7 +160,7 @@ const useTools = () => {
   useEffect(() => {
     initTextTool();
   }, []);
-  
+
   return tools;
 };
 
@@ -258,11 +260,14 @@ const Toolbar: React.FC<ToolbarProps> = (props) => {
 
         const menu = (
           <animated.div
-            className={classNames({
-              [`${toolbarPrefixCls}-icon`]: true,
-              [`${toolbarPrefixCls}-activeIcon`]: currentTool === tool.type && !isMobileDevice,
-              [`${toolbarPrefixCls}-mobile-icon`]: isMobileDevice,
-            })}
+            className={classNames(
+              {
+                [`${toolbarPrefixCls}-icon`]: true,
+                [`${toolbarPrefixCls}-activeIcon`]: currentTool === tool.type && !isMobileDevice,
+                [`${toolbarPrefixCls}-mobile-icon`]: isMobileDevice,
+              },
+              tool.className,
+            )}
             style={iconAnimateProps}
             onClick={() => {
               if (tool.type === Tool.Image && refFileInput.current) {
